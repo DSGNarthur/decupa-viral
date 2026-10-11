@@ -175,6 +175,8 @@ python run.py
 
 初回起動時に、フロントエンドの依存関係をインストールし、SPA をビルドし、API を起動して、ブラウザで **http://localhost:16888** を開きます。
 
+> 📦 **インストーラーを使いたい場合:** macOS・Windows・Linux 向けのビルド済みアプリは [Releases ページ](https://github.com/openclaw-easy/ViralMint/releases) にあります。macOS 版は **Apple Silicon**（M1 以降）専用です。Intel Mac では上記の手順でソースから実行してください。
+
 > 💡 **まだ API キーがない？** 起動後に **Settings → AI Provider** を開き、Anthropic・OpenAI・OpenRouter のキーを貼り付けてください。OpenRouter は300以上のモデルへの統一ゲートウェイで、1つのキーで Claude・GPT・Gemini・Llama・Mistral を利用できます。Edge TTS・Whisper・FFmpeg・yt-dlp はすべて設定不要でオフライン動作します。
 
 ### ソースからデスクトップアプリをビルド（任意）

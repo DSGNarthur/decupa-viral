@@ -176,6 +176,8 @@ python run.py
 
 The first run installs frontend deps, builds the SPA, starts the API, and opens your browser at **http://localhost:16888**.
 
+> 📦 **Prefer an installer?** Prebuilt apps for macOS, Windows and Linux are on the [Releases page](https://github.com/openclaw-easy/ViralMint/releases). The macOS build is for **Apple Silicon** (M1 or later); on an Intel Mac, run from source as above.
+
 > 💡 **No API key yet?** Open **Settings → AI Provider** after launch and paste an Anthropic, OpenAI, or OpenRouter key. OpenRouter is a single gateway to 300+ models — one key gets you Claude, GPT, Gemini, Llama, and Mistral. Edge TTS, Whisper, FFmpeg, and yt-dlp all work offline with zero configuration.
 
 ### Build a desktop app from source (optional)

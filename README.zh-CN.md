@@ -175,6 +175,8 @@ python run.py
 
 首次运行会安装前端依赖、构建 SPA、启动 API，并在浏览器中打开 **http://localhost:16888**。
 
+> 📦 **想用安装包？** macOS、Windows 和 Linux 的预构建应用在 [Releases 页面](https://github.com/openclaw-easy/ViralMint/releases)。macOS 版本仅适用于 **Apple Silicon**（M1 及更新机型）；Intel Mac 请按上面的步骤从源码运行。
+
 > 💡 **还没有 API 密钥？** 启动后打开「设置 → AI 提供方」，粘贴一个 Anthropic、OpenAI 或 OpenRouter 密钥即可。OpenRouter 是通往 300+ 模型的单一网关——一把密钥就能用上 Claude、GPT、Gemini、Llama 和 Mistral。Edge TTS、Whisper、FFmpeg 和 yt-dlp 无需任何配置即可离线工作。
 
 ### 从源码构建桌面应用（可选）
