@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.3.1] — 2026-10-11
+
 ### Added
 - **Use any OpenAI-compatible AI server.** Settings → AI Provider has a new
   **OpenAI-compatible** option: enter the server's base URL and model name
@@ -998,7 +1000,8 @@ Initial open-source release.
 - All third-party credentials encrypted with Fernet (AES-256) before being written to SQLite.
 - No telemetry. No analytics. No cloud backend in the middle — keys go directly from your machine to the provider.
 
-[Unreleased]: https://github.com/openclaw-easy/ViralMint/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/openclaw-easy/ViralMint/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/openclaw-easy/ViralMint/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/openclaw-easy/ViralMint/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/openclaw-easy/ViralMint/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/openclaw-easy/ViralMint/compare/v1.0.0...v1.1.0

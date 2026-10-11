@@ -253,7 +253,7 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     app = FastAPI(
         title="ViralMint API",
-        version="1.2.0",
+        version="1.3.1",
         lifespan=lifespan,
         docs_url="/api/docs" if settings.DEBUG else None,
         redoc_url=None,
