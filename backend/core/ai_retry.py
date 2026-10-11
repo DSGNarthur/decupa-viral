@@ -8,6 +8,8 @@ Falls back gracefully — if AI retry fails, original error is preserved.
 import json
 import logging
 from backend.core.ai_provider import get_ai_client
+import re
+from backend.core.prompt_rules import extract_json_text
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +33,9 @@ Rules:
 - Keep it concise (2-5 words)
 - Use broader or more common terms
 - If the niche is too specific, generalize it
-- If the niche contains non-English terms, consider the English equivalent too
-- Return ONLY the refined search query — no explanation."""
+- Write the query in the language the platform's audience searches in
+  (Douyin and Bilibili: Chinese; YouTube/TikTok: the niche's own language)
+- Return ONLY the refined search query on one line — no explanation."""
 
 JSON_FIX_PROMPT = """The following text was supposed to be valid JSON but failed to parse.
 Fix it and return ONLY the corrected valid JSON — no explanation, no markdown fences.
@@ -61,7 +64,10 @@ async def ai_fix_url(url: str, error: str, user_settings=None) -> str | None:
             messages=[{"role": "user", "content": URL_FIX_PROMPT.format(url=url, error=str(error)[:500])}],
             max_tokens=256,
         )
-        corrected = response.strip().strip('"').strip("'").strip("`")
+        # The first URL in the reply — a URL followed by an explanation used to
+        # be taken whole as the "URL".
+        _m = re.search(r"https?://\S+", response or "")
+        corrected = (_m.group(0) if _m else response.strip()).strip().strip('"').strip("'").strip("`").rstrip(".,)")
 
         if corrected == "SKIP" or not corrected:
             logger.info(f"AI says URL error is not fixable: {url}")
@@ -110,6 +116,7 @@ async def ai_fix_json(broken_text: str, error: str, user_settings=None) -> dict 
             max_tokens=1024,
         )
         clean = response.strip()
+        clean = extract_json_text(clean)  # fence anywhere / leading prose (prompt_rules)
         if clean.startswith("```"):
             clean = clean.split("\n", 1)[1].rsplit("```", 1)[0].strip()
         result = json.loads(clean)
@@ -173,6 +180,7 @@ async def ai_parse_api_response(
             max_tokens=2048,
         )
         clean = response.strip()
+        clean = extract_json_text(clean)  # fence anywhere / leading prose (prompt_rules)
         if clean.startswith("```"):
             clean = clean.split("\n", 1)[1].rsplit("```", 1)[0].strip()
         result = json.loads(clean)
@@ -197,6 +205,7 @@ async def ai_fix_action(broken_text: str, error: str, user_settings=None) -> dic
             max_tokens=256,
         )
         clean = response.strip()
+        clean = extract_json_text(clean)  # fence anywhere / leading prose (prompt_rules)
         if clean.startswith("```"):
             clean = clean.split("\n", 1)[1].rsplit("```", 1)[0].strip()
         result = json.loads(clean)

@@ -27,6 +27,7 @@ from backend.core.ws_manager import ws_manager
 from backend.agents.job_helper import update_job_status
 from backend.config import settings
 from backend.core.exceptions import safe_json_loads
+from backend.core.prompt_rules import extract_json_text
 
 from backend.agents.generator_prompts import (
     PLATFORM_GUIDELINES, SCRIPT_PROMPT, YOUTUBE_META_PROMPT, TIKTOK_META_PROMPT,
@@ -34,6 +35,23 @@ from backend.agents.generator_prompts import (
 from backend.agents.generator_video import (
     generate_stock_video, generate_kenburns_video,
 )
+
+
+# Longest script the generator asks for. Shorts, whatever the source runs: a
+# 15-minute source used to ask for a 900-second script, which Claude obeys —
+# and then runs out of tokens mid-sentence.
+SCRIPT_MAX_SECONDS = 180
+
+
+def _script_seconds(estimated) -> int:
+    """The spoken length to ask the script writer for: the source's estimate,
+    capped at SCRIPT_MAX_SECONDS; 90 s when the estimate is missing or junk."""
+    try:
+        seconds = int(float(estimated))
+    except (TypeError, ValueError):
+        return 90
+    return max(15, min(seconds, SCRIPT_MAX_SECONDS)) if seconds > 0 else 90
+
 
 logger = logging.getLogger(__name__)
 
@@ -405,7 +423,10 @@ class GeneratorAgent:
             transcript_section=transcript_section,
             platform_guidelines=guidelines,
             search_demand_section=search_demand_section,
-            duration_seconds=insights.get("estimated_duration", 90),
+            # Shorts, whatever the source runs: a 15-minute source asked for a
+            # 900-second script, which Claude obeys and then runs out of
+            # tokens mid-sentence.
+            duration_seconds=_script_seconds(insights.get("estimated_duration")),
             aspect_ratio=aspect_ratio,
             platform_format=platform_format,
             tone=tone,
@@ -420,7 +441,8 @@ class GeneratorAgent:
         ai = get_ai_client(user_settings)
         script = await ai.chat(
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=1024,
+            # A 180 s script in Chinese runs ~900 tokens; 1024 cut some off.
+            max_tokens=1500,
         )
         return script.strip()
 
@@ -733,8 +755,10 @@ class GeneratorAgent:
                 script_preview=script_preview, niche=niche,
                 search_demand_section=search_demand_section,
             )
-            yt_resp = await ai.chat(messages=[{"role": "user", "content": yt_prompt}], max_tokens=512)
-            yt_clean = yt_resp.strip()
+            # A 200-400-word description + 15 tags: 512 tokens cut the JSON off
+            # mid-description on Claude, and the metadata was lost.
+            yt_resp = await ai.chat(messages=[{"role": "user", "content": yt_prompt}], max_tokens=1200)
+            yt_clean = extract_json_text(yt_resp)  # fence anywhere / leading prose (prompt_rules)
             if yt_clean.startswith("```"):
                 yt_clean = yt_clean.split("\n", 1)[1].rsplit("```", 1)[0]
             try:
@@ -754,8 +778,8 @@ class GeneratorAgent:
                 script_preview=script_preview, niche=niche,
                 search_demand_section=search_demand_section,
             )
-            tt_resp = await ai.chat(messages=[{"role": "user", "content": tt_prompt}], max_tokens=256)
-            tt_clean = tt_resp.strip()
+            tt_resp = await ai.chat(messages=[{"role": "user", "content": tt_prompt}], max_tokens=600)
+            tt_clean = extract_json_text(tt_resp)  # fence anywhere / leading prose (prompt_rules)
             if tt_clean.startswith("```"):
                 tt_clean = tt_clean.split("\n", 1)[1].rsplit("```", 1)[0]
             try:

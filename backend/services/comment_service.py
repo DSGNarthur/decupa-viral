@@ -10,6 +10,7 @@ import asyncio
 import json
 import logging
 from typing import Optional
+from backend.core.prompt_rules import OUTPUT_LANGUAGE_RULE, extract_json_text
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,7 @@ RULES:
 - Be specific — quote or paraphrase actual comments, don't generalize
 - comment_themes: group similar comments, count how many fit each theme
 - Limit to the most important 3-5 items per category"""
+COMMENT_ANALYSIS_PROMPT += "\n\n" + OUTPUT_LANGUAGE_RULE  # state the language — Claude does not infer it (prompt_rules)
 
 
 async def fetch_youtube_comments(
@@ -189,6 +191,7 @@ async def analyze_comments(
             max_tokens=1024,
         )
         clean = response.strip()
+        clean = extract_json_text(clean)  # fence anywhere / leading prose (prompt_rules)
         if clean.startswith("```"):
             clean = clean.split("\n", 1)[1].rsplit("```", 1)[0]
         try:

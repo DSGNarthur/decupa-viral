@@ -9,6 +9,7 @@ Works with both stock footage (Pexels) and AI-generated clips.
 import json
 import logging
 from typing import Optional
+from backend.core.prompt_rules import extract_json_text
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,8 @@ Return JSON only (no markdown):
 RULES:
 - position_pct: approximate position in the script (0-100%)
 - duration_seconds: how long the B-roll should play (2-5 seconds typically)
-- search_query: specific enough for Pexels/stock search (e.g. "person typing laptop coffee shop")
+- search_query: specific enough for Pexels/stock search (e.g. "person typing laptop coffee shop"), always in English
+- trigger_text: copied VERBATIM from the script, in the script's own language
 - Never place B-roll during the hook (first 5 seconds) — the speaker's face matters there
 - Place B-roll during explanatory/descriptive sections, not emotional/personal moments
 - Total B-roll should cover 15-30% of the video, never more than 40%
@@ -72,6 +74,7 @@ async def analyze_broll_timing(
             max_tokens=1024,
         )
         clean = response.strip()
+        clean = extract_json_text(clean)  # fence anywhere / leading prose (prompt_rules)
         if clean.startswith("```"):
             clean = clean.split("\n", 1)[1].rsplit("```", 1)[0]
         try:

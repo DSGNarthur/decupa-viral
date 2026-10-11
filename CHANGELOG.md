@@ -34,6 +34,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   grid, where a click in a long list appeared to do nothing.
 
 ### Fixed
+- **AI features answer in your video's language and survive Claude's
+  formatting.** Claude — the default provider — doesn't infer the output
+  language, so a Chinese video came back with English clip titles, hooks,
+  scripts, analysis and metadata. It also often puts a sentence before its
+  JSON or wraps it in a fence mid-reply, which several features read as a
+  failure. Every AI call that writes text you read now asks for the source's
+  language (stock-footage search terms stay in English, where stock sites
+  search), and every JSON reply is read wherever it sits in the answer. A long
+  clip list that hits the model's output limit keeps its complete clips
+  instead of failing; a clip list wrapped in an object is understood; YouTube
+  metadata has room for the full description it asks for; a script for a
+  long source is a short-form script, not a 15-minute one cut off
+  mid-sentence; a "Here is the corrected transcript:" line no longer ends up
+  in your transcript; and a repaired download link is the link itself, not
+  the sentence explaining it.
 - **A stuck download can no longer freeze the whole app.** A download that
   stopped receiving data used to sit at "Downloading…" for its full 20-minute
   timeout with no error — and because the timeout could not stop the

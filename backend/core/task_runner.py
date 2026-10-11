@@ -932,6 +932,12 @@ A 2-3 sentence summary of who this channel is and what they do.
 3 specific, tactical recommendations for someone who wants to compete with or learn from this channel. Be concrete — mention specific content ideas or strategies.
 
 Keep it concise and data-driven. Reference specific numbers from the video data. Do not add disclaimers or filler."""
+# The channel's titles and description are the source: a Chinese channel gets
+# its strategy in Chinese (Claude does not infer the language — prompt_rules).
+CHANNEL_ANALYSIS_PROMPT += (
+    "\n\nLANGUAGE: write the breakdown in the language of the channel's titles "
+    "and description above."
+)
 
 
 async def _generate_channel_ai_analysis(summary: dict, user_id: str) -> str:

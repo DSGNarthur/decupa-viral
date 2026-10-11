@@ -14,6 +14,7 @@ from backend.database import AsyncSessionLocal
 from backend.models.user_behavior import UserBehavior
 from backend.models.user_settings import UserSettings
 from backend.models.user_profile import UserProfile
+from backend.core.prompt_rules import extract_json_text
 
 logger = logging.getLogger(__name__)
 
@@ -139,6 +140,7 @@ class UserIntelligence:
 
             # Parse and validate JSON
             cleaned = response.strip()
+            cleaned = extract_json_text(cleaned)  # fence anywhere / leading prose (prompt_rules)
             if cleaned.startswith("```"):
                 cleaned = cleaned.split("\n", 1)[1].rsplit("```", 1)[0].strip()
             profile_data = json.loads(cleaned)
@@ -401,6 +403,7 @@ Return a JSON array of 3 strings. No explanation."""
                 max_tokens=256,
             )
             cleaned = response.strip()
+            cleaned = extract_json_text(cleaned)  # fence anywhere / leading prose (prompt_rules)
             if cleaned.startswith("```"):
                 cleaned = cleaned.split("\n", 1)[1].rsplit("```", 1)[0].strip()
             suggestions = json.loads(cleaned)
@@ -692,6 +695,7 @@ Return ONLY the JSON array."""
                 max_tokens=1024,
             )
             cleaned = response.strip()
+            cleaned = extract_json_text(cleaned)  # fence anywhere / leading prose (prompt_rules)
             if cleaned.startswith("```"):
                 cleaned = cleaned.split("\n", 1)[1].rsplit("```", 1)[0].strip()
             calendar = json.loads(cleaned)

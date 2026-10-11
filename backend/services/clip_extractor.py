@@ -23,6 +23,7 @@ from uuid import uuid4
 
 from backend.config import settings
 from backend.core.concurrency import _ffmpeg_semaphore
+from backend.core.prompt_rules import OUTPUT_LANGUAGE_RULE
 from backend.core.ws_manager import ws_manager
 from backend.services.clip_options import ExtractOptions
 
@@ -224,6 +225,7 @@ IMPORTANT:
 - Segments must NOT overlap
 - Order by virality_score descending (best clip first)
 - You MUST return at least 1 clip if there is any usable content"""
+CLIP_SELECTION_PROMPT += "\n\n" + OUTPUT_LANGUAGE_RULE  # state the language — Claude does not infer it (prompt_rules)
 
 CLIP_METADATA_PROMPT = """Generate platform metadata for this viral short clip.
 
@@ -238,6 +240,7 @@ Return ONLY valid JSON, no markdown fences:
   "youtube_tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
   "tiktok_title": "TikTok caption with hashtags (under 150 chars, hook-first)"
 }}"""
+CLIP_METADATA_PROMPT += "\n\n" + OUTPUT_LANGUAGE_RULE  # state the language — Claude does not infer it (prompt_rules)
 
 
 CLIP_METADATA_BATCH_PROMPT = """Generate platform metadata for {count} viral short clips. Each clip is independent — write metadata tailored to that clip's specific transcript and title.
@@ -263,6 +266,7 @@ IMPORTANT:
 - The `index` field MUST match the input clip number — do not reorder or skip
 - Each object MUST have ALL five fields (index + 4 metadata fields)
 - If a clip's transcript is empty, base the metadata on the title alone"""
+CLIP_METADATA_BATCH_PROMPT += "\n\n" + OUTPUT_LANGUAGE_RULE  # state the language — Claude does not infer it (prompt_rules)
 
 
 # ── Platform-bias prompt block ───────────────────────────────────────────────
@@ -1850,6 +1854,13 @@ async def _select_clip_windows(
                 max_tokens=token_limit,
             )
             parsed = _parse_json_response(response)
+            if isinstance(parsed, dict):
+                # A wrapper ({"clips": [...]}) — Claude adds one often — is
+                # the array itself; anything else is a single clip.
+                inner = next((parsed[k] for k in ("clips", "items", "results", "windows")
+                              if isinstance(parsed.get(k), list)), None)
+                if inner is not None:
+                    parsed = inner
             if parsed and isinstance(parsed, list):
                 windows = parsed
                 break
@@ -2979,5 +2990,30 @@ def _parse_json_response(text: str) -> any:
                 try:
                     return json.loads(match.group(0))
                 except json.JSONDecodeError:
-                    continue
+                    pass
+            if pattern.startswith(r'\[') and "[" in text and (
+                    "{" not in text or text.find("[") < text.find("{")):
+                # An array that never closed (output ceiling) — keep its
+                # complete elements rather than grabbing the first object.
+                salvaged = _salvage_truncated_array(text)
+                if salvaged is not None:
+                    return salvaged
+    return _salvage_truncated_array(text)
+
+
+def _salvage_truncated_array(text: str):
+    """The complete objects of a JSON array that was cut off mid-element (an
+    output-token ceiling hit on a long clip list) — `[{..}, {..}, {..` →
+    the first two. None when there is no array or nothing complete in it."""
+    start = text.find("[")
+    if start < 0:
+        return None
+    body = text[start:]
+    end = body.rfind("}")
+    while end > 0:
+        try:
+            out = json.loads(body[: end + 1] + "]")
+            return out if isinstance(out, list) and out else None
+        except json.JSONDecodeError:
+            end = body.rfind("}", 0, end)
     return None

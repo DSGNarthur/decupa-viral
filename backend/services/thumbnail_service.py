@@ -167,8 +167,9 @@ Video context:
 {context}
 
 Rules:
-- 2-5 words ONLY
-- ALL CAPS
+- 2-5 words ONLY (for Chinese/Japanese/Korean: 4-10 characters)
+- In the same language as the video context above
+- ALL CAPS (for Latin scripts)
 - Must grab attention and create curiosity
 - No quotes, no punctuation except ! or ?
 - Think YouTube thumbnail style — bold, shocking, intriguing

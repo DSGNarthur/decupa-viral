@@ -11,6 +11,7 @@ from backend.database import AsyncSessionLocal
 from backend.models.downloaded_video import DownloadedVideo
 from backend.models.user_settings import UserSettings
 from backend.core.ai_provider import get_ai_client
+from backend.core.prompt_rules import OUTPUT_LANGUAGE_RULE, extract_json_text
 from backend.core.ws_manager import ws_manager
 from backend.agents.job_helper import update_job_status
 
@@ -19,7 +20,8 @@ logger = logging.getLogger(__name__)
 TRANSCRIPT_CORRECTION_PROMPT = """Fix transcription errors in the following speech-to-text output.
 Correct spelling, grammar, punctuation, and proper nouns based on context.
 Do NOT change the meaning or rephrase sentences — only fix obvious transcription mistakes.
-Return the corrected text only, no explanation.
+Keep the transcript's own language. Return the corrected text only — no preamble
+("Here is…"), no explanation, no quotes around it.
 
 Raw transcript:
 {transcript}"""
@@ -52,7 +54,7 @@ Return JSON only (no markdown):
     "composite": 7.1
   }},
   "structural_pattern": "hook-problem-solution or listicle or story-arc or tutorial or reaction",
-  "retention_risks": ["timestamp or moment where viewers likely drop off and why"],
+  "retention_risks": ["the moment (quote the line) where viewers likely drop off and why — no invented timestamps"],
   "recreate_prompt": "A single ready-to-run generation brief that recreates this video's WINNING SHAPE for a new topic: name the hook archetype, beat order, pacing, tone, and visual treatment as directives (e.g. 'Open on a bold contrarian claim in the first sentence; 3 rapid proof beats of ~8s each; conversational expert tone; end with a question CTA'). Format + structure only — never reuse this video's wording or topic."
 }}
 
@@ -66,6 +68,7 @@ IMPORTANT for the "scores" object:
 - uniqueness: Is the angle original or just copying others?
 - actionability: Does the viewer learn something usable?
 - composite: weighted average (hook 20%, structure 15%, emotional 15%, trend 15%, production 10%, uniqueness 15%, actionability 10%)"""
+INSIGHTS_PROMPT += "\n\n" + OUTPUT_LANGUAGE_RULE  # state the language — Claude does not infer it (prompt_rules)
 
 
 SEGMENT_ANALYSIS_PROMPT = """Analyze this video transcript segment-by-segment for retention and virality.
@@ -107,6 +110,7 @@ SCORING GUIDE:
 
 Use start_pct and end_pct as percentage of total transcript length (0-100).
 Be honest — most segments should score 4-7, not 8-10."""
+SEGMENT_ANALYSIS_PROMPT += "\n\n" + OUTPUT_LANGUAGE_RULE  # state the language — Claude does not infer it (prompt_rules)
 
 
 IMPROVEMENT_PROMPT = """You are a viral video strategist. Based on the analysis below, provide
@@ -124,7 +128,7 @@ Provide 5 concrete improvements as JSON only (no markdown):
     {{
       "category": "hook",
       "priority": "high",
-      "original_approach": "What the original video did (be specific with timestamps/quotes)",
+      "original_approach": "What the original video did (be specific — quote its lines; the transcript has no timestamps, so never invent them)",
       "improvement": "Exact change to make — e.g. 'Open with the result first: show the $10K savings chart in frame 1, THEN explain how'",
       "expected_impact": "Why this works better — reference platform algorithm or viewer psychology"
     }},
@@ -167,6 +171,7 @@ RULES:
 - Be SPECIFIC — reference actual content from the transcript, not generic advice
 - "improvement" must be a concrete action, not a vague suggestion
 - Each improvement should be different from the others"""
+IMPROVEMENT_PROMPT += "\n\n" + OUTPUT_LANGUAGE_RULE  # state the language — Claude does not infer it (prompt_rules)
 
 
 # --- Transcript correction ---------------------------------------------------
@@ -225,6 +230,12 @@ async def _ai_correct_transcript(user_settings, raw_text: str) -> str:
                 max_tokens=4096,
             )
         corrected = (corrected or "").strip()
+        # A "Here is the corrected transcript:" preamble passes the length
+        # guard and would be stored in the transcript — drop one opening line
+        # that ends in a colon.
+        first, _, rest = corrected.partition("\n")
+        if rest and first.rstrip().endswith((":", "：")) and len(first) < 80:
+            corrected = rest.strip()
         if corrected and 0.5 * len(chunk) <= len(corrected) <= 2 * len(chunk) + 50:
             return corrected
         logger.warning(
@@ -360,6 +371,7 @@ class AnalyzerAgent:
                         )
                         # Parse JSON from response
                         response_clean = response.strip()
+                        response_clean = extract_json_text(response_clean)  # fence anywhere / leading prose (prompt_rules)
                         if response_clean.startswith("```"):
                             response_clean = response_clean.split("\n", 1)[1].rsplit("```", 1)[0]
                         try:
@@ -388,6 +400,7 @@ class AnalyzerAgent:
                                 max_tokens=1024,
                             )
                             seg_clean = seg_response.strip()
+                            seg_clean = extract_json_text(seg_clean)  # fence anywhere / leading prose (prompt_rules)
                             if seg_clean.startswith("```"):
                                 seg_clean = seg_clean.split("\n", 1)[1].rsplit("```", 1)[0]
                             try:
@@ -419,6 +432,7 @@ class AnalyzerAgent:
                                 max_tokens=1024,
                             )
                             imp_clean = imp_response.strip()
+                            imp_clean = extract_json_text(imp_clean)  # fence anywhere / leading prose (prompt_rules)
                             if imp_clean.startswith("```"):
                                 imp_clean = imp_clean.split("\n", 1)[1].rsplit("```", 1)[0]
                             try:
@@ -634,6 +648,7 @@ class AnalyzerAgent:
                         max_tokens=1024,
                     )
                     response_clean = response.strip()
+                    response_clean = extract_json_text(response_clean)  # fence anywhere / leading prose (prompt_rules)
                     if response_clean.startswith("```"):
                         response_clean = response_clean.split("\n", 1)[1].rsplit("```", 1)[0]
                     try:

@@ -54,6 +54,7 @@ Requirements:
 - Write for spoken delivery — conversational, no markdown
 - If the user asks you to translate or adapt the transcript, use the ORIGINAL TRANSCRIPT above as the source material
 - If search demand keywords are provided above, naturally incorporate 2-3 of the most relevant ones into your script to maximize discoverability
+- Language: write in the same language as the source transcript (e.g. a Chinese source → Chinese narration) unless the user's instructions below name another language
 
 Return ONLY the script text. No title, no stage directions, no [INTRO] markers.
 Just the words to be spoken."""
@@ -70,10 +71,12 @@ IMPORTANT: If search demand keywords are provided above, use them strategically:
 - Include ALL relevant demand keywords in tags
 - Weave demand keywords into the first 2 sentences of the description
 
+Write the title, description and tags in the same language as the script.
+
 Return JSON only (no markdown):
 {{
   "title": "Click-worthy title under 100 chars, with power words and demand keywords",
-  "description": "Full description 200-400 words with keywords, timestamps if relevant, CTA, links placeholder",
+  "description": "Full description 200-400 words with keywords, CTA, links placeholder — no timestamps or chapters (none are known for this video)",
   "tags": ["tag1", "tag2", "...up to 15 tags"],
   "category_id": "22"
 }}"""
@@ -85,6 +88,8 @@ Niche: {niche}
 {search_demand_section}
 
 IMPORTANT: If search demand keywords are provided, use them as hashtags and work them into the caption.
+
+Write the caption and description in the same language as the script.
 
 Return JSON only (no markdown):
 {{

@@ -10,6 +10,7 @@ optimal structure, tone, and content gaps.
 import json
 import logging
 from typing import Optional
+from backend.core.prompt_rules import extract_json_text
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +107,7 @@ async def generate_viral_formula(
             messages=[{"role": "user", "content": prompt}],
             max_tokens=1500,
         )
-        clean = response.strip()
+        clean = extract_json_text(response)  # fence anywhere / leading prose (prompt_rules)
         if clean.startswith("```"):
             clean = clean.split("\n", 1)[1].rsplit("```", 1)[0]
         try:

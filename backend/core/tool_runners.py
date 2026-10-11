@@ -227,15 +227,11 @@ async def _load_user_settings(user_id: str):
 
 
 def _strip_json_fence(text: str) -> str:
-    """Strip an optional ```json ... ``` fence the model occasionally wraps."""
-    out = (text or "").strip()
-    if out.startswith("```"):
-        out = out.split("\n", 1)[-1] if "\n" in out else out[3:]
-        if out.endswith("```"):
-            out = out[:-3]
-        if out.lstrip().lower().startswith("json"):
-            out = out.lstrip()[4:].lstrip()
-    return out.strip()
+    """The JSON in a model reply: a ```json fence anywhere, or the span from
+    the first `{`/`[` — Claude often adds a sentence before the JSON, which a
+    fence-at-position-0 check never handled."""
+    from backend.core.prompt_rules import extract_json_text
+    return extract_json_text(text)
 
 
 # ── Captions ───────────────────────────────────────────────────────────────

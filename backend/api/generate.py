@@ -19,6 +19,7 @@ from sqlalchemy import select
 
 from backend.database import AsyncSessionLocal
 from backend.models.downloaded_video import DownloadedVideo
+from backend.core.prompt_rules import extract_json_text
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/generate", tags=["generate"])
@@ -146,7 +147,9 @@ async def split_scenes(body: SplitScenesRequest):
     system = (
         "You split video scripts into scenes for stock footage matching. "
         "For each scene, extract 2-4 Pexels search keywords that describe "
-        "the visual content needed. Return JSON only."
+        "the visual content needed. Keywords are always in English (stock "
+        "sites are searched in English); narration text stays verbatim. "
+        "Return JSON only."
     )
     prompt = (
         f"Split this script into 4-8 scenes. For each scene, provide the narration text "
@@ -162,6 +165,7 @@ async def split_scenes(body: SplitScenesRequest):
             max_tokens=2048,
         )
         text = response.strip()
+        text = extract_json_text(text)  # fence anywhere / leading prose (prompt_rules)
         if text.startswith("```"):
             text = text.split("\n", 1)[1] if "\n" in text else text[3:]
             text = text.rsplit("```", 1)[0]

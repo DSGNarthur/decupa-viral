@@ -13,6 +13,7 @@ from backend.models.caption_style import CaptionStyle
 from backend.models.user_settings import UserSettings
 from backend.core.ai_provider import get_ai_client
 from backend.services.caption_service import CAPTION_STYLES as _CAPTION_STYLE_DEFS
+from backend.core.prompt_rules import extract_json_text
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -267,6 +268,7 @@ async def generate_caption_style(body: AIGenerateRequest):
     try:
         # Extract JSON from response (AI might wrap it in markdown)
         text = response.strip()
+        text = extract_json_text(text)  # fence anywhere / leading prose (prompt_rules)
         if text.startswith("```"):
             text = text.split("```")[1]
             if text.startswith("json"):

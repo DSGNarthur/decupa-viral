@@ -19,6 +19,7 @@ from backend.database import AsyncSessionLocal
 from backend.models.downloaded_video import DownloadedVideo
 from backend.models.scout_result import ScoutResult
 from backend.core.exceptions import safe_json_loads as _safe_json
+from backend.core.prompt_rules import extract_json_text
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -564,7 +565,7 @@ async def polish_script(body: dict = None):
     prompt = f"""Improve and polish this video narration script.
 
 Fix grammar, improve flow, sharpen the hook, and make it more engaging.
-Keep the same topic, structure, and approximate length.
+Keep the same topic, structure, approximate length and language.
 Do NOT add stage directions, timestamps, or scene descriptions.
 Return ONLY the improved script text.
 
@@ -619,6 +620,7 @@ Requirements:
 - Keep it concise — aim for 60-90 seconds spoken
 - Use conversational, engaging tone
 - Do NOT include stage directions, timestamps, or scene descriptions
+- Write in the language of the topic/instructions above (a Chinese topic → a Chinese script)
 - Return ONLY the script text, nothing else"""
 
     try:
@@ -1382,6 +1384,7 @@ async def ai_action(video_id: str, body: dict = None):
 
         # For JSON-returning actions, try to parse
         if action in ("translate", "rewrite_for_platform", "suggest_titles"):
+            result_text = extract_json_text(result_text)  # fence anywhere / leading prose (prompt_rules)
             # Strip markdown code fences if present
             if result_text.startswith("```"):
                 lines = result_text.split("\n")

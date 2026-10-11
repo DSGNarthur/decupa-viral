@@ -8,6 +8,7 @@ import asyncio
 import json
 import logging
 from typing import Optional
+from backend.core.prompt_rules import OUTPUT_LANGUAGE_RULE, extract_json_text
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,7 @@ Return ONLY this JSON object, no explanation or markdown fences:
   "target_audience": "who would watch this video",
   "related_context": "background context that adds depth to the story"
 }}"""
+SINGLE_ARTICLE_PROMPT += "\n\n" + OUTPUT_LANGUAGE_RULE  # state the language — Claude does not infer it (prompt_rules)
 
 
 async def _analyze_one(
@@ -92,7 +94,7 @@ async def _analyze_one(
                     max_tokens=1024,
                 )
 
-                cleaned = response.strip()
+                cleaned = extract_json_text(response)  # fence anywhere / leading prose (prompt_rules)
                 if cleaned.startswith("```"):
                     cleaned = cleaned.split("\n", 1)[1].rsplit("```", 1)[0].strip()
                 analysis = json.loads(cleaned)
