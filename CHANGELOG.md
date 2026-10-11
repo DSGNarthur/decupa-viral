@@ -19,6 +19,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   ignore everyone else. WhatsApp only listens to your own "Message yourself"
   chat. Bots you already connected keep working.
 
+### Added
+- **Transcript Downloader: paste a video link, get the captions it already
+  has.** A new tool under Tools → Subtitles & Insights reads the caption track
+  a site already publishes — creator-uploaded when there is one, auto-generated
+  otherwise — and saves it as a plain .txt transcript, a timed .srt or a .vtt.
+  Nothing is downloaded but the subtitle file and nothing is transcribed, so it
+  takes seconds. "Auto" picks the video's own spoken language rather than one
+  of the machine translations YouTube offers next to it; pick a language
+  yourself and you are told if the video doesn't have it and you got another
+  one instead. A video with no captions fails with a clear message pointing at
+  Export Subtitles rather than quietly starting a long transcription. Results
+  land in the Library like any other tool output.
+
 ### Changed
 - **Cancelling a running job tells you the truth.** A download transfer or an
   ffmpeg pass cannot be interrupted mid-flight, so a cancelled job may finish

@@ -30,6 +30,7 @@ const ToolGif = lazy(() => import("./pages/tools/Gif"))
 const ToolSpeed = lazy(() => import("./pages/tools/Speed"))
 const ToolTrim = lazy(() => import("./pages/tools/Trim"))
 const ToolSubtitles = lazy(() => import("./pages/tools/Subtitles"))
+const ToolTranscript = lazy(() => import("./pages/tools/Transcript"))
 const ToolAutoZoom = lazy(() => import("./pages/tools/AutoZoom"))
 const ToolTransform = lazy(() => import("./pages/tools/Transform"))
 const ToolMusicVisualizer = lazy(() => import("./pages/tools/MusicVisualizer"))
@@ -116,6 +117,7 @@ export default function App() {
               <Route path="tools/speed" element={<ToolSpeed />} />
               <Route path="tools/trim" element={<ToolTrim />} />
               <Route path="tools/subtitles" element={<ToolSubtitles />} />
+              <Route path="tools/transcript" element={<ToolTranscript />} />
               <Route path="tools/auto-zoom" element={<ToolAutoZoom />} />
               <Route path="tools/transform" element={<ToolTransform />} />
               <Route path="tools/compress" element={<ToolCompress />} />

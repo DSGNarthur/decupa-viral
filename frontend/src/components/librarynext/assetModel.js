@@ -134,6 +134,7 @@ export const PRODUCERS = {
   "tool:audio_enhance": { label: "Enhanced", media: "video", origin: "edited" },
   "tool:gif": { label: "GIF", media: "image", origin: "edited" },
   "tool:subtitle_export": { label: "Subtitles", media: "doc", origin: "edited" },
+  "tool:transcript": { label: "Transcript", media: "doc", origin: "edited" },
   "tool:auto_chapters": { label: "Chapters", media: "doc", origin: "edited" },
   "tool:metadata": { label: "Metadata", media: "doc", origin: "edited" },
 

@@ -1849,6 +1849,122 @@ async def run_tool_subtitles(
         await _tool_fail(job_id, e, cleanup, user_id, "subtitles")
 
 
+# ── Transcript downloader (the caption track a video already has) ──────────
+
+# Where to go when a video publishes no captions. Named, never automatic:
+# silently transcribing instead would turn a seconds-long fetch into a
+# minutes-long Whisper run the user never asked for.
+NO_CAPTIONS_HINT = (
+    "To transcribe the audio instead, download the video and use "
+    "Export Subtitles (Whisper)."
+)
+
+
+def _merge_repeated_cues(segments: list[dict]) -> list[dict]:
+    """Fold consecutive cues that repeat the same words into one.
+
+    The same caption held across two cues is one line of transcript, not two —
+    left alone it reads as stutter in the .txt and restarts in the .srt.
+    """
+    merged: list[dict] = []
+    for seg in segments:
+        if merged and merged[-1]["text"] == seg["text"] and seg["start"] <= merged[-1]["end"] + 0.05:
+            merged[-1]["end"] = max(merged[-1]["end"], seg["end"])
+            continue
+        merged.append(dict(seg))
+    return merged
+
+
+async def run_tool_transcript(
+    job_id: str,
+    url: str,
+    language: str | None = None,
+    fmt: str = "txt",
+    user_id: str = "local",
+):
+    """Fetch a URL's existing caption track and write it as .txt / .srt / .vtt.
+
+    No Whisper pass and no video bytes: `extract_subtitles_only` pulls just the
+    subtitle stream the platform already publishes (creator-uploaded, else
+    auto-generated), and the file is rewritten through the same parser and
+    writer the download and subtitle-export paths use.
+
+    yt-dlp-only by construction — a caption track is a yt-dlp extractor
+    feature, so there is no TikHub / browser rung to fall back to. A source
+    yt-dlp cannot reach fails here with yt-dlp's reason.
+    """
+    import shutil
+
+    logger.info("TASK START tool:transcript | job=%s fmt=%s lang=%s",
+                job_id[:8], fmt, language or "auto")
+    cleanup: list[Path] = []
+    scratch: Path | None = None
+    try:
+        from backend.api.tools import tool_out_path, tools_in_dir
+        from backend.core.exceptions import NoCaptionsError
+        from backend.core.ws_manager import ws_manager
+        from backend.services.ytdlp_service import _parse_subtitle_text, extract_subtitles_only
+
+        # Per-job scratch: the fetched track is ours alone, removed in finally.
+        scratch = tools_in_dir() / f"{job_id}_subs"
+
+        await _tool_progress(job_id, 15, "Looking for captions…", user_id)
+        try:
+            info = await extract_subtitles_only(
+                url=url, output_dir=scratch, language=language, prefer_manual=True,
+            )
+        except NoCaptionsError as e:
+            # The service's message lists what the source DOES offer — keep
+            # it, and say where to go instead.
+            raise NoCaptionsError(f"{e} {NO_CAPTIONS_HINT}") from e
+
+        await _tool_progress(job_id, 60, "Reading cues…", user_id)
+        src = Path(info["path"])
+        content = await asyncio.to_thread(src.read_text, encoding="utf-8-sig", errors="replace")
+        segments = _merge_repeated_cues(_parse_subtitle_text(content, str(src)))
+        if not segments:
+            raise NoCaptionsError(
+                f"The caption track for this video had no readable cues. {NO_CAPTIONS_HINT}"
+            )
+
+        # The service tries the caller's language FIRST but keeps a fallback
+        # chain behind it — so asking for Swahili on an English-only video
+        # succeeds with English. Right for "give me whatever it has", a silent
+        # substitution for someone who picked a language from a dropdown.
+        got_lang = (info.get("language") or "").lower()
+        if language and got_lang and got_lang != language.lower():
+            await ws_manager.send_constraint_warning(
+                constraint="transcript_language", severity="warning",
+                message=(f"This video has no '{language}' captions — downloaded the "
+                         f"'{got_lang}' track instead."),
+                user_id=user_id,
+            )
+
+        await _tool_progress(job_id, 85, f"Writing .{fmt}…", user_id)
+        out_path = tool_out_path(job_id, f".{fmt}")
+        await asyncio.to_thread(_build_subtitle_file, segments, fmt, out_path)
+
+        await _tool_success(
+            job_id, out_path, cleanup, user_id,
+            extra_output={
+                "format": fmt,
+                "language": info.get("language") or "",
+                "is_auto_generated": bool(info.get("is_auto_generated")),
+                "segment_count": len(segments),
+                "title": info.get("title") or "",
+                "source_url": url,
+            },
+        )
+        logger.info("TASK DONE  tool:transcript | job=%s lang=%s auto=%s cues=%d",
+                    job_id[:8], info.get("language"), info.get("is_auto_generated"),
+                    len(segments))
+    except Exception as e:
+        await _tool_fail(job_id, e, cleanup, user_id, "transcript")
+    finally:
+        if scratch is not None:
+            shutil.rmtree(scratch, ignore_errors=True)
+
+
 # ── Auto-zoom (Whisper words → zoom pulses) ────────────────────────────────
 
 async def run_tool_auto_zoom(

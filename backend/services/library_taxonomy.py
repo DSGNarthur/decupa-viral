@@ -131,6 +131,7 @@ PRODUCERS: dict[str, Producer] = {
     "tool:audio_enhance": _p("tool:audio_enhance", "Enhanced", MEDIA_VIDEO, ORIGIN_EDITED),
     "tool:gif": _p("tool:gif", "GIF", MEDIA_IMAGE, ORIGIN_EDITED),
     "tool:subtitle_export": _p("tool:subtitle_export", "Subtitles", MEDIA_DOC, ORIGIN_EDITED),
+    "tool:transcript": _p("tool:transcript", "Transcript", MEDIA_DOC, ORIGIN_EDITED),
     "tool:auto_chapters": _p("tool:auto_chapters", "Chapters", MEDIA_DOC, ORIGIN_EDITED),
     "tool:metadata": _p("tool:metadata", "Metadata", MEDIA_DOC, ORIGIN_EDITED),
 

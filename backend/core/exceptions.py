@@ -51,6 +51,12 @@ class VideoUnavailableError(DownloadError):
     """Video is private, deleted, or region-blocked."""
     pass
 
+class NoCaptionsError(VideoUnavailableError):
+    """The video exists but publishes no caption track that could be fetched
+    (in any candidate language). Distinct from VideoUnavailableError so a
+    caller can point at transcription instead of at the link."""
+    pass
+
 class DownloadTimeoutError(DownloadError):
     """The download exceeded its wall-clock cap and was abandoned.
 

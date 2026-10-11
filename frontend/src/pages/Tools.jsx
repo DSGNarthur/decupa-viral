@@ -31,6 +31,7 @@ import CompressOutlinedIcon from "@mui/icons-material/CompressOutlined"
 import CropOutlinedIcon from "@mui/icons-material/CropOutlined"
 import VolumeOffOutlinedIcon from "@mui/icons-material/VolumeOffOutlined"
 import DownloadForOfflineOutlinedIcon from "@mui/icons-material/DownloadForOfflineOutlined"
+import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined"
 
 // ── Catalog ────────────────────────────────────────────────────────────────
 //
@@ -172,6 +173,13 @@ const TOOLS = [
     title: "Export Subtitles",
     description: "Transcribe to a downloadable .srt / .vtt file or plain transcript.",
     icon: <ClosedCaptionOutlinedIcon />,
+    category: "subtitles",
+  },
+  {
+    id: "transcript",
+    title: "Transcript Downloader",
+    description: "Paste a link and grab the captions it already has as .txt / .srt / .vtt — no transcribing.",
+    icon: <ArticleOutlinedIcon />,
     category: "subtitles",
   },
   {

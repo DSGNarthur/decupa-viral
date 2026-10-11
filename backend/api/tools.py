@@ -17,6 +17,7 @@ thumbnail) are NOT ported — they need cloud media-gen providers OSS lacks.
 """
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Literal, Optional
 
@@ -753,6 +754,41 @@ async def subtitles_tool(
     job = await create_job("tool:subtitle_export", "local", {"format": format})
     in_path = await save_upload(file, job.id, VIDEO_EXTS, VIDEO_MAX_BYTES)
     dispatch(run_tool_subtitles(job.id, in_path, fmt=format))
+    return {"job_id": job.id}
+
+
+@router.post("/transcript")
+async def transcript_tool(
+    url: str = Form(...),
+    language: str = Form(""),
+    format: Literal["txt", "srt", "vtt"] = Form("txt"),
+):
+    """Download a video's EXISTING caption track from its URL — no transcription.
+
+    The sibling of `/subtitles`: instead of uploading a video and running
+    Whisper over it, this reads the subtitle stream the platform already
+    publishes (creator-uploaded, else auto-generated). Seconds instead of
+    minutes. A source with no caption track fails and says so — it never falls
+    back to transcribing.
+
+    `language` is an optional 2-letter ISO code; empty means "whatever the
+    video has" (its own language first, then en→zh→ja→ko→es→fr→de→pt→ru→ar).
+    """
+    url = (url or "").strip()
+    if not url.startswith(("http://", "https://")) or len(url) > 2000:
+        raise HTTPException(400, "Enter a valid http(s) video URL")
+
+    language = (language or "").strip().lower()
+    if language and not re.fullmatch(r"[a-z]{2}", language):
+        raise HTTPException(400, "language must be a 2-letter code (e.g. 'en')")
+
+    from backend.agents.job_helper import create_job
+    from backend.core.task_runner import dispatch
+    from backend.core.tool_runners import run_tool_transcript
+    job = await create_job("tool:transcript", "local", {
+        "url": url, "language": language, "format": format,
+    })
+    dispatch(run_tool_transcript(job.id, url, language=language or None, fmt=format))
     return {"job_id": job.id}
 
 
