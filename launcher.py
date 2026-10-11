@@ -1217,7 +1217,7 @@ def create_tray():
     _tray_icon = pystray.Icon(
         APP_NAME,
         _get_tray_icon(initial_state),
-        f"{APP_NAME} — Stopped",  # title is overwritten by _update_tray_title below
+        _tray_safe_text(f"{APP_NAME} — Stopped"),
         menu=_build_tray_menu(),
     )
     _last_tray_state = initial_state
@@ -1225,6 +1225,32 @@ def create_tray():
     if initial_state == "starting":
         _start_starting_animation()
     return _tray_icon
+
+
+def _tray_safe_text(text: str) -> str:
+    """Return a tray-title-safe form of `text`.
+
+    On Linux the pystray X11 backend writes the tray icon's title/window name
+    into the X11 ``WM_NAME`` property as ``STRING`` (Latin-1 / ISO-8859-1).
+    Characters outside that repertoire — most obviously the em dash ``—``
+    (U+2014) used in the launcher's status titles — raise
+    ``UnicodeEncodeError: 'latin-1' codec can't encode character`` and kill the
+    launcher before the backend ever starts.
+
+    The other tray paths (macOS AppKit, Windows ctypes, and any future pystray
+    backend) accept full Unicode, so we only touch the few literal characters
+    that appear in the launcher's status titles and would break on the X11
+    path. We normalize rather than drop so the title stays readable: em/en dash
+    → ``-``, ellipsis ``…`` → ``...``.
+
+    This is intentionally narrow: it only ever mutates the three characters the
+    launcher's own status titles use. It does not touch the app's user-facing
+    content (window titles, menu headers, docs), which live on other code paths
+    and are not written through the X11 tray-title assignment.
+    """
+    # Replace the characters the launcher's status titles actually use.
+    # Order matters: the em dash is U+2014; ``…`` is U+2026.
+    return text.replace("\u2014", "-").replace("\u2013", "-").replace("\u2026", "...")
 
 
 def _update_tray_title():
@@ -1236,11 +1262,11 @@ def _update_tray_title():
     state = _get_state()
     ver = f" · v{VERSION}" if VERSION else ""
     if state == "running":
-        _tray_icon.title = f"{APP_NAME} — Running (port {PORT}){ver}"
+        _tray_icon.title = _tray_safe_text(f"{APP_NAME} — Running (port {PORT}){ver}")
     elif state == "starting":
-        _tray_icon.title = f"{APP_NAME} — Starting…{ver}"
+        _tray_icon.title = _tray_safe_text(f"{APP_NAME} — Starting…{ver}")
     else:
-        _tray_icon.title = f"{APP_NAME} — Stopped{ver}"
+        _tray_icon.title = _tray_safe_text(f"{APP_NAME} — Stopped{ver}")
 
 
 # ─── GUI Window (tkinter — optional) ──────────────────────────────────────────
