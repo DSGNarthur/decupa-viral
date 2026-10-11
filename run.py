@@ -88,6 +88,22 @@ def build_frontend():
 
 processes = []
 
+def _reload_args() -> list[str]:
+    """uvicorn auto-reload flags for development, or none.
+
+    Watch only the source folders: a reloader watching the whole checkout
+    restarted the server whenever a download, a render or an add-on install
+    wrote files, killing the job mid-way. And never on Windows: in reload mode
+    uvicorn runs a selector event loop there, which cannot start subprocesses,
+    so ffmpeg and the Motion Graphics installer failed with an empty
+    "NotImplementedError".
+    """
+    if sys.platform == "win32":
+        print("ℹ️  Auto-reload is off on Windows (it breaks subprocesses there)")
+        return []
+    return ["--reload", "--reload-dir", str(ROOT / "backend")]
+
+
 def start_uvicorn(host="127.0.0.1", port=16888, reload=False):
     cmd = [
         sys.executable, "-m", "uvicorn",
@@ -96,7 +112,7 @@ def start_uvicorn(host="127.0.0.1", port=16888, reload=False):
         f"--port={port}",
     ]
     if reload:
-        cmd.append("--reload")
+        cmd += _reload_args()
     p = subprocess.Popen(cmd, cwd=ROOT)
     processes.append(p)
     print(f"✅ API server started at http://localhost:{port} (PID {p.pid})")

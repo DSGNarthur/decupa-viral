@@ -331,11 +331,17 @@ class HyperFramesService:
                     "Motion Graphics: HyperFrames ready (%d MB on disk)",
                     cls.get_disk_size_mb(),
                 )
+            except asyncio.CancelledError:
+                # A cancel (Ctrl+C, a server restart) is not an Exception, so
+                # without this the old marker was deleted above and never put
+                # back — a working install read as "not installed" for good.
+                cls._install_error = "Install was cancelled"
+                raise
             except Exception as e:
                 cls._install_error = str(e)[:200]
                 logger.exception("Motion Graphics: install crashed")
             finally:
-                # Failed UPGRADE → restore the old marker so the UI offers
+                # Failed or cancelled UPGRADE → restore the old marker so the UI offers
                 # "Update" (needs-update fail-safe), not a first-time install.
                 # is_installed() still version-gates against the pin, so the
                 # feature stays correctly gated off either way.

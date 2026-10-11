@@ -19,6 +19,7 @@ without the file a composition renders a blank frame and exits 0.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 
 import pytest
@@ -294,3 +295,29 @@ async def test_uninstall_removes_motion_dir_and_leaves_the_shared_cache_alone(
     assert res["ok"] is True
     assert not fake_install.exists()
     assert (cache / "keepme").exists()
+
+
+async def test_a_cancelled_upgrade_puts_the_old_marker_back(fake_install, monkeypatch):
+    """A cancel (Ctrl+C, a reloader restart) is not an Exception. The install
+    deleted the old marker up front and only restored it on an error, so a
+    cancelled upgrade left a working install reading as "not installed"."""
+    from backend.services.hyperframes_service import HyperFramesService as S
+    _write_marker(fake_install, hyperframes_version="0.0.1")      # an older install
+    before = (fake_install / ".installed").read_text()
+
+    started = asyncio.Event()
+
+    async def hang():
+        started.set()
+        await asyncio.sleep(3600)
+    monkeypatch.setattr(S, "_step_download_node", classmethod(lambda cls: hang()))
+
+    task = asyncio.create_task(S._run_install())
+    await started.wait()
+    assert not (fake_install / ".installed").exists()             # removed during the upgrade
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert (fake_install / ".installed").read_text() == before
+    assert S._install_error == "Install was cancelled"
+    assert S._installing is False

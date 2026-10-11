@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+- **The Linux tray launcher no longer crashes on start.** The tray title
+  contained an em dash, which the X11 tray can't display, and the launcher
+  died before the app started. Thanks to @chiragjangiir (#46).
+- **Long jobs survive development mode.** Running from source with
+  `DEBUG=true` restarted the server whenever a download, render or add-on
+  install wrote files, killing the job; on Windows the same mode also broke
+  every external program the app starts, so the Motion Graphics installer
+  failed with an empty "Cannot launch npm" error. Auto-reload now watches only
+  the source code and is off on Windows (#45).
+- **A cancelled Motion Graphics upgrade no longer looks uninstalled.**
+  Cancelling an update part-way deleted the install's version marker for good;
+  it is now put back, so the add-on shows "Update" instead of "Install" (#45).
+
 ## [1.3.0] — 2026-10-11
 
 ### Security
