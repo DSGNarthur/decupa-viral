@@ -24,10 +24,15 @@ from backend.config import settings
 
 def lan_mode() -> bool:
     """True when the user opted into LAN exposure, whose origin is unknowable."""
-    return settings.HOST == "0.0.0.0"
+    from backend.core.companion import enabled
+    return not enabled() and settings.HOST == "0.0.0.0"
 
 
 def allowed_origins() -> set[str]:
+    from backend.core.companion import enabled, ORIGIN
+    if enabled():
+        return {ORIGIN, f'http://localhost:{settings.PORT}',
+                f'http://127.0.0.1:{settings.PORT}', f'http://[::1]:{settings.PORT}'}
     origins = {
         settings.FRONTEND_URL,
         "http://localhost:5173",
@@ -37,9 +42,6 @@ def allowed_origins() -> set[str]:
     }
     if settings.HOST not in ("0.0.0.0", "127.0.0.1", "localhost"):
         origins.add(f"http://{settings.HOST}:{settings.PORT}")
-    from backend.core.companion import enabled, ORIGIN
-    if enabled():
-        origins.add(ORIGIN)
     return origins
 
 

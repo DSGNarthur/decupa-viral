@@ -267,9 +267,10 @@ def create_app() -> FastAPI:
     from backend.core import companion
     import inspect
     private_network_option = {'allow_private_network': companion.enabled()} if 'allow_private_network' in inspect.signature(CORSMiddleware.__init__).parameters else {}
+    from backend.core.origins import allowed_origins
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[settings.FRONTEND_URL, "http://localhost:5173", "http://localhost:3000", *([companion.ORIGIN] if companion.enabled() else [])],
+        allow_origins=list(allowed_origins()),
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -279,11 +280,28 @@ def create_app() -> FastAPI:
 
     @app.middleware('http')
     async def companion_auth(request: Request, call_next):
-        if companion.trusted_origin(request.headers.get('origin')) and request.method != 'OPTIONS':
+        origin = request.headers.get('origin')
+        if companion.enabled():
+            if not companion.loopback_request(request):
+                return JSONResponse({'detail': 'Acesso restrito a este computador.'}, status_code=403)
+            from backend.core.origins import origin_ok
+            source = origin or request.headers.get('referer')
+            if ((source and not origin_ok(source)) or
+                    (not source and request.headers.get('sec-fetch-site') == 'cross-site')):
+                return JSONResponse({'detail': 'Origem não autorizada.'}, status_code=403)
+        bootstrap = request.method == 'POST' and request.url.path == '/api/companion/connect'
+        if companion.trusted_origin(origin) and request.method != 'OPTIONS' and not bootstrap:
             bearer = request.headers.get('authorization', '')
             if not bearer.startswith('Bearer ') or not companion.authorized(bearer[7:]):
-                return JSONResponse({'detail': 'Conexão com o PC expirada. Abra o aplicativo local e use Abrir na Vercel.'}, status_code=401, headers={'Access-Control-Allow-Origin': companion.ORIGIN})
+                return JSONResponse({'detail': 'Conexão expirada. Reconecte o motor deste computador.'}, status_code=401, headers={'Access-Control-Allow-Origin': companion.ORIGIN, 'Cache-Control': 'no-store'})
         response = await call_next(request)
+        if companion.enabled():
+            if request.url.path.startswith('/api/') and 'text/html' in response.headers.get('content-type', ''):
+                response.headers['Content-Security-Policy'] = f"frame-ancestors 'self' {companion.ORIGIN}; object-src 'none'"
+            else:
+                response.headers['X-Frame-Options'] = 'DENY'
+                response.headers['Content-Security-Policy'] = "frame-ancestors 'none'; object-src 'none'"
+            response.headers['X-Content-Type-Options'] = 'nosniff'
         if companion.trusted_origin(request.headers.get('origin')) and request.method == 'OPTIONS' and request.headers.get('access-control-request-private-network') == 'true':
             response.headers['Access-Control-Allow-Private-Network'] = 'true'
         return response

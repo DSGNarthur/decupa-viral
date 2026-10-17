@@ -23,6 +23,20 @@ def authorized(value):
     return bool(value) and secrets.compare_digest(value, _token)
 
 
+def credentials():
+    """Only the validated, preflighted loopback bootstrap may call this."""
+    return {'token': _token, 'runtime': 'pc', 'app': 'Decupa Viral'}
+
+
+def loopback_request(request):
+    try:
+        host = urlparse('http://' + request.headers.get('host', '')).hostname
+    except ValueError:
+        return False
+    return (host in ('localhost', '127.0.0.1', '::1') and bool(request.client)
+            and request.client.host in ('127.0.0.1', '::1', 'testclient'))
+
+
 def link():
     return ORIGIN + '/#pc=' + _token
 
@@ -30,5 +44,8 @@ def link():
 def local_origin(value, port):
     if not value:
         return True
-    parsed = urlparse(value)
-    return parsed.scheme == 'http' and parsed.hostname in ('localhost', '127.0.0.1') and parsed.port == port
+    try:
+        parsed = urlparse(value)
+        return parsed.scheme == 'http' and parsed.hostname in ('localhost', '127.0.0.1', '::1') and parsed.port == port
+    except ValueError:
+        return False

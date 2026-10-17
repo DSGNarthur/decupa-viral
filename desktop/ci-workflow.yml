@@ -1,0 +1,71 @@
+name: Build Decupa desktop
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version
+        default: '2026.10.17'
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: decupa-desktop-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            platform: Windows-x64
+          - os: macos-14
+            platform: macOS-arm64
+          - os: macos-15-intel
+            platform: macOS-x64
+          - os: ubuntu-22.04
+            platform: Linux-x64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.22.0'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install Windows build tools
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: choco install ffmpeg innosetup -y --no-progress
+      - name: Build and accept native package
+        shell: bash
+        env:
+          PYTHON_BIN: python
+          VIRALMINT_VERSION: ${{ inputs.version }}
+        run: bash desktop/scripts/build-decupa.sh
+      - name: Compile Windows setup
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP 'decupa-build-${{ inputs.version }}'
+          & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' "/DPayload=$out\payload" "/DReleaseOutput=$env:GITHUB_WORKSPACE\desktop\release" desktop/windows.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-FileHash desktop/release/Decupa-Windows-Setup.exe | ForEach-Object { $_.Hash.ToLower() + '  Decupa-Windows-Setup.exe' } | Set-Content desktop/release/Decupa-Windows-Setup.exe.sha256
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Decupa-${{ matrix.platform }}
+          path: desktop/release/*
+          if-no-files-found: error
+          retention-days: 14
+      - name: Diagnostic evidence
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: diagnostics-${{ matrix.platform }}
+          path: |
+            ${{ runner.temp }}/decupa-build-*/acceptance-data/**/*.log
+            ${{ runner.temp }}/decupa-build-*/smoke.json

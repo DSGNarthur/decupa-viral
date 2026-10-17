@@ -137,6 +137,9 @@ async def chat_websocket(websocket: WebSocket):
     from backend.core.origins import lan_mode, origin_ok
     origin = websocket.headers.get("origin")
     from backend.core import companion
+    if companion.enabled() and not companion.loopback_request(websocket):
+        await websocket.close(code=1008)
+        return
     selected_protocol = None
     if companion.trusted_origin(origin):
         protocol = websocket.headers.get('sec-websocket-protocol', '')

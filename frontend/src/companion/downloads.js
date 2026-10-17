@@ -1,45 +1,28 @@
 import { pcSession } from './session'
 
 export async function downloadFromPC(url, preferredName = '') {
-  const pc = pcSession()
-  if (!pc) throw new Error('Reconecte o aplicativo local antes de baixar.')
-  const response = await fetch(pc.origin + url.pathname + url.search, {
-    headers: { Authorization: 'Bearer ' + pc.token },
-    targetAddressSpace: 'loopback',
-  })
-  if (!response.ok) throw new Error('Não foi possível baixar o arquivo do PC. Reconecte e tente novamente.')
-  const disposition = response.headers.get('Content-Disposition') || ''
-  const encodedName = /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1]
-  let name = preferredName || /filename="?([^";]+)"?/i.exec(disposition)?.[1] || 'decupa-viral.mp4'
-  if (!preferredName && encodedName) {
-    try { name = decodeURIComponent(encodedName) } catch { /* Use the plain filename. */ }
-  }
-  name = name.replace(/^viralmint_/i, 'decupa_').replace(/[\\/:*?"<>|\x00-\x1f]/g, '_')
-  const blob = await response.blob()
-  const objectUrl = URL.createObjectURL(blob)
+  if (!pcSession()) throw new Error('Reconecte o motor antes de baixar.')
+  // The worker streams directly to the browser download manager, without
+  // retaining multi-GB exports in a Blob in this tab.
+  if (!navigator.serviceWorker.controller?.scriptURL.endsWith('/pc-worker.js')) throw new Error('Atualize a página para ativar os downloads.')
   const link = document.createElement('a')
-  link.href = objectUrl
-  link.download = name
+  link.href = url.pathname + url.search
+  link.download = preferredName || 'decupa-viral.mp4'
+  link.dataset.pcStreaming = 'true'
   document.body.appendChild(link)
   link.click()
   link.remove()
-  setTimeout(() => URL.revokeObjectURL(objectUrl), 60000)
 }
 
 export function interceptPCDownloads(onError) {
-  const pending = new Set()
   const clicked = event => {
     const link = event.target.closest?.('a[href]')
-    if (!link || event.defaultPrevented || event.button !== 0) return
+    if (!link || event.defaultPrevented || event.button !== 0 || link.dataset.pcStreaming === 'true') return
     const url = new URL(link.href, location.href)
     if (url.origin !== location.origin || !url.pathname.startsWith('/api/')) return
     if (!link.hasAttribute('download') && !/\/download(?:\/|$)/.test(url.pathname)) return
     event.preventDefault()
-    if (pending.has(url.href)) return
-    pending.add(url.href)
-    downloadFromPC(url, link.getAttribute('download') || '')
-      .catch(error => onError(error.message))
-      .finally(() => pending.delete(url.href))
+    downloadFromPC(url, link.getAttribute('download') || '').catch(error => onError(error.message))
   }
   document.addEventListener('click', clicked, true)
   return () => document.removeEventListener('click', clicked, true)

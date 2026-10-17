@@ -36,7 +36,7 @@ from pathlib import Path
 
 PORT = int(os.environ.get("PORT", "16889"))
 URL = f"http://localhost:{PORT}"
-APP_NAME = "Decupa"
+APP_NAME = os.environ.get('APP_NAME', 'Decupa Viral')
 
 # PyInstaller bundle detection. Two run modes:
 #   • Source (`python launcher.py`, non-frozen): the backend is started via
@@ -755,7 +755,7 @@ def _open_browser_on_ready(ready: bool) -> None:
     (VIRALMINT_NO_BROWSER), keeping the toggle added more confusion than
     utility. Simpler product: you click Start, the browser opens.
     """
-    if not ready:
+    if not ready or os.environ.get('DECUPA_BACKGROUND') == '1':
         return
     open_webui()
 
@@ -1573,6 +1573,16 @@ def _run_tray_only():
 
 # ─── Single-instance + signal handling ────────────────────────────────────────
 
+def _run_background():
+    """Use the original supervisor without a GUI or desktop-session dependency."""
+    _auto_start_and_open()
+    try:
+        while True:
+            is_running()
+            time.sleep(2)
+    finally:
+        stop_service()
+
 def _acquire_single_instance():
     """Bind a loopback sentinel socket so only one launcher runs at a time.
 
@@ -1664,13 +1674,16 @@ if __name__ == "__main__":
         sys.exit(1)
 
     _install_signal_handlers()
-    _apply_platform_app_icon()
+    if os.environ.get('DECUPA_BACKGROUND') != '1':
+        _apply_platform_app_icon()
 
     # Packaged builds may ship with whatever Tcl/Tk was bundled on the CI
     # runner, which can crash on newer macOS versions. Product UX is tray +
     # system browser anyway, so the tkinter status window is dead weight when
     # frozen.
-    if getattr(sys, "frozen", False):
+    if os.environ.get('DECUPA_BACKGROUND') == '1':
+        _run_background()
+    elif getattr(sys, "frozen", False):
         _run_tray_only()
     else:
         try:

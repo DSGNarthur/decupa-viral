@@ -259,8 +259,8 @@ def _try_update_ytdlp() -> bool:
     # would re-invoke desktop_app.main() and fork-bomb the launcher. There's
     # no pip in the bundle anyway. Skip the update; users should re-download
     # the installer when yt-dlp gets stale.
-    if getattr(sys, "frozen", False):
-        logger.info("Skipping yt-dlp auto-update in frozen build — re-install ViralMint to refresh")
+    if getattr(sys, "frozen", False) or os.environ.get('DECUPA_DISTRIBUTED') == '1':
+        logger.info("O extrator desta distribuição é atualizado pelo pacote do motor Decupa Viral.")
         return False
 
     now = time.time()

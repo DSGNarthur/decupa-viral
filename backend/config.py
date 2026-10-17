@@ -67,6 +67,8 @@ class Settings(BaseSettings):
     # ffmpeg merge) is running. Lower it if you would rather hear about a
     # dead source sooner.
     DOWNLOAD_STALL_TIMEOUT_S: int = 600
+    # Streamed to disk, independent of the hosted/browser edition's old cap.
+    MAX_IMPORT_SIZE_GB: int = Field(default=20, ge=1, le=1024)
 
     # ── AI Providers (BYOK) ───────────────────────────
     # Set at least one. OpenRouter unlocks Claude / GPT / Gemini / Llama

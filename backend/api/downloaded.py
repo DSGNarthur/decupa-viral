@@ -442,6 +442,7 @@ async def batch_download_from_urls(body: dict = None):
 async def import_local_video(
     file: UploadFile = File(...),
     title: str = Form(""),
+    analyze: bool = Form(True),
 ):
     """
     Import a user's own video file for transcription + AI analysis.
@@ -469,7 +470,7 @@ async def import_local_video(
         dest_dir.mkdir(parents=True, exist_ok=True)
         dest_path = dest_dir / f"{file_id}{suffix}"
 
-    # Stream upload to disk (max 2GB).
+    # Stream upload to disk; the native limit is configurable per installation.
     #
     # EVERY abnormal exit has to take the partial file with it. Only the
     # oversize branch used to clean up, but `await file.read()` raises when the
@@ -477,7 +478,7 @@ async def import_local_video(
     # further down, so nothing referenced the bytes. VIDEOS_DIR has no sweeper
     # (`cleanup_stale` deletes ROWS; it never walks the directory), so three
     # abandoned 1.5 GB drags cost ~4.5 GB permanently and invisibly.
-    MAX_UPLOAD_SIZE = 2 * 1024 * 1024 * 1024
+    MAX_UPLOAD_SIZE = settings.MAX_IMPORT_SIZE_GB * 1024 * 1024 * 1024
     file_size = 0
     try:
         with open(dest_path, "wb") as f:
@@ -486,7 +487,9 @@ async def import_local_video(
                 if file_size > MAX_UPLOAD_SIZE:
                     f.close()
                     dest_path.unlink(missing_ok=True)
-                    raise HTTPException(413, "File too large. Maximum upload size is 2GB.")
+                    raise HTTPException(413, f'Arquivo muito grande. Limite desta instalação: {settings.MAX_IMPORT_SIZE_GB} GB.')
+                if file_size % (64 * 1024 * 1024) < len(chunk) and shutil.disk_usage(dest_dir).free < 1024 * 1024 * 1024:
+                    raise HTTPException(507, 'O disco precisa de pelo menos 1 GB livre durante a importação.')
                 f.write(chunk)
     except BaseException:
         # BaseException, not Exception: a client disconnect surfaces as anyio's
@@ -532,6 +535,9 @@ async def import_local_video(
         db.add(dv)
         await db.commit()
         await db.refresh(dv)
+
+    if analyze is False:
+        return {'id': dv.id, 'job_id': None, 'title': display_title, 'file_size_mb': file_size_mb}
 
     # Kick off analysis (transcription + AI insights) in background
     from backend.agents.job_helper import create_job
