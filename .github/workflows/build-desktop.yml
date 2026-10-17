@@ -19,7 +19,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: decupa-desktop-${{ github.ref }}
+  group: decupa-desktop-${{ github.ref }}-${{ inputs.platform || 'all' }}
   cancel-in-progress: false
 jobs:
   build:
