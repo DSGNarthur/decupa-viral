@@ -30,3 +30,9 @@ O registro e a abertura pela sessão gráfica do Mac e Linux, o início após re
 Publicação em redes sociais, bancos de mídia, mensageria e provedores de IA exigem as chaves e contas de cada usuário. O YouTube pode impor restrições a vídeos e conexões. Preservar o módulo original não comprova cada integração externa configurada. Não há promessa de funcionamento de todos os links ou de ausência absoluta de falhas.
 
 O download integral de teste do YouTube com 1920 x 1080, áudio e 37 minutos e 36 segundos foi validado no motor Windows 2026.10.17.1, com decodificação completa. Esse teste anterior é distinto da aceitação dos quatro pacotes desta versão.
+
+## Site publicado e navegador Windows
+
+Em 17/10/2026, o Chrome acessou o site publicado e se conectou ao motor instalado no computador do Arthur. A sessão alterou uma legenda, salvou a revisão, recarregou a página, confirmou a persistência e restaurou o documento original. Uma nova exportação com dois trechos resultou em um MP4 de quatro segundos em 1080 x 1920, com áudio e decodificação completa.
+
+O teste encontrou uma falha no download do Chrome. A correção usa uma transferência de uso único no service worker e uma navegação que entrega o arquivo como anexo ao navegador, sem reter o vídeo inteiro em memória. Arthur confirmou o download, e o arquivo salvo foi comparado por SHA-256 ao MP4 produzido pelo motor. O teste não inclui Safari ou Firefox.

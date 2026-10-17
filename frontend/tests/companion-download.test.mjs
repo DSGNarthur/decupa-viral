@@ -6,21 +6,22 @@ import { readFile } from 'node:fs/promises'
 const origin = 'https://decupa-viral.vercel.app'
 const id = '00000000-0000-4000-8000-000000000001'
 const credentials = { origin:'http://127.0.0.1:16889', token:'a'.repeat(43) }
-async function worker() {
-  const handlers = {}, calls = []
+async function worker({status=200, offline=false} = {}) {
+  const handlers = {}, calls = [], messages = []
   let now = 1000
   const context = vm.createContext({
     URL, Response, Headers, Date: { now: () => now },
     self: { location:{origin}, addEventListener:(name, handler) => {handlers[name] = handler},
-      clients:{get:async () => null} },
+      clients:{get:async id => id === 'editor' ? {postMessage:value => messages.push(value)} : null} },
     fetch:async (url, options) => {
       calls.push({url,options})
+      if (offline) throw new TypeError('Failed to fetch')
       return new Response(new ReadableStream({start(controller) { controller.enqueue(new Uint8Array([1,2,3])); controller.close() }}),
-        {headers:{'Content-Type':'video/mp4','Content-Disposition':'attachment; filename="corte.mp4"'}})
+        {status,headers:{'Content-Type':'video/mp4','Content-Disposition':'attachment; filename="corte.mp4"'}})
     },
   })
   vm.runInContext(await readFile(new URL('../public/pc-worker.js', import.meta.url),'utf8'),context)
-  const register = (source={type:'window',url:origin+'/editor'}, changes={}) => {
+  const register = (source={id:'editor',type:'window',url:origin+'/editor'}, changes={}) => {
     let reply
     handlers.message({source, data:{type:'pc-download',id,path:'/api/videos/test/stream?download=1',credentials,...changes},ports:[{postMessage:value => {reply = value}}]})
     return reply
@@ -30,7 +31,7 @@ async function worker() {
     handlers.fetch({clientId:'',request:new Request(origin+'/_pc-download/'+id),respondWith:value => {response = value}})
     return await response
   }
-  return {calls,register,download,expire:() => {now += 61000}}
+  return {calls,messages,register,download,expire:() => {now += 61000}}
 }
 
 test('a download without clientId streams the paired file once and keeps the backend token out of the URL', async () => {
@@ -55,4 +56,17 @@ test('foreign clients, invalid credentials and expired transfers cannot download
   engine.expire()
   assert.equal((await engine.download()).status,410)
   assert.equal(engine.calls.length,0)
+})
+
+test('backend rejection and connection loss notify the originating editor instead of downloading an error as MP4', async () => {
+  for (const options of [{status:401},{offline:true}]) {
+    const engine = await worker(options)
+    engine.register()
+    const response = await engine.download()
+    assert.equal(response.status,options.offline ? 503 : 401)
+    assert.equal(response.headers.get('Content-Disposition'),null)
+    assert.equal(engine.messages.length,1)
+    assert.equal(engine.messages[0].type,'pc-download-error')
+    assert.match(engine.messages[0].message,/motor/)
+  }
 })

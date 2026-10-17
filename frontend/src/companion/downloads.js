@@ -34,6 +34,9 @@ export async function downloadFromPC(url, preferredName = '') {
 }
 
 export function interceptPCDownloads(onError) {
+  const failed = event => {
+    if (event.data?.type === 'pc-download-error') onError(event.data.message)
+  }
   const clicked = event => {
     const link = event.target.closest?.('a[href]')
     if (!link || event.defaultPrevented || event.button !== 0 || link.dataset.pcStreaming === 'true') return
@@ -44,5 +47,9 @@ export function interceptPCDownloads(onError) {
     downloadFromPC(url, link.getAttribute('download') || '').catch(error => onError(error.message))
   }
   document.addEventListener('click', clicked, true)
-  return () => document.removeEventListener('click', clicked, true)
+  navigator.serviceWorker.addEventListener('message', failed)
+  return () => {
+    document.removeEventListener('click', clicked, true)
+    navigator.serviceWorker.removeEventListener('message', failed)
+  }
 }

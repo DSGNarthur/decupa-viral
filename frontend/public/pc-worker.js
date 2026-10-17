@@ -16,7 +16,7 @@ self.addEventListener('message', event => {
   const now = Date.now()
   for (const [key, item] of transfers) if (item.expires <= now) transfers.delete(key)
   if (transfers.size >= 100) { event.ports[0]?.postMessage({ ok: false }); return }
-  transfers.set(id, { path, credentials, expires: now + 60000 })
+  transfers.set(id, { path, credentials, clientId: source.id, expires: now + 60000 })
   event.ports[0]?.postMessage({ ok: true })
 })
 self.addEventListener('fetch', event => {
@@ -24,7 +24,7 @@ self.addEventListener('fetch', event => {
   const download = url.pathname.startsWith('/_pc-download/')
   if (url.origin !== self.location.origin || (!url.pathname.startsWith('/api/') && !download)) return
   event.respondWith((async () => {
-    let credentials, path = url.pathname + url.search
+    let credentials, transferClient, path = url.pathname + url.search
     if (download) {
       const id = url.pathname.slice('/_pc-download/'.length)
       const transfer = transfers.get(id)
@@ -32,6 +32,7 @@ self.addEventListener('fetch', event => {
       if (event.request.method !== 'GET' || !transfer || transfer.expires <= Date.now()) return new Response('Download expirado. Clique em Baixar novamente.', { status: 410 })
       credentials = transfer.credentials
       path = transfer.path
+      transferClient = transfer.clientId
     } else {
     const client = await self.clients.get(event.clientId)
     if (!client) return new Response('Abra a plataforma para acessar os arquivos do PC.', { status: 401 })
@@ -48,10 +49,21 @@ self.addEventListener('fetch', event => {
     headers.set('Authorization', 'Bearer ' + credentials.token)
     try {
       const upstream = await fetch(credentials.origin + path, { method: event.request.method, headers, mode: 'cors', targetAddressSpace: 'loopback', credentials: 'omit', body: ['GET', 'HEAD'].includes(event.request.method) ? undefined : await event.request.arrayBuffer() })
+      if (download && !upstream.ok) {
+        const owner = await self.clients.get(transferClient)
+        owner?.postMessage({ type: 'pc-download-error', message: `O motor recusou o download (HTTP ${upstream.status}). Reconecte e tente novamente.` })
+        return new Response('Não foi possível baixar o arquivo.', { status: upstream.status })
+      }
       const outputHeaders = new Headers()
       for (const name of ['Content-Type', 'Content-Length', 'Content-Range', 'Content-Disposition', 'Accept-Ranges']) if (upstream.headers.has(name)) outputHeaders.set(name, upstream.headers.get(name))
       outputHeaders.set('Cache-Control', 'no-store')
       return new Response(upstream.body, { status: upstream.status, headers: outputHeaders })
-    } catch { return new Response('O PC está desconectado. Abra o aplicativo local e reconecte.', { status: 503 }) }
+    } catch {
+      if (download) {
+        const owner = await self.clients.get(transferClient)
+        owner?.postMessage({ type: 'pc-download-error', message: 'O motor não respondeu ao download. Inicie o motor e reconecte.' })
+      }
+      return new Response('O PC está desconectado. Abra o aplicativo local e reconecte.', { status: 503 })
+    }
   })())
 })
