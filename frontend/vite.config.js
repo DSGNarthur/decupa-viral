@@ -1,9 +1,19 @@
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
-import { readFileSync, readdirSync } from "node:fs"
+import { readFileSync, readdirSync, existsSync } from "node:fs"
+import { execFileSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 
 const runtimePublic = mode => ({
   name: 'decupa-companion-public',
+  buildStart() {
+    // A fresh source checkout has no generated source-code.zip. CI and local
+    // native builds can generate it; hosted builds receive the prepared ZIP.
+    if (mode === 'production' && !existsSync(new URL('./public/source-code.zip', import.meta.url))) {
+      const python = process.env.PYTHON_BIN || (process.platform === 'win32' ? 'python' : 'python3')
+      execFileSync(python, [fileURLToPath(new URL('../scripts/package_source.py', import.meta.url))], { stdio: 'inherit' })
+    }
+  },
   generateBundle() {
     const files = ['pc-worker.js', 'source-code.zip', 'LICENSE.txt',
       'manifest.json', 'decupa-icon.svg', 'decupa-logo.png', 'decupa-logo.svg', 'icon.svg', 'favicon.ico', 'favicon-16x16.png',

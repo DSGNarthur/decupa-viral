@@ -55,6 +55,14 @@ def extract(archive, target):
 
 def copy_source(destination):
     paths = subprocess.check_output(['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'], cwd=ROOT).decode().split('\0')
+    destination = destination.resolve()
+    if destination.name != 'app' or destination.parent.name != 'payload' or destination.is_relative_to(ROOT):
+        raise RuntimeError('A cópia deve atingir somente payload/app fora do repositório.')
+    # This is a generated build tree. User data is outside payload/. Replacing
+    # it also removes files no longer in the tracked source manifest.
+    if destination.exists():
+        shutil.rmtree(destination)
+    destination.mkdir(parents=True)
     for name in filter(None, paths):
         relative = Path(name)
         source = ROOT / relative
