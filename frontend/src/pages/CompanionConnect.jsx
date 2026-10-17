@@ -9,7 +9,7 @@ export default function CompanionConnect({ error, onConnect }) {
   useEffect(() => { let active = true; loopbackPermission().then(state => { if (active) setPermission(state) }); return () => { active = false } }, [])
   return <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center', p: { xs: 2, md: 5 }, bgcolor: 'background.default' }}>
     <Stack spacing={3} sx={{ width: '100%', maxWidth: 720, '@keyframes arrive': { from: { opacity: 0, transform: 'translateY(12px)' }, to: { opacity: 1, transform: 'none' } }, animation: 'arrive .5s ease both', '@media (prefers-reduced-motion: reduce)': { animation: 'none' } }}>
-      <Box component="img" src="/decupa-logo.png" alt="Decupa" sx={{ width: 160, borderRadius: 2 }} />
+      <Box component="img" src="/decupa-logo.png" alt="Decupa" sx={theme => ({ width: 160, borderRadius: 2, filter: theme.palette.mode === 'dark' ? 'invert(1)' : 'none' })} />
       <Box><Typography variant="h3" fontWeight={700}>Seu estúdio de cortes</Typography><Typography color="text.secondary" mt={1}>YouTube, editor e exportação em Full HD com o processamento no seu computador.</Typography></Box>
       {error && <Alert severity="warning">{error}</Alert>}
       <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 4 }, borderRadius: 4 }}>
