@@ -59,8 +59,8 @@ def register(mcp: FastMCP) -> None:
     ) -> dict:
         """List generated videos, newest first — renders, motion graphics and extracted clips.
 
-        Note: rows whose video file was deleted from disk are pruned from the
-        library as a side effect of listing.
+        Videos whose file is missing on disk are left out of the list (and of
+        `total`); listing never deletes anything.
 
         Args:
             status: Filter to "ready" (rendered), "draft" (still in

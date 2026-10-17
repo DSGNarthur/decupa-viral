@@ -1,16 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # Copyright (c) 2025-2026 ViralMint Contributors
-"""`GET /api/videos` must return a FULL page even when it prunes orphans.
+"""`GET /api/videos` hides rows whose file is missing — and never deletes them.
 
-The self-heal prune (rows whose video_path file is gone) used to run *within*
-the fetched page and return the page short. With enough stale rows the whole
-page was consumed, so `list_videos(limit=3)` answered `videos: []` alongside
-`total: 431` — which reads as a bug to any caller and gives it no way forward.
-
-The backfill re-queries after committing the deletes. The subtle part is the
-offset: rows kept so far occupy `[offset, offset + len(live))` in the *post-delete*
-ordering, so a later pass must start after them — re-using the original offset
-would duplicate what's already collected.
+A read must not mutate. The endpoint used to delete such rows (and unlink their
+sibling files) on every page load, so a file that was only briefly unreachable
+cost the user the row for good, and any caller that merely listed videos did
+the deleting. Now those rows are omitted from the page AND from `total`, pages
+stay full, and the row comes back the moment its file does.
 
 ISOLATION: every row is seeded with a private `source_type` and every read
 passes `source_type=` (which the endpoint filters on, count included), so these
@@ -31,8 +27,14 @@ MARKER = "__test_prune_backfill__"
 
 @pytest.fixture(scope="module", autouse=True)
 def _init_schema():
+    from backend.config import settings
     from backend.database import init_db
     asyncio.run(init_db())
+    # With the storage root absent the endpoint (rightly) hides nothing — it
+    # can't tell a missing file from an unmounted drive. These tests are about
+    # the mounted case, so make sure it exists rather than relying on whichever
+    # earlier test happened to create it.
+    settings.STORAGE_ROOT.mkdir(parents=True, exist_ok=True)
 
 
 def _wipe_marked() -> None:
@@ -111,7 +113,7 @@ class TestBackfill:
                          ("v4", True), ("v5", True)])
         out = _list(limit=3)
         assert _ids(out) == ["v3", "v4", "v5"]
-        assert out["total"] == 3          # reflects the pruned set
+        assert out["total"] == 3          # counts only what can be shown
 
 
     def test_no_duplicates_across_backfill_passes(self, tmp_path):
@@ -123,26 +125,55 @@ class TestBackfill:
         assert ids == ["a", "c", "e", "f"]
         assert len(ids) == len(set(ids)), f"duplicates: {ids}"
 
-    def test_orphans_are_actually_deleted(self, tmp_path):
+    def test_listing_never_deletes_a_row(self, tmp_path):
+        """The bug: a GET deleted the row whose file was missing."""
         from backend.database import AsyncSessionLocal
         from backend.models.generated_video import GeneratedVideo
         from sqlalchemy import select
 
         _seed(tmp_path, [("g1", False), ("g2", True)])
-        _list(limit=10)
+        assert _ids(_list(limit=10)) == ["g2"]
 
         async def remaining():
             async with AsyncSessionLocal() as db:
                 rows = (await db.execute(
                     select(GeneratedVideo.id)
                     .where(GeneratedVideo.source_type == MARKER))).scalars().all()
-                return [r.removeprefix(f"{MARKER}-") for r in rows]
-        assert asyncio.run(remaining()) == ["g2"]
+                return sorted(r.removeprefix(f"{MARKER}-") for r in rows)
+        assert asyncio.run(remaining()) == ["g1", "g2"]
 
-    def test_offset_page_is_correct_after_pruning(self, tmp_path):
-        """Rows before `offset` are untouched, so page 2 stays coherent."""
+    def test_a_returning_file_brings_its_row_back(self, tmp_path):
+        """A file that was only briefly unreachable must not cost the row."""
+        _seed(tmp_path, [("r1", False), ("r2", True)])
+        assert _ids(_list(limit=10)) == ["r2"]
+        (tmp_path / "r1.mp4").write_bytes(b"\x00" * 16)
+        assert _ids(_list(limit=10)) == ["r1", "r2"]
+
+    def test_listing_leaves_sibling_files_alone(self, tmp_path):
+        """The old prune also unlinked the row's thumbnail / audio."""
+        import asyncio as _a
+        from backend.database import AsyncSessionLocal
+        from backend.models.generated_video import GeneratedVideo
+        thumb = tmp_path / "t.jpg"
+        thumb.write_bytes(b"jpg")
+
+        async def go():
+            async with AsyncSessionLocal() as db:
+                db.add(GeneratedVideo(
+                    id=f"{MARKER}-sib", user_id="local", title="sib", status="ready",
+                    video_path=str(tmp_path / "gone.mp4"), thumbnail_path=str(thumb),
+                    source_type=MARKER))
+                await db.commit()
+        _a.run(go())
+        _list(limit=10)
+        assert thumb.exists()
+
+    def test_offset_indexes_the_visible_rows(self, tmp_path):
+        """Page 2 continues exactly where page 1 stopped — a hidden row
+        neither repeats nor skips anything."""
         _seed(tmp_path, [("p1", True), ("p2", True), ("p3", False),
                          ("p4", True), ("p5", True)])
+        assert _ids(_list(limit=2, offset=0)) == ["p1", "p2"]
         ids = _ids(_list(limit=2, offset=2))
         assert ids == ["p4", "p5"]
         assert len(ids) == len(set(ids))
@@ -158,14 +189,11 @@ class TestBackfill:
         assert out["videos"] == []
         assert out["total"] == 0          # honest: nothing left, not "3 hidden"
 
-    def test_pass_cap_bounds_the_work(self, tmp_path):
-        """A long tail of orphans must not scan forever in one request."""
+    def test_a_long_tail_of_missing_files_still_fills_the_page(self, tmp_path):
         _seed(tmp_path, [(f"m{i}", False) for i in range(40)] + [("keep", True)])
         out = _list(limit=2)
-        # Either it reached `keep` within the cap or stopped early — both fine;
-        # spinning is not. It must return, and must not invent rows.
-        assert isinstance(out["videos"], list)
-        assert out["total"] <= 41
+        assert _ids(out) == ["keep"]
+        assert out["total"] == 1
 
     def test_rows_without_a_path_are_left_alone(self, tmp_path):
         """A draft/failed row with no file yet is legitimately path-less."""

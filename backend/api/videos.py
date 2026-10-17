@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # Copyright (c) 2025-2026 ViralMint Contributors
 """REST endpoints for generated videos."""
+import asyncio
 import json
 import logging
 from pathlib import Path
@@ -32,90 +33,51 @@ async def list_videos(
     the browser, so a library with enough recent non-clip rows rendered
     "No clips yet" over a library full of clips.
     """
-    base_query = select(GeneratedVideo).order_by(GeneratedVideo.created_at.desc())
+    filters = []
     if status:
-        base_query = base_query.where(GeneratedVideo.status == status)
+        filters.append(GeneratedVideo.status == status)
     if source_type:
-        base_query = base_query.where(GeneratedVideo.source_type == source_type)
+        filters.append(GeneratedVideo.source_type == source_type)
+    order = (GeneratedVideo.created_at.desc(), GeneratedVideo.id.desc())
 
-    # Self-heal + BACKFILL: prune rows whose rendered file is gone, then
-    # re-query so the caller still gets a full page.
+    # A row whose rendered file is gone is OMITTED, never deleted: a read must
+    # not mutate. This used to delete the row (and unlink its sibling files) on
+    # every page load — so a file briefly unreachable (a sync client mid-move,
+    # a permissions blip, a path the user renamed back an hour later) cost the
+    # user the row for good, and any caller that merely LISTED videos (the
+    # Library, Clip Studio, an MCP agent) did the deleting. Deleting stays an
+    # explicit act: DELETE /api/videos/{id}.
     #
-    # Only rows that HAD a file (video_path set) but it's now missing on disk —
-    # a draft/failed row with no path yet is legitimately file-less and left
-    # alone. Local is_file() is authoritative so the delete is safe; it stops
-    # broken/dead tiles from lingering in the Library forever.
-    #
-    # Why the loop: pruning used to happen *within* the fetched page and the
-    # page was returned short. With enough stale rows the whole page could be
-    # pruned, so a limit-3 request answered `videos: []` next to `total: 431` —
-    # which reads as a bug to any caller and gives it no way forward. Deleting
-    # rows inside [offset, offset+limit) shifts later rows INTO that window, so
-    # re-running the same offset/limit query is the correct backfill.
-    live: list = []
-    pruned = 0
-    passes = 0
-    _MAX_PASSES = 5  # bounds the work when a whole tail of rows is orphaned
-    # Distinguish a missing FILE from a missing VOLUME: with the storage
-    # root itself absent (external drive asleep/unmounted, VIRALMINT_DATA_DIR
-    # on removable media), every row's is_file() is False and this prune
-    # would delete the user's entire video table + sibling files on a single
-    # page load. Skip pruning entirely until storage is back; rows render as
-    # they are and the next healthy request prunes true orphans.
+    # To keep pages full and `total` honest, liveness is decided over the
+    # whole filtered set first — only (id, video_path), one stat per row, off
+    # the event loop — and offset/limit then index the visible rows. A row with
+    # no path yet (draft / failed) is legitimately file-less and stays visible.
+    # With the storage root itself absent (external drive asleep), every
+    # is_file() is False, so nothing is hidden until storage is back.
+    rows = (await db.execute(
+        select(GeneratedVideo.id, GeneratedVideo.video_path)
+        .where(*filters).order_by(*order)
+    )).all()
+
     from backend.config import settings as _settings
-    _storage_present = _settings.STORAGE_ROOT.exists()
-    while True:
-        passes += 1
-        # Rows already kept occupy [offset, offset + len(live)) in the CURRENT
-        # (post-delete) ordering, because deletions were all inside the window
-        # and rows before `offset` are untouched. So the next slice starts
-        # after them — re-using the original `offset` on a later pass would
-        # re-fetch what `live` already holds and duplicate it in the response.
-        result = await db.execute(
-            base_query.offset(offset + len(live)).limit(limit - len(live)))
-        page = result.scalars().all()
-        if not page:
-            break
-        pruned_this_pass = 0
-        for v in page:
-            if _storage_present and v.video_path and not Path(v.video_path).is_file():
-                try:
-                    for ps in (v.video_path, v.audio_path,
-                               v.thumbnail_path, v.video_path_landscape):
-                        if ps:
-                            pp = Path(ps)
-                            if pp.exists():
-                                pp.unlink(missing_ok=True)
-                    await db.delete(v)
-                    pruned += 1
-                    pruned_this_pass += 1
-                    continue
-                except Exception:
-                    logger.warning("Could not prune orphaned video row %s", v.id)
-            live.append(v)
-        if pruned_this_pass:
-            # Commit so the next pass's OFFSET sees the shrunk table (and so
-            # `total` below reflects the pruned set).
-            await db.commit()
-        if len(live) >= limit or not pruned_this_pass:
-            break
-        if passes >= _MAX_PASSES:
-            logger.warning(
-                "Videos: stopped backfilling after %d passes (%d pruned, page "
-                "has %d/%d) — many orphaned rows in this range",
-                passes, pruned, len(live), limit)
-            break
-    if pruned:
-        logger.info("Videos: pruned %d orphaned row(s) with missing files", pruned)
-    videos = live
 
-    from sqlalchemy import func
-    count_query = select(func.count(GeneratedVideo.id))
-    if status:
-        count_query = count_query.where(GeneratedVideo.status == status)
-    if source_type:
-        count_query = count_query.where(GeneratedVideo.source_type == source_type)
-    total = (await db.execute(count_query)).scalar()
+    def _visible_ids() -> list[str]:
+        if not _settings.STORAGE_ROOT.exists():
+            return [r.id for r in rows]
+        return [r.id for r in rows if not r.video_path or Path(r.video_path).is_file()]
+
+    visible = await asyncio.to_thread(_visible_ids)
+    if len(visible) < len(rows):
+        logger.debug("Videos: %d row(s) hidden — file missing on disk",
+                     len(rows) - len(visible))
+    total = len(visible)
+    page_ids = visible[max(offset, 0): max(offset, 0) + limit]
+    by_id = {}
+    if page_ids:
+        by_id = {v.id: v for v in (await db.execute(
+            select(GeneratedVideo).where(GeneratedVideo.id.in_(page_ids))
+        )).scalars().all()}
+    videos = [by_id[i] for i in page_ids if i in by_id]
 
     return {
         "total": total,
