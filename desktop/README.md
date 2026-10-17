@@ -16,7 +16,9 @@ python desktop/build_distribution.py --output /caminho/fora/do/repositorio --ver
 python desktop/smoke_distribution.py --payload /caminho/fora/do/repositorio/payload --output /caminho/fora/do/repositorio/smoke.json
 ```
 
-`desktop/scripts/build-decupa.sh` reúne essas etapas e prepara FFmpeg estático no Linux. No macOS, requer Homebrew, FFmpeg e dylibbundler; o builder inclui as dependências dylib do FFmpeg. No Windows, o `.exe` é compilado com Inno Setup e `desktop/windows.iss`. Os pacotes ZIP e tar.gz também têm instalador por usuário.
+`desktop/scripts/build-decupa.sh` reúne essas etapas e prepara FFmpeg estático no Linux. No macOS, requer Homebrew, `ffmpeg-full` com libass e dylibbundler; o builder inclui as dependências dylib do FFmpeg. No Windows, o `.exe` é compilado com Inno Setup e `desktop/windows.iss`. Os pacotes ZIP e tar.gz também têm instalador por usuário.
+
+O teste `accept_installation.py` instala numa pasta isolada antes de exercitar o motor, incluindo recuperação de queda. No runner Windows, `windows-smoke.ps1` também executa o Setup, verifica pareamento e registro do protocolo e executa o desinstalador. Esse teste recusa rodar fora do ambiente descartável do GitHub Actions. Os testes isolados de Mac e Linux não registram início automático na sessão gráfica do runner.
 
 Os pacotes incluem SHA-256 e manifesto de arquivos. Isso detecta corrupção em relação ao conteúdo publicado, mas não substitui uma assinatura de código. Não há Developer ID/notarização Apple ou certificado Authenticode configurado. Não desative as proteções dos sistemas.
 

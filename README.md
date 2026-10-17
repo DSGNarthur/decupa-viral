@@ -8,6 +8,7 @@ O site fica na Vercel do Arthur. Cada pessoa instala um motor no próprio comput
 - [Pacotes e evidências de cada versão](https://github.com/DSGNarthur/decupa-viral/releases)
 - [Guia de instalação para Windows, macOS e Linux](docs/INSTALACAO.md)
 - [Build dos pacotes e testes](desktop/README.md)
+- [Resultados e limites da validação 2026.10.17.2](docs/VALIDACAO-2026.10.17.2.md)
 - [Licença AGPL-3.0](LICENSE)
 - [Créditos e componentes adaptados](THIRD_PARTY_NOTICES.md)
 

@@ -1,3 +1,7 @@
+# Estado desta documentação
+
+Este documento descreve a implementação experimental de processamento no navegador. O site publicado usa o modo nativo, conforme o [guia de instalação](INSTALACAO.md). Os resolvedores e proxies de IA deste experimento não estão publicados na Vercel. As descrições abaixo não representam os recursos disponíveis no site atual.
+
 # Decupa no navegador
 
 Arthur escolheu este modo em 17/10/2026: compartilhar o endereço da plataforma, sem instalação, atalho ou pareamento obrigatório. A produção usa `npm run build:browser`. A distribuição nativa e `build:companion` continuam disponíveis separadamente; não há comunicação automática com localhost no modo web.

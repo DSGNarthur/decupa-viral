@@ -4,9 +4,11 @@ O site é [decupa-viral.vercel.app](https://decupa-viral.vercel.app). O motor ro
 
 Os pacotes ficam em [Releases](https://github.com/DSGNarthur/decupa-viral/releases). Consulte as evidências e as pendências da versão antes de instalar. Um script de compilação não comprova que o pacote foi testado no seu sistema.
 
+A versão `2026.10.17.2` inclui instalador Windows e pacotes para Mac Apple Silicon, Mac Intel e Linux x64, compilados nos respectivos sistemas e testados com instalação isolada e exportação Full HD. Veja o [escopo e os resultados da validação](VALIDACAO-2026.10.17.2.md).
+
 ## Windows 10 e 11, 64 bits
 
-1. Baixe `Decupa-Windows-Setup.exe`, quando disponível na versão, e execute no seu usuário. Ele inclui Python, Node.js, FFmpeg, FFprobe e as dependências do motor.
+1. Baixe `Decupa-Windows-Setup.exe` da versão `2026.10.17.2` e execute no seu usuário. Ele inclui Python, Node.js, FFmpeg, FFprobe e as dependências do motor.
 2. Mantenha a opção de iniciar com o Windows se quiser usar apenas o site nas próximas visitas.
 3. Abra o site, clique em Conectar e permita o acesso aos aplicativos deste computador ou à rede local quando o navegador solicitar.
 
