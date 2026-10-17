@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- **Drive ViralMint from Claude Code, Codex, Cursor and other AI agents.**
+  ViralMint now serves the Model Context Protocol at `/mcp`, so an MCP
+  client can scout, download, clip, generate, run the editing tools and
+  follow jobs to completion in plain language. A new **MCP** page in the
+  sidebar shows the endpoint and token, gives a ready-to-paste config for
+  Claude Code, Claude Desktop, Codex, Cursor, Windsurf and Gemini CLI, tests
+  the connection, and lists all 69 tools. Six built-in prompts walk an agent
+  through common workflows (make a Short from a breakout, cut clips from a
+  podcast, turn today's news into a Short, review your channel). AI-backed
+  tools use the provider keys you set in Settings; every request needs the
+  token, which the page only shows on the computer running ViralMint. No
+  MCP tool uploads or publishes anything.
+
 ## [1.3.1] — 2026-10-11
 
 ### Added

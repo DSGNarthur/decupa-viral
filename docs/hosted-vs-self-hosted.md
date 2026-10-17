@@ -23,7 +23,8 @@ This page explains the differences so you can pick the right one.
 | **API keys** | Bring your own (Anthropic / OpenAI / OpenRouter / YouTube / Pexels) | None — access routes through the cloud, billed as prepaid credits |
 | **Cost** | Free software; you pay your own provider bills | One-time prepaid top-ups + a small daily starter allowance |
 | **Runs offline / private** | ✅ 100% local — keys, scripts, videos never leave your machine | Cloud-assisted for AI |
-| **Extras** | Core pipeline + Tools | Also: AI Music Studio, Visual Style preset, Translate-and-Dub, polished Tools |
+| **MCP server (Claude Code, Codex, Cursor…)** | ✅ 69 tools, 6 prompts, resources | ✅ larger tool set, plus one-click client install and a live activity log |
+| **Extras** | Core pipeline + 22 Tools | Also: AI Image, AI Thumbnail, AI Video clips, AI Music, voice cloning, the Smart Video Studio editor, Translate-and-Dub, and more Tools |
 | **Best for** | Developers who want full control and their own keys | Creators who want zero setup and one bill |
 
 ## FAQ
@@ -75,6 +76,6 @@ analyze → generate → clip engine, managed for you.
 
 ---
 
-*Same engine, two ways to run it. Start self-hosting from the
+*Same core engine, two ways to run it — the hosted app adds the extras listed above. Start self-hosting from the
 [README](../README.md), or skip the setup with the hosted app at
 [viralmint.net](https://viralmint.net).*

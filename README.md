@@ -48,10 +48,11 @@ All on your machine. Bring your own API keys. No SaaS in the middle. No telemetr
 | 🔑 **BYOK, no middleman** | Bring your own Anthropic / OpenAI / OpenRouter / YouTube / Pexels keys, or point it at any OpenAI-compatible server (Ollama, LM Studio, vLLM…). Encrypted at rest with Fernet (AES-128-CBC, HMAC-signed), sent straight to the provider — there is no ViralMint server in between. |
 | 🤖 **Agents, not a chat wrapper** | Purpose-built agents — Planner, Scout, Download, Analyzer and Generator — orchestrated by a streaming AI chat that actually runs the work. |
 | ✂️ **Clip, generate, or design** | Three ways to a finished video: cut shorts from a long source on a real timeline, generate a captioned stock-footage video from a script, or author motion graphics with no footage at all. |
+| 🧩 **Drive it from your AI agent** | A built-in **MCP server** exposes 69 tools — scout, download, clip, generate, the editing tools, job control — to Claude Code, Claude Desktop, Codex, Cursor, Windsurf and Gemini CLI. Copy one snippet from the **/mcp** page. |
 | 📱 **Runs from your phone** | Two-way chat with the planner over Telegram, WhatsApp, Discord, or Slack — and job alerts in the same thread. |
 | 🆓 **Free out of the box** | Local Whisper, Edge TTS (400+ voices), royalty-free music, Pexels stock, and 22 built-in tools (most of them pure FFmpeg + Whisper) — the heavy lifting costs $0. Pay only for the AI you choose to plug in. |
 
-<sub>Battle-tested: a **2,900-test pytest suite** runs on every commit, plus a browser harness that drives the real app end to end. AGPL-3.0 — fork it, modify it, build a business on it.</sub>
+<sub>Battle-tested: a **3,000-test pytest suite** runs on every commit, plus a browser harness that drives the real app end to end. AGPL-3.0 — fork it, modify it, build a business on it.</sub>
 
 ---
 
@@ -193,6 +194,23 @@ Output lands in `desktop/release/`. First build takes ~10–15 min (PyInstaller 
 
 ---
 
+## 🧩 Use it from Claude Code, Codex or Cursor (MCP)
+
+ViralMint serves the [Model Context Protocol](https://modelcontextprotocol.io) at `http://127.0.0.1:16888/mcp/`, so an AI agent can run the whole pipeline in plain language — *"find a breakout in home espresso, analyze it, and make me an original 45-second Short"*.
+
+1. Start ViralMint and open **MCP** in the sidebar.
+2. Pick your client (Claude Code, Claude Desktop, Codex, Cursor, Windsurf, Gemini CLI) and paste the snippet it shows. For Claude Code that's one `claude mcp add` line.
+3. Click **Test connection** — it runs the same handshake your client will.
+
+**69 tools** cover research (scout, breakouts, news, search demand, keyword scoring), acquisition (download, import, channels), creation (Smart Video, scripts, batch, motion graphics), the Clip Studio picker (suggest / auto-cut / manual cut), all the single-purpose editing tools, and job control (`wait_for_job` returns the finished file's path). Six built-in prompts (`viralmint:create_viral_short`, `viralmint:repurpose_long_form`, …) give the agent known-good recipes, and resources expose your recent videos, channels, niches and transcripts.
+
+- **Your keys, your bill.** AI-backed tools run on the provider you configured under Settings → AI Provider — exactly like the UI.
+- **Token-gated.** Every request needs the Bearer token from the /mcp page (stored at `<data dir>/mcp_token`; rotate it there). The page only shows the token to a browser on the same computer, even in LAN mode.
+- **File-path tools read files on the machine running ViralMint.** That's what lets an agent say *"caption ~/Desktop/clip.mp4"* — and why the token deserves the same care as an SSH key.
+- **Nothing is posted for you.** No MCP tool uploads or publishes; you post the finished video yourself.
+
+---
+
 ## 🔑 Bring your own keys (BYOK)
 
 Every key can be set in `.env` *or* per-user inside the app under **Settings** — whichever is set takes priority. Per-user keys are **Fernet-encrypted** (AES-128-CBC + HMAC-SHA256) before storage. Keys go straight to the provider; ViralMint has no backend server in the middle.
@@ -322,6 +340,7 @@ ViralMint/
 │   ├── agents/                     # Planner, Scout, Download, Analyzer, Generator
 │   ├── api/                        # REST + WebSocket endpoints
 │   ├── core/                       # AI client, BYOK key resolver, crypto, WebSocket manager
+│   ├── mcp/                        # MCP server at /mcp — tools, prompts, resources
 │   ├── messaging/                  # Telegram / WhatsApp / Discord / Slack channels
 │   ├── models/                     # SQLAlchemy models
 │   └── services/                   # TTS, video gen, captions, music, yt-dlp, Whisper,
@@ -330,12 +349,12 @@ ViralMint/
 ├── frontend/
 │   └── src/
 │       ├── pages/                  # Chat · Scout · Channels · Library · Stock Video ·
-│       │                           #   Clip Studio · Motion Graphics · Tools · Messaging
+│       │                           #   Clip Studio · Motion Graphics · Tools · Messaging · MCP
 │       ├── components/             # Reusable UI (chat, settings, videos, …)
 │       ├── hooks/                  # WebSocket, settings, jobs, source video
 │       └── store/                  # Zustand global state
 │
-├── tests/                          # pytest suite (2,900+ tests)
+├── tests/                          # pytest suite (3,000+ tests)
 ├── storage/                        # Downloaded videos, audio, generated output (gitignored)
 │
 ├── requirements.txt
