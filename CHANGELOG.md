@@ -20,6 +20,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   token, which the page only shows on the computer running ViralMint. No
   MCP tool uploads or publishes anything.
 
+### Fixed
+- **Opening the Library no longer deletes videos.** Listing videos deleted
+  any whose file wasn't on disk at that moment — along with its thumbnail —
+  so a file that was only briefly unreachable (a sync client mid-move, a
+  folder renamed and renamed back) cost you the video for good. Such videos
+  are now just hidden until their file is back; deleting is always your call.
+- **Refine edits your motion graphic instead of replacing it.** The Refine
+  box sent the AI only your requested change, never the composition itself,
+  so "make the headline bigger" came back as a different video. It now edits
+  what's live and keeps everything else. A very large composition is rewritten
+  with your change instead, and the progress line says so.
+- **Unknown caption styles, emoji styles and palettes are refused up front.**
+  A mistyped or deleted caption preset was accepted and silently rendered as
+  the default "viral" look (and an unknown visualizer palette as "sunset").
+  These requests now get a clear error naming the valid choices; saved custom
+  presets keep working everywhere.
+- **A blank title on an imported video falls back to the file name** instead
+  of being saved as the video's name.
+
 ## [1.3.1] — 2026-10-11
 
 ### Added
