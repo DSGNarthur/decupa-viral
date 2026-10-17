@@ -86,3 +86,4 @@ desktop/build/*
 __MACOSX/
 .AppleDouble
 .LSOverride
+/frontend/public/validation-speech.mp4
