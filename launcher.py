@@ -492,6 +492,9 @@ def _handle_unexpected_exit(exit_code) -> None:
     # see the bound port and no-op "already running" — leaving the app dead
     # behind a green-ish tray. Tree-kill the holder first, then start.
     if _port_listening():
+        if os.environ.get('DECUPA_BACKGROUND') == '1':
+            print('A porta do motor continua ocupada. Nenhum processo externo foi encerrado.')
+            return
         _terminate_port_holder()
         deadline = time.time() + 5
         while time.time() < deadline and _port_listening():
@@ -708,7 +711,7 @@ def start_service():
         return False
 
 
-def stop_service():
+def stop_service(only_owned=False):
     """Stop the ViralMint backend server.
 
     If we own the subprocess, terminate it. Otherwise the service was started
@@ -725,7 +728,7 @@ def stop_service():
 
     if proc is not None and proc.poll() is None:
         _terminate_process_tree(proc)
-    else:
+    elif not only_owned:
         _terminate_port_holder()
 
     if _backend_log is not None:
@@ -1573,15 +1576,26 @@ def _run_tray_only():
 
 # ─── Single-instance + signal handling ────────────────────────────────────────
 
-def _run_background():
+def _run_background(poll_interval=2.0):
     """Use the original supervisor without a GUI or desktop-session dependency."""
-    _auto_start_and_open()
+    start_service()
+    with _status_lock:
+        owns_process = _backend_process is not None
+    if not owns_process:
+        print('O motor não foi iniciado por esta instância. Consulte o log ou encerre a instalação anterior.')
+        return
     try:
         while True:
-            is_running()
-            time.sleep(2)
+            _reap_dead_backend()
+            exit_code = _consume_unexpected_exit()
+            if exit_code is not None:
+                _handle_unexpected_exit(exit_code)
+                with _status_lock:
+                    if _backend_process is None:
+                        return
+            time.sleep(poll_interval)
     finally:
-        stop_service()
+        stop_service(only_owned=True)
 
 def _acquire_single_instance():
     """Bind a loopback sentinel socket so only one launcher runs at a time.
@@ -1609,7 +1623,7 @@ def _install_signal_handlers():
 
     def _handle(signum, frame):
         try:
-            stop_service()
+            stop_service(only_owned=os.environ.get('DECUPA_BACKGROUND') == '1')
         finally:
             sys.exit(0)
 

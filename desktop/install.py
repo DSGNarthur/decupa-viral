@@ -5,6 +5,7 @@ import os
 import platform
 import plistlib
 import shutil
+import socket
 import subprocess
 import sys
 import time
@@ -14,6 +15,26 @@ from pathlib import Path
 
 SITE = 'https://decupa-viral.vercel.app'
 IDENTIFIER = 'app.decupa.viral.engine'
+
+
+def port_in_use(port=16889):
+    with socket.socket() as probe:
+        probe.settimeout(1)
+        return probe.connect_ex(('127.0.0.1', port)) == 0
+
+
+def engine_ready(port=16889):
+    """A health response alone does not establish site-to-engine compatibility."""
+    request = urllib.request.Request(
+        f'http://127.0.0.1:{port}/api/companion/connect', data=b'{}',
+        headers={'Origin': SITE, 'Content-Type': 'application/json', 'X-Decupa-Connect': '1'})
+    try:
+        with urllib.request.urlopen(request, timeout=2) as response:
+            result = json.load(response)
+        return (result.get('app') == 'Decupa Viral' and result.get('runtime') == 'pc'
+                and isinstance(result.get('token'), str) and len(result['token']) >= 32)
+    except (OSError, ValueError):
+        return False
 
 
 def desktop_quote(value):
@@ -38,6 +59,8 @@ def install(source, destination=None, autostart=True, start=True, browser=True, 
         raise RuntimeError(f'Já existe uma instalação em {target}. Encerre e remova apenas o motor antes de instalar. Seus dados ficam em outra pasta.')
     if target == source or source in target.parents or target in source.parents:
         raise RuntimeError('Escolha uma pasta de instalação separada do pacote extraído.')
+    if start and port_in_use():
+        raise RuntimeError('A porta 16889 já está em uso. Encerre o motor anterior antes de instalar. Nenhum processo foi encerrado.')
     manifest_path = source.parent / (source.name + '.manifest.json') if system == 'Darwin' else source / 'manifest.json'
     manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
     if manifest['platform'] != system or manifest['architecture'] != platform.machine().lower():
@@ -103,15 +126,13 @@ def install(source, destination=None, autostart=True, start=True, browser=True, 
             options['creationflags'] = subprocess.CREATE_NO_WINDOW | subprocess.DETACHED_PROCESS
         else:
             options['start_new_session'] = True
-        subprocess.Popen(command, **options)
+        process = subprocess.Popen(command, **options)
         print('Aguardando o motor iniciar...', flush=True)
         for _ in range(90):
-            try:
-                with urllib.request.urlopen('http://127.0.0.1:16889/api/health', timeout=2) as response:
-                    if json.load(response).get('app') == 'Decupa Viral':
-                        break
-            except (OSError, ValueError):
-                pass
+            if process.poll() is not None:
+                raise RuntimeError('O motor encerrou ao iniciar. Consulte o log na pasta de dados e verifique se há uma instalação anterior aberta.')
+            if engine_ready():
+                break
             time.sleep(1)
         else:
             raise RuntimeError('O motor foi instalado, mas não iniciou. Consulte os logs na pasta de dados antes de reinstalar.')

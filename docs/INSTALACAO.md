@@ -12,6 +12,8 @@ Os pacotes ficam em [Releases](https://github.com/DSGNarthur/decupa-viral/releas
 
 A alternativa portátil é `Decupa-Windows-x64.zip`. Extraia todo o ZIP e execute `payload/Instalar.cmd`. Ele verifica os arquivos e copia o motor para `%LOCALAPPDATA%/Programs/Decupa Viral`. Não é necessário instalar Python ou Node globalmente.
 
+Antes de instalar uma atualização, termine as tarefas e encerre o motor anterior. O instalador recusa uma pasta já existente ou a porta 16889 ocupada. Ele não encerra outra aplicação para liberar a porta. A pasta de dados é separada da instalação e deve ser preservada. A confirmação de início verifica a conexão usada pelo site, além da disponibilidade do servidor.
+
 O pacote não tem assinatura comercial de código enquanto a versão não informar um certificado verificado. O Windows pode avisar que o editor é desconhecido. Confira a origem e o SHA-256 publicado. Não desative o antivírus ou as proteções do Windows.
 
 ## macOS
@@ -37,6 +39,8 @@ A instalação não usa `sudo`. O motor fica em `~/.local/share/decupa-viral/eng
 ## Primeiro uso
 
 O motor deve estar ligado no mesmo computador do navegador. O botão Iniciar motor pode abrir uma confirmação do navegador; páginas da internet não podem executar programas silenciosamente. O site não processa no celular usando o PC desligado.
+
+O supervisor em segundo plano registra quedas do backend e tenta reiniciá-lo até três vezes em dez minutos. Se esse limite for ultrapassado, consulte os logs antes de iniciar novamente. O supervisor não assume nem encerra um serviço externo que ocupe a porta do motor.
 
 Em Configurações, selecione seu provedor de IA. Para DeepSeek, use a URL e o modelo oferecidos pela sua conta e insira sua própria chave no aplicativo. Não compartilhe a chave em issues ou no código. Modelos de transcrição são baixados no primeiro uso e exigem internet e espaço livre. Integrações como publicação em redes sociais exigem as contas, autorizações e configurações de cada pessoa. Módulos opcionais podem baixar seus próprios modelos e runtimes quando ativados.
 

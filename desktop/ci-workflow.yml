@@ -4,7 +4,7 @@ on:
     inputs:
       version:
         description: Version
-        default: '2026.10.17'
+        default: '2026.10.17.1'
         required: true
 permissions:
   contents: read
@@ -60,7 +60,7 @@ jobs:
         shell: pwsh
         run: |
           $out = Join-Path $env:RUNNER_TEMP 'decupa-build-${{ inputs.version }}'
-          & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' "/DPayload=$out\payload" "/DReleaseOutput=$env:GITHUB_WORKSPACE\desktop\release" desktop/windows.iss
+          & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' "/DPayload=$out\payload" "/DReleaseOutput=$env:GITHUB_WORKSPACE\desktop\release" "/DBuildVersion=${{ inputs.version }}" desktop/windows.iss
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Get-FileHash desktop/release/Decupa-Windows-Setup.exe | ForEach-Object { $_.Hash.ToLower() + '  Decupa-Windows-Setup.exe' } | Set-Content desktop/release/Decupa-Windows-Setup.exe.sha256
       - uses: actions/upload-artifact@v7

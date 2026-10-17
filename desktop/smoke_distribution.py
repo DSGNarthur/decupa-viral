@@ -21,6 +21,7 @@ def main():
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--youtube', help='Optional live local-network YouTube test; not suitable for cloud CI IPs')
     parser.add_argument('--large-import', action='store_true', help='Exercise a valid MP4 larger than 512 MiB')
+    parser.add_argument('--check-recovery', action='store_true', help='Crash only the disposable backend child and verify supervisor recovery')
     args = parser.parse_args()
     payload = args.payload.resolve()
     python = payload / ('python/python.exe' if os.name == 'nt' else 'python/bin/python3')
@@ -41,7 +42,7 @@ def main():
     env = {**os.environ, 'DECUPA_PORT': str(port), 'VIRALMINT_DATA_DIR': str(data), 'PYTHONUTF8': '1',
            'PATH': os.pathsep.join([str(payload/'bin'), str(payload/'node/bin'), str(payload/'node'), os.environ.get('PATH','')])}
     log = (data / 'smoke.log').open('w', encoding='utf-8')
-    process = subprocess.Popen([str(python), str(app/'desktop/runtime.py'), '--run-backend'], env=env, cwd=app, stdout=log, stderr=log)
+    process = subprocess.Popen([str(python), str(app/'desktop/runtime.py'), '--background'], env=env, cwd=app, stdout=log, stderr=log)
     report = {'platform': sys.platform, 'scope': 'Packaged native HTTP + real media, excludes browser UI', 'checks': []}
     def check(name, passed, **facts):
         report['checks'].append({'name': name, 'passed': bool(passed), **facts})
@@ -51,6 +52,7 @@ def main():
     site = payload / ('python/Lib/site-packages' if os.name == 'nt' else 'python/lib/python3.11/site-packages')
     sys.path.insert(0, str(site))
     import httpx
+    import psutil
     try:
         with httpx.Client(base_url=f'http://127.0.0.1:{port}', timeout=180) as client:
             for _ in range(90):
@@ -67,6 +69,26 @@ def main():
             origin = 'https://decupa-viral.vercel.app'
             connected = client.post('/api/companion/connect', headers={'Origin':origin,'X-Decupa-Connect':'1'}, json={})
             connected.raise_for_status()
+            if args.check_recovery:
+                previous_token = connected.json()['token']
+                children = psutil.Process(process.pid).children(recursive=True)
+                backends = [child for child in children if 'backend.main:app' in child.cmdline()]
+                check('supervisor_owned_backend', len(backends) == 1)
+                backends[0].kill()
+                backends[0].wait(timeout=15)
+                for _ in range(60):
+                    try:
+                        connected = client.post('/api/companion/connect', headers={'Origin':origin,'X-Decupa-Connect':'1'}, json={})
+                        if connected.status_code == 200 and connected.json().get('token') != previous_token:
+                            break
+                    except (httpx.HTTPError, ValueError):
+                        pass
+                    if process.poll() is not None:
+                        raise RuntimeError('O supervisor encerrou durante a recuperação.')
+                    time.sleep(1)
+                else:
+                    raise RuntimeError('O motor de teste não se recuperou em 60 segundos.')
+                check('background_crash_recovery_and_token_rotation', True)
             headers = {'Origin':origin,'Authorization':'Bearer '+connected.json()['token']}
             check('unpaired_blocked', client.get('/api/downloaded', headers={'Origin':origin}).status_code == 401)
             check('foreign_read_blocked', client.get('/api/health', headers={'Origin':'https://evil.example'}).status_code == 403)
@@ -154,12 +176,27 @@ asyncio.run(seed())
                 check('live_youtube_download', job['status']=='success', status=job['status'], error=job.get('error_message'))
             report['passed'] = True
     finally:
+        try:
+            descendants = psutil.Process(process.pid).children(recursive=True)
+        except psutil.NoSuchProcess:
+            descendants = []
         process.terminate()
         try:
             process.wait(timeout=15)
         except subprocess.TimeoutExpired:
             process.kill()
             process.wait()
+        for child in reversed(descendants):
+            try:
+                child.terminate()
+            except psutil.NoSuchProcess:
+                pass
+        _, alive = psutil.wait_procs(descendants, timeout=10)
+        for child in alive:
+            try:
+                child.kill()
+            except psutil.NoSuchProcess:
+                pass
         log.close()
         args.output.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
 

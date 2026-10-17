@@ -26,7 +26,7 @@ case "$(uname -s)" in
   *) ;;
 esac
 "$PYTHON_BIN" desktop/build_distribution.py --output "$OUT" --version "${VIRALMINT_VERSION:-2026.10.17}"
-"$PYTHON_BIN" desktop/smoke_distribution.py --payload "$OUT/payload" --output "$OUT/smoke.json"
+"$PYTHON_BIN" desktop/smoke_distribution.py --payload "$OUT/payload" --output "$OUT/smoke.json" --check-recovery
 mkdir -p desktop/release
 cp "$OUT"/Decupa-*.zip desktop/release/ 2>/dev/null || true
 cp "$OUT"/Decupa-*.tar.gz desktop/release/ 2>/dev/null || true

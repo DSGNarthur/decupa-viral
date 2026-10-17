@@ -5,10 +5,13 @@
 #ifndef ReleaseOutput
   #error ReleaseOutput is required
 #endif
+#ifndef BuildVersion
+  #define BuildVersion "2026.10.17.1"
+#endif
 [Setup]
 AppId=DecupaViralEngine
 AppName=Decupa Viral
-AppVersion=2026.10.17
+AppVersion={#BuildVersion}
 AppPublisher=Arthur (DSGNarthur)
 AppPublisherURL=https://github.com/DSGNarthur/decupa-viral
 DefaultDirName={localappdata}\Programs\Decupa Viral
@@ -52,8 +55,6 @@ Filename: "https://decupa-viral.vercel.app"; Description: "Abrir o Decupa Viral"
 
 [Code]
 function InitializeSetup(): Boolean;
-var
-  Code: Integer;
 begin
   // Updates must not replace the interpreter while it owns live files/jobs.
   Result := True;
@@ -62,4 +63,17 @@ begin
     MsgBox('Uma instalação já existe. Encerre o motor e desinstale apenas o motor antes de instalar. Os vídeos e configurações são preservados em outra pasta.', mbInformation, MB_OK);
     Result := False;
   end;
+end;
+
+function InitializeUninstall(): Boolean;
+var
+  Code: Integer;
+begin
+  // stop.py refuses active jobs and matches only this installation's processes.
+  Result := Exec(ExpandConstant('{app}\python\python.exe'),
+    '"' + ExpandConstant('{app}\app\desktop\stop.py') + '"',
+    ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, Code);
+  if Result then Result := Code = 0;
+  if not Result then
+    MsgBox('Não foi possível encerrar o motor com segurança. Termine ou cancele as tarefas pelo site antes de desinstalar. Os dados não foram removidos.', mbInformation, MB_OK);
 end;
