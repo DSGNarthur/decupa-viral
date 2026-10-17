@@ -6,6 +6,16 @@ on:
         description: Version
         default: '2026.10.17.2'
         required: true
+      platform:
+        description: Target platform
+        type: choice
+        default: all
+        options:
+          - all
+          - Windows-x64
+          - macOS-arm64
+          - macOS-x64
+          - Linux-x64
 permissions:
   contents: read
 concurrency:
@@ -16,15 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: windows-2022
-            platform: Windows-x64
-          - os: macos-14
-            platform: macOS-arm64
-          - os: macos-15-intel
-            platform: macOS-x64
-          - os: ubuntu-22.04
-            platform: Linux-x64
+        include: ${{ fromJSON((inputs.platform == 'all' || inputs.platform == '') && '[{"os":"windows-2022","platform":"Windows-x64"},{"os":"macos-14","platform":"macOS-arm64"},{"os":"macos-15-intel","platform":"macOS-x64"},{"os":"ubuntu-22.04","platform":"Linux-x64"}]' || inputs.platform == 'Windows-x64' && '[{"os":"windows-2022","platform":"Windows-x64"}]' || inputs.platform == 'macOS-arm64' && '[{"os":"macos-14","platform":"macOS-arm64"}]' || inputs.platform == 'macOS-x64' && '[{"os":"macos-15-intel","platform":"macOS-x64"}]' || '[{"os":"ubuntu-22.04","platform":"Linux-x64"}]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 50
     steps:
@@ -73,6 +75,7 @@ jobs:
           path: desktop/release/*
           if-no-files-found: error
           retention-days: 14
+          compression-level: 0
       - name: Diagnostic evidence
         if: failure()
         uses: actions/upload-artifact@v7

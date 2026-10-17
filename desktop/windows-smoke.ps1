@@ -21,7 +21,11 @@ if (Test-EnginePort) { throw 'The engine port is already occupied; no existing p
 $arguments = @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-',
     ('/DIR="' + $target + '"'), '/TASKS="!autostart"',
     ('/LOG="' + $env:RUNNER_TEMP + '\decupa-setup.log"'))
-$setup = Start-Process -FilePath (Resolve-Path -LiteralPath $Installer).Path -ArgumentList $arguments -Wait -PassThru -WindowStyle Hidden
+$setup = Start-Process -FilePath (Resolve-Path -LiteralPath $Installer).Path -ArgumentList $arguments -PassThru -WindowStyle Hidden
+# Start-Process -Wait waits for descendants too, including the background engine.
+# Wait only for the installer itself, then verify its intentionally live child.
+if (!$setup.WaitForExit(300000)) { throw 'Setup did not exit within five minutes.' }
+$setup.Refresh()
 if ($setup.ExitCode -ne 0) { throw "Setup failed with exit code $($setup.ExitCode)." }
 $ready = $false
 for ($attempt = 0; $attempt -lt 60; $attempt++) {
@@ -42,7 +46,9 @@ if (!$protocol.Contains($target + '\app\desktop\runtime.py')) { throw 'Setup did
 $uninstaller = Join-Path $target 'unins000.exe'
 if (!(Test-Path -LiteralPath $uninstaller)) { throw 'The generated uninstaller is missing.' }
 $uninstall = Start-Process -FilePath $uninstaller -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',
-    ('/LOG="' + $env:RUNNER_TEMP + '\decupa-uninstall.log"')) -Wait -PassThru -WindowStyle Hidden
+    ('/LOG="' + $env:RUNNER_TEMP + '\decupa-uninstall.log"')) -PassThru -WindowStyle Hidden
+if (!$uninstall.WaitForExit(300000)) { throw 'Uninstall did not exit within five minutes.' }
+$uninstall.Refresh()
 if ($uninstall.ExitCode -ne 0) { throw "Uninstall failed with exit code $($uninstall.ExitCode)." }
 if ((Test-EnginePort) -or (Test-Path -LiteralPath (Join-Path $target 'python\python.exe'))) {
     throw 'The uninstaller did not remove the interpreter or stop its own engine.'
