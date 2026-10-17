@@ -24,6 +24,7 @@ import MovieFilterIcon from "@mui/icons-material/MovieFilterOutlined"
 import BuildIcon from "@mui/icons-material/BuildOutlined"
 import SettingsIcon from "@mui/icons-material/SettingsOutlined"
 import TravelExploreIcon from "@mui/icons-material/TravelExploreOutlined"
+import HubIcon from "@mui/icons-material/HubOutlined"
 
 const DRAWER_WIDTH = 240
 const COLLAPSED_WIDTH = 64
@@ -38,6 +39,7 @@ const navItems = [
   { to: "/motion",    icon: <MovieFilterIcon />,      label: "Motion Graphics" },
   { to: "/tools",     icon: <BuildIcon />,            label: "Tools" },
   { to: "/messaging", icon: <PhoneIphoneIcon />,      label: "Messaging" },
+  { to: "/mcp",       icon: <HubIcon />,              label: "MCP" },
   ...pluginNavItems.filter(i => (i.position || "top") === "top"),
 ]
 

@@ -17,6 +17,7 @@ const Messaging = lazy(() => import("./pages/Messaging"))
 const ClipStudio = lazy(() => import("./pages/ClipStudio"))
 const MotionGraphics = lazy(() => import("./pages/MotionGraphics"))
 const Tools = lazy(() => import("./pages/Tools"))
+const Mcp = lazy(() => import("./pages/Mcp"))
 
 // Tools — single-purpose utility pages. Each is a thin wrapper around the
 // shared ToolRunner; lazy-loaded so the bundle for the hub stays small.
@@ -107,6 +108,7 @@ export default function App() {
               <Route path="clips" element={<ClipStudio />} />
               <Route path="motion" element={<MotionGraphics />} />
               <Route path="tools" element={<Tools />} />
+              <Route path="mcp" element={<Mcp />} />
               <Route path="tools/captions" element={<ToolCaptions />} />
               <Route path="tools/reframe" element={<ToolReframe />} />
               <Route path="tools/audio-enhance" element={<ToolAudioEnhance />} />
