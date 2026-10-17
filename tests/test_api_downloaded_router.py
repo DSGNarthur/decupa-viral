@@ -293,6 +293,16 @@ class TestImport:
             "file": ("mine.mp4", io.BytesIO(b"\x00" * 4096), "video/mp4")})
         assert r.status_code in (200, 201), r.text
 
+    def test_a_given_title_wins_over_the_file_name(self, client):
+        r = client.post("/api/downloaded/import", data={"title": "My launch talk"},
+                        files={"file": ("IMG_0042.mp4", io.BytesIO(b"\x00" * 4096), "video/mp4")})
+        assert r.json()["title"] == "My launch talk"
+
+    def test_a_blank_title_falls_back_to_the_file_name(self, client):
+        r = client.post("/api/downloaded/import", data={"title": "   "},
+                        files={"file": ("IMG_0042.mp4", io.BytesIO(b"\x00" * 4096), "video/mp4")})
+        assert r.json()["title"] == "IMG_0042"
+
     def test_an_unsupported_format_is_refused(self, client):
         r = client.post("/api/downloaded/import", files={
             "file": ("doc.pdf", io.BytesIO(b"x" * 100), "application/pdf")})

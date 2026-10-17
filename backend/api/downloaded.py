@@ -499,7 +499,13 @@ async def import_local_video(
         raise HTTPException(400, "The uploaded file is empty.")
 
     file_size_mb = round(file_size / (1024 * 1024), 2)
-    display_title = title or Path(file.filename).stem if file.filename else "Imported video"
+    # A given title wins; then the file's own name; then a placeholder. (This
+    # was `title or stem if filename else "Imported video"`, which binds as
+    # `(title or stem) if filename else …` — so an upload with no filename threw
+    # the caller's title away.)
+    display_title = ((title or "").strip()
+                     or (Path(file.filename).stem if file.filename else "")
+                     or "Imported video")
 
     # Create DB records
     async with AsyncSessionLocal() as db:
