@@ -6,7 +6,7 @@
   #error ReleaseOutput is required
 #endif
 #ifndef BuildVersion
-  #define BuildVersion "2026.10.17.1"
+  #define BuildVersion "2026.10.17.2"
 #endif
 [Setup]
 AppId=DecupaViralEngine

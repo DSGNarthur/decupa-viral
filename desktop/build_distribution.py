@@ -145,6 +145,9 @@ def prepare_media(payload, ffmpeg=None, ffprobe=None):
             '-d', binaries / 'lib', '-p', '@executable_path/lib/')
         for path in list((binaries / 'lib').glob('*.dylib')) + [binaries / 'ffmpeg', binaries / 'ffprobe']:
             run('codesign', '--force', '--sign', '-', path)
+    filters = subprocess.check_output([str(binaries / ('ffmpeg.exe' if os.name == 'nt' else 'ffmpeg')), '-hide_banner', '-filters'], text=True)
+    if ' ass ' not in filters or ' subtitles ' not in filters:
+        raise RuntimeError('O FFmpeg do pacote precisa dos filtros ass e subtitles (libass).')
     notices = payload / 'RUNTIME-NOTICES.txt'
     notices.write_text('''Decupa Viral, código AGPL-3.0: https://github.com/DSGNarthur/decupa-viral
 Python: https://www.python.org/psf/license/ e python/LICENSE.txt

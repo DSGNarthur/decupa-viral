@@ -65,6 +65,9 @@ curl-cffi>=0.15
 
 # Transcription
 faster-whisper
+# ONNX Runtime 1.23.2 is the last published CPython 3.11 macOS Intel wheel.
+onnxruntime==1.23.2 ; sys_platform == "darwin" and platform_machine == "x86_64"
+onnxruntime>=1.31.0 ; sys_platform != "darwin" or platform_machine != "x86_64"
 
 # The standalone Python runtime includes setuptools. Pin the corrected
 # manifest normalisation implementation for distributable macOS builds.

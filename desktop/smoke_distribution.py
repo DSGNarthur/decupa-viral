@@ -72,7 +72,13 @@ def main():
             if args.check_recovery:
                 previous_token = connected.json()['token']
                 children = psutil.Process(process.pid).children(recursive=True)
-                backends = [child for child in children if 'backend.main:app' in child.cmdline()]
+                backends = []
+                for child in children:
+                    try:
+                        if 'backend.main:app' in child.cmdline():
+                            backends.append(child)
+                    except (psutil.NoSuchProcess, psutil.ZombieProcess):
+                        continue
                 check('supervisor_owned_backend', len(backends) == 1)
                 backends[0].kill()
                 backends[0].wait(timeout=15)

@@ -21,12 +21,14 @@ case "$(uname -s)" in
   Darwin)
     # Homebrew supplies the architecture-specific executable and its dylibs.
     # dylibbundler copies only the dylib dependency closure into the payload.
-    brew install ffmpeg dylibbundler
+    HOMEBREW_NO_AUTO_UPDATE=1 brew install ffmpeg-full dylibbundler
+    export DECUPA_FFMPEG="$(brew --prefix ffmpeg-full)/bin/ffmpeg"
+    export DECUPA_FFPROBE="$(brew --prefix ffmpeg-full)/bin/ffprobe"
     ;;
   *) ;;
 esac
 "$PYTHON_BIN" desktop/build_distribution.py --output "$OUT" --version "${VIRALMINT_VERSION:-2026.10.17}"
-"$PYTHON_BIN" desktop/smoke_distribution.py --payload "$OUT/payload" --output "$OUT/smoke.json" --check-recovery
+"$PYTHON_BIN" desktop/accept_installation.py --build-root "$OUT"
 mkdir -p desktop/release
 cp "$OUT"/Decupa-*.zip desktop/release/ 2>/dev/null || true
 cp "$OUT"/Decupa-*.tar.gz desktop/release/ 2>/dev/null || true
