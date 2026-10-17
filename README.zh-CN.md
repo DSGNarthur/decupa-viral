@@ -381,10 +381,11 @@ Star 是对这个项目帮助最大的一件事——它能吸引贡献者、解
 
 <!-- Star-history chart. The repo slug is LOWERCASE on purpose: the
      mixed-case URL answers 301, and GitHub's image proxy caches whatever the
-     first fetch returned. Re-probe before touching this:
+     first fetch returned. Re-probe before touching this (200 + an SVG with
+     an axis = working; verified rendering on github.com 2026-10-17):
      curl -s -o /dev/null -w '%{http_code}' 'https://api.star-history.com/svg?repos=openclaw-easy/viralmint&type=Date'
      NEVER put a raw github_pat_ token in this URL (it would be public). -->
-<a href="https://star-history.com/#openclaw-easy/ViralMint&Date">
+<a href="https://www.star-history.com/#openclaw-easy/ViralMint&Date">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=openclaw-easy/viralmint&type=Date&theme=dark" />
     <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=openclaw-easy/viralmint&type=Date" />
@@ -392,7 +393,6 @@ Star 是对这个项目帮助最大的一件事——它能吸引贡献者、解
   </picture>
 </a>
 
-**[📈 查看 ViralMint 的 Star 历史 →](https://star-history.com/#openclaw-easy/ViralMint&Date)**
 
 <br/>
 
