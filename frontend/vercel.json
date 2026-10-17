@@ -3,6 +3,10 @@
   "buildCommand": "npm run build:browser",
   "outputDirectory": "dist",
   "framework": "vite",
+  "functions": {
+    "api/resolve.py": { "includeFiles": "server-runtime/**", "maxDuration": 120 },
+    "api/voiceover.py": { "maxDuration": 60 }
+  },
   "headers": [
     { "source": "/engine/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }] },
     { "source": "/media-worker.js", "headers": [{ "key": "Cache-Control", "value": "no-store" }, { "key": "Service-Worker-Allowed", "value": "/" }] },
