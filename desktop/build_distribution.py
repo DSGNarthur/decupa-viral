@@ -192,15 +192,23 @@ end startEngine
             plistlib.dump(info, file)
 
 
-def manifest(bundle, version):
+def manifest(bundle, version, reuse_runtime=False):
     files = {}
+    previous = bundle / 'manifest.json'
+    prior_files = json.loads(previous.read_text(encoding='utf-8'))['files'] if reuse_runtime and previous.is_file() else {}
+    cutoff = previous.stat().st_mtime if prior_files else 0
     for path in sorted(bundle.rglob('*')):
         if path.is_symlink():
             if not path.resolve().is_relative_to(bundle.resolve()):
                 raise RuntimeError(f'Link externo no pacote: {path}')
             continue
-        if path.is_file() and path.name != 'manifest.json':
-            files[path.relative_to(bundle).as_posix()] = digest(path)
+        if path.is_file() and path != previous:
+            relative = path.relative_to(bundle).as_posix()
+            immutable_runtime = relative.split('/')[0] in ('python', 'node', 'bin')
+            if immutable_runtime and relative in prior_files and path.stat().st_mtime <= cutoff:
+                files[relative] = prior_files[relative]
+            else:
+                files[relative] = digest(path)
     manifest_path = bundle.parent / (bundle.name + '.manifest.json') if platform.system() == 'Darwin' else bundle / 'manifest.json'
     manifest_path.write_text(json.dumps({'version': version,
         'platform': platform.system(), 'architecture': platform.machine().lower(),
@@ -249,7 +257,7 @@ def main():
         run('codesign', '--verify', '--deep', '--strict', bundle)
     else:
         wrappers(bundle, payload)
-    manifest(bundle, args.version)
+    manifest(bundle, args.version, reuse_runtime=args.package_only)
     archive_base = output / ('Decupa-' + {'Windows':'Windows', 'Darwin':'macOS', 'Linux':'Linux'}[platform.system()] + '-' + ('arm64' if platform.machine().lower() in ('arm64','aarch64') else 'x64'))
     if platform.system() == 'Linux':
         with tarfile.open(str(archive_base) + '.tar.gz', 'w:gz') as archive:
@@ -266,7 +274,11 @@ def main():
         installer.chmod(0o755)
         run('ditto', '-c', '-k', '--keepParent', kit, archive)
     else:
-        archive = Path(shutil.make_archive(str(archive_base), 'zip', bundle.parent, bundle.name))
+        archive = Path(str(archive_base) + '.zip')
+        with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED, compresslevel=1) as target:
+            for path in sorted(bundle.rglob('*')):
+                if path.is_file():
+                    target.write(path, Path(bundle.name) / path.relative_to(bundle))
     Path(str(archive) + '.sha256').write_text(digest(archive) + '  ' + archive.name + '\n', encoding='ascii')
     print(archive)
 

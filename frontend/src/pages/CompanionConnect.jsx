@@ -17,7 +17,7 @@ export default function CompanionConnect({ error, onConnect }) {
           <Typography variant="h6">Instale uma vez. Depois, abra o site.</Typography>
           <Typography color="text.secondary">O motor inicia com sua sessão do sistema. Seus vídeos e configurações ficam neste computador. Durante a edição e a exportação, mantenha-o ligado.</Typography>
           <Stack direction={{ xs: 'column', sm: 'row' }} gap={1} flexWrap="wrap">
-            <Button variant="outlined" startIcon={<Download />} href={RELEASE} target="_blank" rel="noopener noreferrer">Baixar para Windows, Mac ou Linux</Button>
+            <Button variant="outlined" startIcon={<Download />} href={RELEASE} target="_blank" rel="noopener noreferrer">Baixar motor</Button>
             <Button startIcon={<MenuBook />} href="https://github.com/DSGNarthur/decupa-viral/blob/codex/decupa-desktop/docs/INSTALACAO.md" target="_blank" rel="noopener noreferrer">Guia de instalação</Button>
           </Stack>
           <Typography>Depois de instalar, clique em Conectar e permita o acesso aos aplicativos deste computador quando o navegador solicitar. Nas próximas visitas, a conexão será automática enquanto o motor estiver ativo.</Typography>

@@ -8,3 +8,5 @@ validation
 Decupa-Viral-Web/
 wasm-validation/
 /server-runtime/
+/api/
+/requirements.txt

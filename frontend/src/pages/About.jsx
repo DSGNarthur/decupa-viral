@@ -13,7 +13,7 @@ export default function About() {
       </Typography>
       <Typography paragraph>
         Arthur (DSGNarthur) mantém a distribuição Decupa Viral, a interface em português
-        e a integração do editor. O motor nativo tem pacotes para Windows, macOS e Linux.
+        e a integração do editor. Consulte as versões disponíveis para seu sistema na página de downloads.
         {import.meta.env.VITE_BROWSER_RUNTIME === 'true' ? 'Nesta versão experimental, os vídeos e rascunhos são processados e salvos no navegador. Mantenha a página aberta durante as tarefas.' : 'Mantenha o motor em segundo plano ativo durante as tarefas.'}
       </Typography>
       <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">

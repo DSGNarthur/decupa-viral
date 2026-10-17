@@ -1,17 +1,40 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build:browser",
+  "buildCommand": "npm run build:companion",
   "outputDirectory": "dist",
   "framework": "vite",
-  "functions": {
-    "api/resolve.py": { "includeFiles": "server-runtime/**", "maxDuration": 120 },
-    "api/voiceover.py": { "maxDuration": 60 }
-  },
   "headers": [
-    { "source": "/engine/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }] },
-    { "source": "/media-worker.js", "headers": [{ "key": "Cache-Control", "value": "no-store" }, { "key": "Service-Worker-Allowed", "value": "/" }] },
-    { "source": "/pc-worker.js", "headers": [{ "key": "Cache-Control", "value": "no-store" }, { "key": "Service-Worker-Allowed", "value": "/" }] },
-    { "source": "/(.*)", "headers": [{ "key": "X-Content-Type-Options", "value": "nosniff" }, { "key": "Referrer-Policy", "value": "same-origin" }] }
+    {
+      "source": "/pc-worker.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "same-origin"
+        }
+      ]
+    }
   ],
-  "rewrites": [{ "source": "/((?!api/|assets/|engine/|media-worker\\.js|pc-worker\\.js|source-code\\.zip|LICENSE\\.txt|decupa-logo\\.png|decupa-icon\\.svg|manifest\\.json).*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/((?!api/|assets/|engine/|media-worker\\.js|pc-worker\\.js|source-code\\.zip|LICENSE\\.txt|decupa-logo\\.png|decupa-icon\\.svg|manifest\\.json).*)",
+      "destination": "/index.html"
+    }
+  ]
 }

@@ -7,6 +7,8 @@ import plistlib
 import shutil
 import subprocess
 import sys
+import time
+import urllib.request
 import webbrowser
 from pathlib import Path
 
@@ -41,7 +43,8 @@ def install(source, destination=None, autostart=True, start=True, browser=True, 
     if manifest['platform'] != system or manifest['architecture'] != platform.machine().lower():
         raise RuntimeError('Este pacote não corresponde ao sistema ou à arquitetura deste computador.')
     import hashlib
-    for name, digest in manifest['files'].items():
+    print('Verificando os arquivos do motor...', flush=True)
+    for index, (name, digest) in enumerate(manifest['files'].items(), 1):
         item = source / name
         if not item.resolve().is_relative_to(source) or item.is_symlink() or not item.is_file():
             raise RuntimeError(f'Caminho inválido no pacote: {name}')
@@ -49,7 +52,10 @@ def install(source, destination=None, autostart=True, start=True, browser=True, 
             actual = hashlib.file_digest(file, 'sha256').hexdigest()
         if actual != digest:
             raise RuntimeError(f'Arquivo ausente ou alterado: {name}')
+        if index % 1000 == 0:
+            print(f'{index} arquivos verificados...', flush=True)
     target.parent.mkdir(parents=True, exist_ok=True)
+    print('Instalando o motor na pasta do seu usuário...', flush=True)
     shutil.copytree(source, target, symlinks=True)
     payload = target / 'Contents/Resources/engine' if system == 'Darwin' else target
     python = payload / ('python/pythonw.exe' if system == 'Windows' else 'python/bin/python3')
@@ -98,6 +104,17 @@ def install(source, destination=None, autostart=True, start=True, browser=True, 
         else:
             options['start_new_session'] = True
         subprocess.Popen(command, **options)
+        print('Aguardando o motor iniciar...', flush=True)
+        for _ in range(90):
+            try:
+                with urllib.request.urlopen('http://127.0.0.1:16889/api/health', timeout=2) as response:
+                    if json.load(response).get('app') == 'Decupa Viral':
+                        break
+            except (OSError, ValueError):
+                pass
+            time.sleep(1)
+        else:
+            raise RuntimeError('O motor foi instalado, mas não iniciou. Consulte os logs na pasta de dados antes de reinstalar.')
     if browser:
         webbrowser.open(SITE)
     print(f'Decupa Viral instalado em {target}. Abra {SITE}.')

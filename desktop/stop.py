@@ -22,7 +22,8 @@ def stop(force=False):
     if not owned:
         return
     if not force:
-        with urllib.request.urlopen('http://127.0.0.1:16889/api/jobs?limit=200', timeout=5) as response:
+        port = int(__import__('os').environ.get('DECUPA_PORT', '16889'))
+        with urllib.request.urlopen(f'http://127.0.0.1:{port}/api/jobs?status=running,pending&limit=200', timeout=5) as response:
             result = json.load(response)
         jobs = result.get('jobs', []) if isinstance(result, dict) else result
         if any(job.get('status') in ('running','pending') for job in jobs):
