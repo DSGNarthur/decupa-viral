@@ -1,0 +1,12 @@
+@font-face {
+  font-family: 'Noto Sans';
+  src: url('/engine/NotoSans.ttf') format('truetype');
+  font-display: swap;
+  font-weight: 100 900;
+}
+@font-face {
+  font-family: 'Noto Serif';
+  src: url('/engine/NotoSerif.ttf') format('truetype');
+  font-display: swap;
+  font-weight: 100 900;
+}

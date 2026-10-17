@@ -6,6 +6,7 @@ import { importSource, downloadSource } from './sources'
 import { captionExtras } from './captions'
 import { toolJobTypeFor } from '../components/tools/toolJobType'
 import { PRODUCERS } from '../components/librarynext/assetModel'
+import { commitOutput } from './editor.js'
 
 const n = (v, fallback = 0) => Number.isFinite(Number(v)) ? Number(v) : fallback
 const truth = v => v === true || v === 'true'
@@ -148,14 +149,14 @@ export async function runTool(slug, form, report, jobId) {
       if (filters.length) args.push('-vf', filters.join(','))
       if (ext === 'mp4' && slug !== 'compress') args.push(...encodeVideo)
       args.push('$OUTPUT')
-      blob = await runFFmpeg(file, args, { ext, report, extras })
+      blob = await runFFmpeg(file, args, { ext, report, extras, jobId })
     }
   }
   await report(96, 'Salvando o resultado neste dispositivo…')
-  await saveMedia(jobId, blob, `decupa-viral-${slug}.${ext}`)
   let meta = {}
   if (blob.type.startsWith('video/') || blob.type.startsWith('audio/')) { try { meta = await metadata(blob) } catch {} }
   const producer = toolJobTypeFor(`/api/tools/${slug}`)
-  await put('videos', { id: jobId, title: `Resultado: ${PRODUCERS[producer]?.label || 'Ferramenta'}`, source_type: producer, status: 'ready', content_type: blob.type, filename: `decupa-viral-${slug}.${ext}`, video_path: `browser:${jobId}`, file_exists: true, file_size_mb: blob.size / 1048576, duration_seconds: meta.duration || 0, video_width: meta.width || 0, video_height: meta.height || 0, created_at: now() })
-  return { output_path: `browser:${jobId}`, filename: `decupa-viral-${slug}.${ext}`, content_type: blob.type }
+  const filename = `decupa-viral-${slug}.${ext}`
+  const video = { id: jobId, title: `Resultado: ${PRODUCERS[producer]?.label || 'Ferramenta'}`, source_type: producer, status: 'ready', content_type: blob.type, filename, video_path: `browser:${jobId}`, file_exists: true, file_size_mb: blob.size / 1048576, duration_seconds: meta.duration || 0, video_width: meta.width || 0, video_height: meta.height || 0, created_at: now() }
+  return commitOutput(jobId, { videos: [video], mediaRows: [{ id: jobId, blob, name: filename }], output: { output_path: `browser:${jobId}`, filename, content_type: blob.type } })
 }

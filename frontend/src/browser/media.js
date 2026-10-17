@@ -1,6 +1,6 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { fetchFile } from '@ffmpeg/util'
-import { get, put, uuid } from './db'
+import { get, put, uuid } from './db.js'
 
 let engine
 let loaded
@@ -15,13 +15,24 @@ export async function ffmpeg(report = () => {}) {
   await loaded
   return engine
 }
-export async function runFFmpeg(blob, args, { ext = 'mp4', report = () => {}, extras = {}, text = false } = {}) {
+export async function runFFmpeg(blob, args, { ext = 'mp4', report = () => {}, extras = {}, text = false, jobId } = {}) {
   const ff = await ffmpeg(report)
   const base = uuid().replaceAll('-', '')
   const input = `${base}.input`
   const output = `${base}.${ext}`
   const written = [input, output, ...Object.keys(extras)]
+  let cancelTimer, checking = false, cancelled = false
   try {
+    if (jobId) cancelTimer = setInterval(async () => {
+      if (checking) return
+      checking = true
+      try {
+        if ((await get('jobs', jobId))?.status === 'cancelled') {
+          cancelled = true; clearInterval(cancelTimer); ff.terminate()
+          if (engine === ff) { engine = null; loaded = null }
+        }
+      } catch { /* A storage error is reported by the job before publication. */ } finally { checking = false }
+    }, 300)
     await ff.writeFile(input, await fetchFile(blob))
     for (const [name, data] of Object.entries(extras)) await ff.writeFile(name, typeof data === 'string' ? new TextEncoder().encode(data) : await fetchFile(data))
     const onProgress = ({ progress }) => { Promise.resolve(report(Math.min(94, 15 + Math.max(0, progress) * 75), 'Processando a mídia neste dispositivo…')).catch(() => {}) }
@@ -29,12 +40,19 @@ export async function runFFmpeg(blob, args, { ext = 'mp4', report = () => {}, ex
     let code
     try { code = await ff.exec(['-hide_banner', '-y', ...args.flatMap(v => v === '$INPUT' ? [input] : v === '$OUTPUT' ? [output] : [String(v)])]) }
     finally { ff.off('progress', onProgress) }
+    if (cancelled) throw new Error('Exportação cancelada.')
     if (code !== 0) throw new Error(`O motor de vídeo não concluiu a operação. ${lastLog.slice(-180)}`)
     const bytes = await ff.readFile(output)
     if (text) return new TextDecoder().decode(bytes)
     const type = ({ mp4: 'video/mp4', webm: 'video/webm', mp3: 'audio/mpeg', wav: 'audio/wav', gif: 'image/gif', jpg: 'image/jpeg', png: 'image/png' })[ext] || 'application/octet-stream'
     return new Blob([bytes], { type })
-  } finally { for (const name of written) { try { await ff.deleteFile(name) } catch {} } }
+  } catch (error) {
+    if (/memory|Aborted|worker.*terminated/i.test(error.message || '') && engine === ff) {
+      ff.terminate(); engine = null; loaded = null
+      throw new Error('O navegador interrompeu o motor de vídeo. A fonte continua salva. Tente uma edição ou um arquivo menor.')
+    }
+    throw error
+  } finally { clearInterval(cancelTimer); for (const name of written) { try { await ff.deleteFile(name) } catch {} } }
 }
 export const encodeVideo = ['-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '23', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-movflags', '+faststart']
 

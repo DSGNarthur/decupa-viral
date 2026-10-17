@@ -6,6 +6,7 @@ import ThemeWrapper from "./ThemeWrapper"
 import CompanionConnect from './pages/CompanionConnect'
 import { prepareCompanion } from './companion/session'
 import { installTranslationGuard } from "./utils/translationGuard"
+import './browser/fonts.css'
 
 // Self-hosted Inter — replaces the previous fonts.googleapis.com link.
 // Same files Google would have served, vendored through @fontsource so

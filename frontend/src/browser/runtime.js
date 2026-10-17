@@ -1,6 +1,6 @@
 import { all, get, put, remove, uuid, now, encryptKey } from './db'
 import { emit } from './events'
-import { startJob } from './jobs'
+import { startJob, hasStoredOutput } from './jobs'
 import { importSource, downloadSource } from './sources'
 import { sourceBlob, thumbnail, saveMedia } from './media'
 import { transcribe } from './transcribe'
@@ -9,6 +9,7 @@ import { runTool } from './tools'
 import { aiChat, parseJson } from './ai'
 import { toolJobTypeFor } from '../components/tools/toolJobType'
 import { PRODUCERS, MEDIA, ORIGINS } from '../components/librarynext/assetModel'
+import { editorRequest, assertUnreferenced } from './editor.js'
 
 const defaults = { ai_provider: 'openai_compatible', ai_model: 'deepseek-flash', ai_base_url: 'https://api.deepseek.com', ai_api_key_set: false, youtube_api_key_set: false, preferred_voice_id: 'pt-BR-AntonioNeural', tts_provider: 'edge_tts', preferred_tts_voice: 'pt-BR-AntonioNeural', caption_style: 'viral', caption_enabled: true, music_enabled: false, upload_to_youtube: false, upload_to_tiktok: false }
 function error(message, status = 400) { const e = new Error(message); e.response = { status, data: { detail: message } }; throw e }
@@ -78,6 +79,7 @@ export async function handleRequest(config) {
   let body = config.data
   if (typeof body === 'string') { try { body = JSON.parse(body) } catch {} }
   body ||= {}
+  if (p.startsWith('/api/editor/')) return editorRequest(p, method, body)
   if (p === '/api/health') return { ok: true, app: 'Decupa Viral', runtime: 'browser' }
   if (p === '/api/settings') {
     if (method === 'get') return publicSettings(await get('settings', 'local'))
@@ -115,6 +117,7 @@ export async function handleRequest(config) {
   if (p === '/api/config') return []
   if (p === '/api/jobs') {
     let rows = newest(await all('jobs'))
+    if (params.get('job_type')) rows = rows.filter(x => x.job_type === params.get('job_type'))
     if (params.get('status')) rows = rows.filter(x => params.get('status').split(',').includes(x.status))
     return { jobs: page(rows, params), total: rows.length }
   }
@@ -124,7 +127,7 @@ export async function handleRequest(config) {
       const row = await get('jobs', id)
       if (!row) continue
       if (['pending', 'running'].includes(row.status) || row.runner_active) { kept_running++; continue }
-      if (await get('media', id)) { kept_library++; continue }
+      if (await hasStoredOutput(row)) { kept_library++; continue }
       await remove('jobs', id); deleted++
     }
     return { deleted, kept_library, kept_running }
@@ -133,8 +136,9 @@ export async function handleRequest(config) {
   if (match) {
     const row = await get('jobs', match[1]); if (!row) error('Tarefa não encontrada.', 404)
     if (method === 'delete') {
+      if (row.status === 'success' && row.runner_active) error('A exportação já foi concluída. Aguarde a atualização da biblioteca.', 409)
       if (!['pending', 'running'].includes(row.status) && !row.runner_active) {
-        if (await get('media', row.id)) error('Esta tarefa corresponde a um arquivo da biblioteca. Remova o arquivo pela biblioteca para excluir o resultado.', 409)
+        if (await hasStoredOutput(row)) error('Esta tarefa corresponde a um arquivo da biblioteca. Remova o arquivo pela biblioteca para excluir o resultado.', 409)
         await remove('jobs', row.id); return { ok: true, best_effort: false }
       }
       await put('jobs', { ...row, status: 'cancelled', current_step: 'Cancelada. A operação atual termina antes de liberar o motor.' }); return { ok: true, best_effort: true }
@@ -144,8 +148,7 @@ export async function handleRequest(config) {
   if (p === '/api/downloaded') { const rows = newest(await all('sources')); return { videos: page(rows, params), total: rows.length } }
   if (p === '/api/downloaded/import') {
     const row = await importSource(body.get('file'), body.get('title') || body.get('file').name)
-    const job = await startJob('analyze', { downloaded_video_id: row.id }, report => transcribe(row.id, report, 'fast').then(segments => ({ video_id: row.id, segment_count: segments.length })))
-    return { id: row.id, ...job, title: row.title }
+    return { id: row.id, title: row.title, status: 'ready', requires_transcription: !row.segments?.length }
   }
   if (p === '/api/downloaded/batch-download') return startJob('download', body, async report => {
     const videos = []
@@ -159,11 +162,11 @@ export async function handleRequest(config) {
   if (match) {
     const id = match[1], action = match[2]
     const row = await get('sources', id); if (!row) error('Fonte não encontrada.', 404)
-    if (!action && method === 'delete') { await remove('sources', id); await remove('media', id); await remove('media', `${id}:thumbnail`); return { ok: true } }
+    if (!action && method === 'delete') { await assertUnreferenced(id); await remove('sources', id); await remove('media', id); await remove('media', `${id}:thumbnail`); return { ok: true } }
     if (!action) return row
     if (action === 'export' && method === 'post') return queuedExport(id, row, body)
     if (action === 'segments') return { duration: row.duration_seconds, has_segments: !!row.segments?.length, truncated: false, segments: row.segments || [] }
-    if (action === 'extract-clips') return startJob('generate', { ...body, type: 'clip_extraction', downloaded_video_id: id }, report => extractClips(id, { emoji_style: 'moderate', ...body }, report))
+    if (action === 'extract-clips') return startJob('generate', { ...body, type: 'clip_extraction', downloaded_video_id: id }, (report, jobId) => extractClips(id, { emoji_style: 'moderate', ...body }, report, jobId))
     if (action === 'suggest-clips') return startJob('clip_suggest', { ...body, downloaded_video_id: id }, report => suggestClips(id, body, report))
     if (action === 'reanalyze') return startJob('analyze', { video_id: id }, report => transcribe(id, report, body.whisper_quality, true).then(segments => ({ segment_count: segments.length })))
   }
@@ -176,7 +179,7 @@ export async function handleRequest(config) {
   if (match) {
     const id = match[1], action = match[2]
     const row = await get('videos', id); if (!row) error('Vídeo não encontrado.', 404)
-    if (!action && method === 'delete') { await remove('videos', id); await remove('media', id); await remove('media', `${id}:thumbnail`); return { ok: true } }
+    if (!action && method === 'delete') { await assertUnreferenced(id); await remove('videos', id); await remove('media', id); await remove('media', `${id}:thumbnail`); return { ok: true } }
     if (!action && ['put', 'patch', 'post'].includes(method)) { await put('videos', { ...row, ...body }); return { ...row, ...body } }
     if (!action) return row
     if (action === 'export' && method === 'post') return queuedExport(id, row, body)

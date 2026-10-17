@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-route
 import { Snackbar, Alert, Button, CircularProgress, Box } from "@mui/material"
 import ErrorBoundary from "./components/ErrorBoundary"
 import Layout from "./components/Layout"
+import BrowserAdaptation from "./components/BrowserAdaptation"
 import useAppStore from "./store/appStore"
 import { pluginRoutes } from "./plugins"
 
@@ -104,15 +105,15 @@ export default function App() {
               <Route path="videos" element={<Library />} />
               {/* Scout leads are not files you own, so they are not the
                   Library. `/videos?tab=scout` redirects here. */}
-              <Route path="scout" element={<Scout />} />
-              <Route path="stock" element={<StockVideo />} />
+              <Route path="scout" element={<BrowserAdaptation name="Pesquisa de vídeos"><Scout /></BrowserAdaptation>} />
+              <Route path="stock" element={<BrowserAdaptation name="Vídeos de banco"><StockVideo /></BrowserAdaptation>} />
               <Route path="ai-video" element={<Navigate to="/stock" />} />
               <Route path="avatar" element={<Navigate to="/stock" />} />
               <Route path="create" element={<Navigate to="/stock" />} />
               <Route path="cron" element={<Navigate to="/" />} />
               <Route path="clips" element={<ClipStudio />} />
               <Route path="editor" element={<ClipEditor />} />
-              <Route path="motion" element={<MotionGraphics />} />
+              <Route path="motion" element={<BrowserAdaptation name="Animações"><MotionGraphics /></BrowserAdaptation>} />
               <Route path="tools" element={<Tools />} />
               <Route path="tools/captions" element={<ToolCaptions />} />
               <Route path="tools/reframe" element={<ToolReframe />} />
@@ -136,8 +137,8 @@ export default function App() {
               <Route path="tools/translate" element={<ToolTranslate />} />
               <Route path="tools/metadata" element={<ToolMetadata />} />
               <Route path="tools/auto-chapters" element={<ToolAutoChapters />} />
-              <Route path="channels" element={<Channels />} />
-              <Route path="messaging" element={<Messaging />} />
+              <Route path="channels" element={<BrowserAdaptation name="Meus canais"><Channels /></BrowserAdaptation>} />
+              <Route path="messaging" element={<BrowserAdaptation name="Mensagens"><Messaging /></BrowserAdaptation>} />
               <Route path="settings" element={<Settings />} />
               {pluginRoutes.map(({ path, element }) => (
                 <Route key={path} path={path} element={element} />

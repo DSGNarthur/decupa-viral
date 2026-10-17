@@ -1,5 +1,5 @@
-import { recoverInterruptedJobs } from './jobs'
-import { sourceBlob, thumbnail, filmstrip } from './media'
+import { recoverInterruptedJobs } from './jobs.js'
+import { sourceBlob, thumbnail, filmstrip } from './media.js'
 
 export async function prepareBrowserRuntime() {
   if (!window.isSecureContext || !('serviceWorker' in navigator)) throw new Error('Abra a plataforma por HTTPS em um navegador atualizado para acessar o processamento local.')
@@ -20,10 +20,20 @@ export async function prepareBrowserRuntime() {
   })
   await navigator.serviceWorker.register('/media-worker.js', { scope: '/' })
   await navigator.serviceWorker.ready
-  if (!navigator.serviceWorker.controller) {
+  if (!navigator.serviceWorker.controller?.scriptURL.endsWith('/media-worker.js')) {
     await new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error('O navegador não ativou o armazenamento de mídia. Atualize a página.')), 15000)
-      navigator.serviceWorker.addEventListener('controllerchange', () => { clearTimeout(timer); resolve() }, { once: true })
+      const changed = () => {
+        if (!navigator.serviceWorker.controller?.scriptURL.endsWith('/media-worker.js')) return
+        clearTimeout(timer); navigator.serviceWorker.removeEventListener('controllerchange', changed); resolve()
+      }
+      const timer = setTimeout(() => { navigator.serviceWorker.removeEventListener('controllerchange', changed); reject(new Error('O navegador não ativou o armazenamento de mídia. Atualize a página.')) }, 15000)
+      navigator.serviceWorker.addEventListener('controllerchange', changed)
+      changed()
     })
   }
+  // Never retain an old local pairing capability in the shared browser version.
+  sessionStorage.removeItem('decupa-pc-token')
+  sessionStorage.removeItem('decupa-pc-connected')
+  const hash = new URLSearchParams(location.hash.slice(1))
+  if (hash.has('pc')) history.replaceState(null, '', location.pathname + location.search)
 }

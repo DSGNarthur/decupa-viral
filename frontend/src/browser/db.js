@@ -1,9 +1,9 @@
 import { openDB } from 'idb'
 
-export const dbPromise = openDB('decupa-viral-browser', 1, {
+export const dbPromise = openDB('decupa-viral-browser', 2, {
   upgrade(db) {
-    for (const name of ['sources', 'videos', 'jobs', 'settings', 'media', 'sessions', 'messages', 'config']) {
-      db.createObjectStore(name, { keyPath: 'id' })
+    for (const name of ['sources', 'videos', 'jobs', 'settings', 'media', 'sessions', 'messages', 'config', 'drafts']) {
+      if (!db.objectStoreNames.contains(name)) db.createObjectStore(name, { keyPath: 'id' })
     }
   },
 })

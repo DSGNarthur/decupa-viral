@@ -39,6 +39,8 @@ frontend/dist/
 /validation/
 /artifacts/
 /frontend/public/source-code.zip
+/frontend/public/engine/ffmpeg-core.js
+/frontend/public/engine/ffmpeg-core.wasm
 /frontend/wasm-validation/
 /frontend/server-runtime/
 /deploy/backend.env

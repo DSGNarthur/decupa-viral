@@ -1,3 +1,9 @@
+# Acesso pelo navegador
+
+A publicação usa o computador de cada pessoa pelo próprio navegador, sem instalar ou parear o motor local. Abra o endereço, importe um vídeo em Editor de cortes e exporte. A biblioteca fica nesse navegador. A IA exige a chave configurada por cada pessoa. Veja [recursos e limites do modo web](docs/MODO-NAVEGADOR.md).
+
+As instruções de instalação local abaixo continuam disponíveis para a distribuição nativa opcional. Elas não são necessárias para usar a publicação web.
+
 # Decupa com base no ViralMint
 
 Esta é a modalidade atual autorizada: motores originais instalados no PC, com acesso local em http://localhost:16889 e interface em https://decupa-viral.vercel.app, exclusivamente na Vercel do Arthur. O PC precisa ficar ligado. Não usa AWS. A decisão substitui a tentativa anterior de processamento independente no celular, registrada em README-NAVEGADOR.md.

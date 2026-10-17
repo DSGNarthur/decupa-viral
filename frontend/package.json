@@ -11,7 +11,9 @@
     "build:companion": "vite build --mode companion",
     "test:browser": "node --test tests/browser-runtime.test.mjs",
     "test:wasm": "node scripts/test-wasm.mjs",
-    "test:editor": "node --test tests/editor-document.test.mjs"
+    "test:editor": "node --test tests/editor-document.test.mjs",
+    "test:web": "node --test tests/browser-*.test.mjs tests/editor-document.test.mjs",
+    "test:web-media": "node scripts/test-browser-editor-wasm.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

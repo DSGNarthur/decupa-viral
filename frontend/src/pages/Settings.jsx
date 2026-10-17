@@ -126,7 +126,7 @@ export default function Settings() {
           description={"Motores opcionais que são instalados sob demanda na sua pasta de dados"}
           accentColor="#7c3aed"
         >
-          <MotionGraphicsSection />
+          {import.meta.env.VITE_BROWSER_RUNTIME === 'true' ? <Typography>Os motores de animação nativos ainda não estão disponíveis nesta versão. Não é necessário instalar complementos para usar o editor.</Typography> : <MotionGraphicsSection />}
         </Section>
 
         {/* System Health */}

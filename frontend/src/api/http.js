@@ -24,6 +24,7 @@ if (import.meta.env.VITE_BROWSER_RUNTIME === 'true') {
       const data = await handleRequest(config)
       return { data, status: 200, statusText: 'OK', headers: {}, config }
     } catch (error) {
+      if (error.name === 'QuotaExceededError') error.message = 'O armazenamento deste navegador está cheio. Baixe seus resultados e remova arquivos da biblioteca antes de importar novamente.'
       if (!error.response) error.response = { status: 400, data: { detail: error.message || 'Não foi possível concluir a operação.' }, config }
       throw error
     }

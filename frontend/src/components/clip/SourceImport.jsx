@@ -88,6 +88,11 @@ export default function SourceImport({ onReady }) {
     const form = new FormData(); form.append("file", file)
     try {
       const { data } = await http.post("/api/downloaded/import", form, { timeout: 0 })
+      if (import.meta.env.VITE_BROWSER_RUNTIME === 'true') {
+        onReady(data.id)
+        setStatus({ status: 'success', current_step: 'Arquivo importado neste navegador. A transcrição será feita quando você solicitar cortes com IA ou legendas.' })
+        return
+      }
       startJob(data.job_id, "analyze", "Transcrevendo arquivo…")
       onReady(data.id)
       setPending({ jobId: data.job_id, sourceId: data.id })
@@ -111,7 +116,7 @@ export default function SourceImport({ onReady }) {
       </Stack>
       <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
         Depois de importar, use Corte automático para a IA escolher os cortes ou marque os trechos na linha do tempo.
-        A transcrição e a exportação rodam no PC. Mantenha o aplicativo local aberto durante as tarefas. YouTube e DeepSeek precisam de internet.
+        {import.meta.env.VITE_BROWSER_RUNTIME === 'true' ? 'A transcrição e a exportação rodam neste navegador. Mantenha esta página aberta. Links do YouTube podem ser recusados pela origem; nesse caso, importe o arquivo. Recursos de IA exigem sua chave em Configurações.' : 'A transcrição e a exportação rodam no PC. Mantenha o aplicativo local aberto durante as tarefas. YouTube e DeepSeek precisam de internet.'}
       </Typography>
       {busy && <LinearProgress sx={{ mt: 1 }} variant={status?.progress_pct ? "determinate" : "indeterminate"} value={status?.progress_pct || 0} />}
       {status?.current_step && <Typography variant="caption">{jobStep(status.current_step)}</Typography>}

@@ -301,9 +301,10 @@ export default function Layout() {
       >
         <Box component="header" sx={{ minHeight: 52, px: { xs: 1.5, md: 3 }, display: 'flex', alignItems: 'center', gap: 1, borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper', flexShrink: 0 }}>
           <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>Meu espaço / {navItems.find(i => location.pathname.startsWith(i.to))?.label || 'Decupa'}</Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>Processamento no PC</Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>{import.meta.env.VITE_BROWSER_RUNTIME === 'true' ? 'Processamento neste navegador' : 'Processamento no PC'}</Typography>
           <Tooltip title={theme.palette.mode === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}><IconButton aria-label={theme.palette.mode === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'} onClick={() => { localStorage.setItem('decupa-theme', theme.palette.mode === 'dark' ? 'light' : 'dark'); window.dispatchEvent(new Event('decupa-theme-change')) }}>{theme.palette.mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}</IconButton></Tooltip>
         </Box>
+        {import.meta.env.VITE_BROWSER_RUNTIME === 'true' && <Alert severity="info" sx={{ borderRadius: 0 }}>Seus arquivos ficam neste navegador. Importe um vídeo para começar. Mantenha a página aberta durante o processamento.</Alert>}
         {import.meta.env.VITE_BROWSER_RUNTIME !== 'true' && <Alert severity="info" sx={{ borderRadius: 0 }} action={import.meta.env.VITE_COMPANION_RUNTIME !== 'true' ? <Button color="inherit" size="small" onClick={openVercel}>Abrir na Vercel</Button> : undefined}>
           {import.meta.env.VITE_COMPANION_RUNTIME === 'true' ? 'Conectado ao processador deste PC. Os motores originais e os arquivos estão no computador. Mantenha o PC ligado.' : 'Processamento completo neste PC. Abra na Vercel para usar a mesma biblioteca e os mesmos motores neste computador.'}
         </Alert>}

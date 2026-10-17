@@ -3,13 +3,21 @@ self.addEventListener('install', () => self.skipWaiting())
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()))
 function db() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open('decupa-viral-browser', 1)
+    const req = indexedDB.open('decupa-viral-browser')
     req.onsuccess = () => resolve(req.result)
     req.onerror = () => reject(req.error)
   })
 }
-async function media(id) {
+async function media(id, draft = false) {
   const connection = await db()
+  if (draft) {
+    id = await new Promise((resolve, reject) => {
+      const req = connection.transaction('drafts', 'readonly').objectStore('drafts').get(id)
+      req.onsuccess = () => resolve(req.result?.source_media_id)
+      req.onerror = () => reject(req.error)
+    })
+    if (!id) { connection.close(); return null }
+  }
   return new Promise((resolve, reject) => {
     const tx = connection.transaction('media', 'readonly')
     const req = tx.objectStore('media').get(id)
@@ -33,11 +41,12 @@ self.addEventListener('fetch', event => {
     })())
     return
   }
-  const match = url.pathname.match(/^\/api\/(?:downloaded|videos)\/([^/]+)\/(stream|thumbnail|download)$/) || url.pathname.match(/^\/api\/tools\/download\/([^/]+)$/)
+  const editor = url.pathname.match(/^\/api\/editor\/drafts\/([^/]+)\/stream$/)
+  const match = editor || url.pathname.match(/^\/api\/(?:downloaded|videos)\/([^/]+)\/(stream|thumbnail|download)$/) || url.pathname.match(/^\/api\/tools\/download\/([^/]+)$/)
   if (!match) return
   event.respondWith((async () => {
     const id = match[1] + (match[2] === 'thumbnail' ? ':thumbnail' : '')
-    const row = await media(id)
+    const row = await media(id, !!editor)
     if (!row?.blob) return new Response('Arquivo não encontrado neste dispositivo', { status: 404 })
     const blob = row.blob
     const headers = { 'Content-Type': blob.type || 'application/octet-stream', 'Accept-Ranges': 'bytes', 'Cache-Control': 'no-store' }

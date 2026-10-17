@@ -22,3 +22,6 @@ Esta versão acrescenta o editor não destrutivo e a análise de rostos adaptado
 A interface usa temas branco e preto, a logo Decupa, os ícones Material existentes e as animações preservadas com movimento reduzido acessível. Os novos avisos de atribuição estão em `THIRD_PARTY_NOTICES.md`. Os detalhes de operação e limites estão em `docs/INTEGRACAO-SUPOCLIP.md`.
 
 O alvo de implantação permanece a interface na Vercel do Arthur e o processamento no PC, sem AWS. O código correspondente exclui credenciais e dados pessoais.
+# Atualização de 17/10/2026: processamento no navegador
+
+Acesso publicado sem pareamento obrigatório. Editor adaptado para IndexedDB e FFmpeg WebAssembly, com fonte limpa, revisões concorrentes, montagem, entrega de mídia por service worker e publicação atômica dos resultados. Troca de worker validada sem acesso a localhost. Módulos nativos ainda sem adaptação apresentam uma indicação na interface. Os motores nativos permanecem na distribuição local separada. Consulte `docs/MODO-NAVEGADOR.md` para recursos, limites e verificações.

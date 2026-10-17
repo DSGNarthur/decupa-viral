@@ -79,3 +79,12 @@ export async function recoverInterruptedJobs() {
     // Without Web Locks, do not classify another tab's tasks as interrupted.
   }
 }
+export async function hasStoredOutput(job) {
+  if (await get('media', job.id)) return true
+  let output
+  try { output = JSON.parse(job.output_json || '{}') } catch { return false }
+  if (output.draft_id && await get('drafts', output.draft_id)) return true
+  const ids = [output.video_id, ...(output.clip_ids || [])].filter(Boolean)
+  for (const id of ids) if (await get('videos', id)) return true
+  return false
+}

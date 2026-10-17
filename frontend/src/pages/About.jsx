@@ -13,9 +13,8 @@ export default function About() {
       </Typography>
       <Typography paragraph>
         As alterações iniciadas em 16/10/2026 incluem a identidade Decupa Viral,
-        a tradução para português e a conexão da interface publicada aos motores
-        originais instalados no PC. O processamento e a biblioteca ficam no computador.
-        Mantenha o aplicativo local aberto durante as tarefas.
+        a tradução para português e a adaptação dos recursos de edição.
+        {import.meta.env.VITE_BROWSER_RUNTIME === 'true' ? 'Nesta versão, os vídeos e rascunhos são processados e salvos no navegador, sem instalação. Mantenha a página aberta durante as tarefas.' : 'Mantenha o aplicativo local aberto durante as tarefas.'}
       </Typography>
       <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
         <Button component="a" href="/source-code.zip" download variant="contained">
