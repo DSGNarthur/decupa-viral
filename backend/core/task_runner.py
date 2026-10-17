@@ -1640,6 +1640,18 @@ async def run_studio_author(job_id: str, brief: dict, user_id: str = "local", **
         ai = get_ai_client(user_settings)
 
         assets_dir = StudioService.project_dir() / "assets"
+        if brief.get("instruction") and not brief.get("current_html"):
+            # Read the live file HERE, at run time, not when the request was
+            # made: the user may have edited it in the studio since.
+            current = author.live_composition_for_refine(StudioService.project_dir())
+            if current:
+                brief = {**brief, "current_html": current}
+            else:
+                # Say so rather than quietly hand back an unrelated piece.
+                await update_job_status(
+                    job_id, "running", progress_pct=15,
+                    current_step="The live composition is too large to edit — "
+                                 "writing a new version with your change")
         html = await author.author_composition(brief, ai)
         issues = await StudioService._all_issues(html, assets_dir)
 

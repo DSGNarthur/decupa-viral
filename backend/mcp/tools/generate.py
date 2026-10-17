@@ -396,11 +396,11 @@ def register(mcp: FastMCP) -> None:
         Args:
             topic: The brief — what the video should say/show. Either this
                 or `instruction` is required.
-            instruction: A requested change, e.g. "make the headline bigger".
-                Note: the model is given the change and the brief, NOT the
-                current composition's code, so this produces a new
-                composition steered by the change rather than an in-place
-                edit. Pass the original `topic` along with it.
+            instruction: A requested change to the LIVE composition, e.g.
+                "make the headline bigger". The model edits the current
+                document and keeps everything else; a live file too large to
+                round-trip is rewritten with the change instead (the job's
+                current_step says so).
             headline: Text the composition must use verbatim.
             style: Free-text look/mood, e.g. "minimal editorial".
             accent: Hex accent colour (default "#ffd60a").

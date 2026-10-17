@@ -193,6 +193,27 @@ def build_brief_message(brief: dict) -> str:
     duration = brief.get("duration_seconds") or 6
     duration = max(3, min(int(duration), MOTION_DURATION_MAX))
 
+    current = (brief.get("current_html") or "").strip()
+    if brief.get("instruction") and current:
+        # A refinement EDITS what is live. Without the current document the
+        # model can only write a new piece around the change ("make the
+        # headline bigger" came back as an unrelated video with a big headline).
+        lines = [
+            "Edit the CURRENT COMPOSITION below. Apply ONLY this change:",
+            f"CHANGE REQUESTED: {brief['instruction']}",
+            "Keep everything the change doesn't touch — text, timing, layout, "
+            "colours, assets and animation — exactly as it is. Return the "
+            "COMPLETE updated HTML document, not a diff.",
+            f"DIMENSIONS: {w}x{h} ({aspect})",
+            f"DURATION: {duration} seconds",
+        ]
+        if brief.get("headline"):
+            lines.append(f"HEADLINE (use this text verbatim): {brief['headline']}")
+        _append_assets(lines, brief)
+        lines.append("CURRENT COMPOSITION:")
+        lines.append(current)
+        return "\n".join(lines)
+
     lines = [
         f"TOPIC: {(brief.get('topic') or '').strip() or 'a short brand moment'}",
         f"DIMENSIONS: {w}x{h} ({aspect})",
@@ -204,8 +225,15 @@ def build_brief_message(brief: dict) -> str:
     if brief.get("headline"):
         lines.append(f"HEADLINE (use this text verbatim): {brief['headline']}")
     if brief.get("instruction"):
-        # A refinement of an existing composition rather than a fresh one.
+        # A change with nothing live to apply it to (fresh project, or the
+        # live file was unreadable) — the best we can do is a new piece that
+        # honours it.
         lines.append(f"CHANGE REQUESTED: {brief['instruction']}")
+    _append_assets(lines, brief)
+    return "\n".join(lines)
+
+
+def _append_assets(lines: list, brief: dict) -> None:
     assets = brief.get("assets") or []
     if assets:
         lines.append("ASSETS (use every one; copy the filename exactly):")
@@ -214,7 +242,30 @@ def build_brief_message(brief: dict) -> str:
             if a.get("duration"):
                 desc += f", {a['duration']}s"
             lines.append(desc + ")")
-    return "\n".join(lines)
+
+
+# A live composition larger than this isn't sent for a refine: the reply has
+# to repeat the whole document inside AUTHOR_MAX_TOKENS, so a bigger input
+# can only come back truncated. Generous for hand- or AI-authored pieces.
+CURRENT_HTML_MAX_CHARS = 24_000
+
+
+def live_composition_for_refine(project_dir) -> str | None:
+    """The live index.html to edit, or None when there is none (or it is too
+    large to round-trip within the output budget)."""
+    from pathlib import Path
+    idx = Path(project_dir) / "index.html"
+    try:
+        html = idx.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+    if not html.strip():
+        return None
+    if len(html) > CURRENT_HTML_MAX_CHARS:
+        logger.warning("Refine: live composition is %d chars (> %d) — authoring "
+                       "a new piece instead of editing it", len(html), CURRENT_HTML_MAX_CHARS)
+        return None
+    return html
 
 
 _FENCE_RE = re.compile(r"^\s*```(?:html)?\s*|\s*```\s*$", re.I)

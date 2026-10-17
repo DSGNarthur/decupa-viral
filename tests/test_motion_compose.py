@@ -153,8 +153,12 @@ async def test_the_contract_is_byte_identical_across_calls():
 # ── The job: repair, then refuse ──────────────────────────────────────────────
 
 @pytest.fixture
-def compose_job(tmp_path, monkeypatch):
+async def compose_job(tmp_path, monkeypatch):
     """A studio project plus a settled-on stub AI, wired into the runner."""
+    # The runner reads UserSettings; don't rely on an earlier test having
+    # created the schema.
+    from backend.database import init_db
+    await init_db()
     import backend.services.studio_service as svc
     from backend.services.studio_service import StudioService
 
@@ -175,7 +179,7 @@ async def _empty():
     return []
 
 
-async def _run(monkeypatch, ai, job_id="job1234"):
+async def _run(monkeypatch, ai, job_id="job1234", brief=None):
     """Drive run_studio_author with a stubbed model and capture the job's fate."""
     from backend.core import task_runner
     states = []
@@ -192,7 +196,8 @@ async def _run(monkeypatch, ai, job_id="job1234"):
         async def send(self, *a, **k): pass
     monkeypatch.setattr("backend.core.ws_manager.ws_manager", _WS())
 
-    await task_runner.run_studio_author(job_id, {"topic": "a hook", "aspect_ratio": "9:16"})
+    await task_runner.run_studio_author(
+        job_id, brief or {"topic": "a hook", "aspect_ratio": "9:16"})
     return states
 
 
@@ -248,3 +253,66 @@ async def test_the_failure_names_what_was_wrong(compose_job, monkeypatch):
     states = await _run(monkeypatch, StubAI(broken, broken))
     msg = states[-1].get("error_message", "")
     assert "__timelines" in msg or "data-composition-id" in msg
+
+
+# ── Refining edits the live composition ──────────────────────────────────────
+
+LIVE = VALID.replace("<html", "<html data-marker=\"live-piece-7f3a\"", 1)
+
+
+def test_a_refine_hands_the_model_the_live_document():
+    """The bug: a refine sent only the change, so "make the headline bigger"
+    came back as an unrelated video with a big headline."""
+    msg = author.build_brief_message({
+        "instruction": "make the headline bigger", "current_html": LIVE,
+        "aspect_ratio": "9:16", "duration_seconds": 5})
+    assert "live-piece-7f3a" in msg
+    assert "make the headline bigger" in msg
+    assert "COMPLETE updated HTML" in msg
+    # No invented topic competing with the edit.
+    assert "a short brand moment" not in msg
+
+
+def test_a_refine_with_nothing_live_still_carries_the_change():
+    msg = author.build_brief_message({"instruction": "use a red accent"})
+    assert "CHANGE REQUESTED: use a red accent" in msg
+
+
+def test_the_live_composition_is_read_from_the_project(tmp_path):
+    (tmp_path / "index.html").write_text(LIVE)
+    assert author.live_composition_for_refine(tmp_path) == LIVE
+
+
+@pytest.mark.parametrize("content", [None, "", "x" * (author.CURRENT_HTML_MAX_CHARS + 1)])
+def test_no_live_document_to_edit(tmp_path, content):
+    """Missing, empty, or too large to repeat back inside the output budget."""
+    if content is not None:
+        (tmp_path / "index.html").write_text(content)
+    assert author.live_composition_for_refine(tmp_path) is None
+
+
+def test_the_cap_leaves_room_to_return_the_whole_document():
+    # ~3.5 chars per token for HTML: the edited copy must fit the reply budget.
+    assert author.CURRENT_HTML_MAX_CHARS / 3.5 < author.AUTHOR_MAX_TOKENS
+
+
+async def test_the_runner_edits_what_is_live(compose_job, monkeypatch):
+    """End to end through the job runner: the model call carries the file that
+    is live AT RUN TIME, and the edit goes live."""
+    compose_job.joinpath("index.html").write_text(LIVE)
+    ai = StubAI(VALID)
+    states = await _run(monkeypatch, ai, brief={
+        "instruction": "slow the intro down", "aspect_ratio": "9:16",
+        "duration_seconds": 5})
+    assert states[-1]["status"] == "success"
+    sent = ai.calls[0]["user"]
+    assert "live-piece-7f3a" in sent and "slow the intro down" in sent
+
+
+async def test_a_refine_too_large_to_edit_says_so(compose_job, monkeypatch):
+    compose_job.joinpath("index.html").write_text(
+        "x" * (author.CURRENT_HTML_MAX_CHARS + 1))
+    ai = StubAI(VALID)
+    states = await _run(monkeypatch, ai, brief={"instruction": "red accent",
+                                               "aspect_ratio": "9:16"})
+    assert any("too large to edit" in (st.get("current_step") or "") for st in states)
