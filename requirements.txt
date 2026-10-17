@@ -60,7 +60,7 @@ pytrends==4.9.2
 # 0.15 broke; our floor is 2026.7.4, where it is fine.
 # Optional at runtime: the service degrades to urllib's fingerprint if it's
 # missing/incompatible (see ytdlp_service._IMPERSONATE_TARGET).
-yt-dlp>=2026.7.4
+yt-dlp[default]>=2026.7.4
 curl-cffi>=0.15
 
 # Transcription

@@ -26,9 +26,9 @@ const TOPIC_STARTERS = [
 ]
 
 const MODES = [
-  { value: "text", label: "Paste script", description: "Fastest — no transcription" },
-  { value: "topic", label: "From topic", description: "Generate from a bare topic string" },
-  { value: "file", label: "Upload video", description: "Whisper transcribes first" },
+  { value: "text", label: "Colar roteiro", description: "Mais rápido , sem transcrição" },
+  { value: "topic", label: "A partir do tópico", description: "Gerar a partir de um tópico simples" },
+  { value: "file", label: "Enviar vídeo", description: "O Whisper transcreve primeiro" },
 ]
 
 function ResultPreview({ jobId }) {
@@ -50,24 +50,24 @@ function ResultPreview({ jobId }) {
     return (
       <Alert severity="info" sx={{ fontSize: "0.85rem" }}>
         {loading
-          ? "Loading result…"
-          : <>Result ready — click <strong>Download</strong> below to get the JSON file.</>}
+          ? "Carregando resultado…"
+          : <>Resultado pronto , clique em <strong>Baixar</strong> abaixo para obter o arquivo JSON.</>}
       </Alert>
     )
   }
   const tags = metadata.youtube_tags || []
   return (
     <Stack spacing={1.5}>
-      <Field label="YouTube title" value={metadata.youtube_title} onCopy={copy} />
-      <Field label="YouTube description" value={metadata.youtube_description} onCopy={copy} multiline />
+      <Field label={"Título do YouTube"} value={metadata.youtube_title} onCopy={copy} />
+      <Field label={"Descrição do YouTube"} value={metadata.youtube_description} onCopy={copy} multiline />
       {tags.length > 0 && (
         <Field
-          label="YouTube tags"
+          label={"Tags do YouTube"}
           value={tags.join(", ")}
           onCopy={copy}
         />
       )}
-      <Field label="TikTok caption" value={metadata.tiktok_title} onCopy={copy} multiline />
+      <Field label={"Legenda do TikTok"} value={metadata.tiktok_title} onCopy={copy} multiline />
     </Stack>
   )
 }
@@ -87,7 +87,7 @@ function Field({ label, value, onCopy, multiline }) {
           {value}
         </Typography>
       </Box>
-      <Tooltip title="Copy">
+      <Tooltip title={"Copiar"}>
         <IconButton size="small" onClick={() => onCopy(value)} sx={{ flexShrink: 0 }}>
           <ContentCopyIcon sx={{ fontSize: "0.95rem" }} />
         </IconButton>
@@ -97,7 +97,7 @@ function Field({ label, value, onCopy, multiline }) {
 }
 
 export default function ToolMetadata() {
-  useDocumentTitle("Metadata Generator")
+  useDocumentTitle("Gerador de Metadados")
   const [mode, setMode] = useState("text")
   const [text, setText] = useState("")
   const [topic, setTopic] = useState("")
@@ -108,15 +108,15 @@ export default function ToolMetadata() {
 
   return (
     <ToolRunner
-      title="Title / Description / Tags"
-      description="Generate SEO metadata for a video, transcript, or bare topic"
+      title={"Título / Descrição / Tags"}
+      description={"Gerar metadados de SEO para um vídeo, transcrição ou tópico simples"}
       icon={<LabelOutlinedIcon fontSize="large" />}
       endpoint="/api/tools/metadata"
-      processLabel="Generate"
-      downloadLabel="Download JSON"
+      processLabel={"Gerar"}
+      downloadLabel={"Baixar JSON"}
       hideFileInput={mode !== "file"}
       canSubmit={canSubmit}
-      disabledReason={mode === "topic" ? "Enter a topic" : "Paste your script or transcript"}
+      disabledReason={mode === "topic" ? "Digite um tópico" : "Cole seu roteiro ou transcrição"}
       fieldBuilder={() => ({
         text: mode === "text" ? text : "",
         topic: mode === "topic" ? topic : "",
@@ -126,7 +126,7 @@ export default function ToolMetadata() {
       <Stack spacing={2}>
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 1 }}>
-            Input mode
+            Modo de entrada
           </Typography>
           <ToggleButtonGroup
             value={mode}
@@ -149,12 +149,12 @@ export default function ToolMetadata() {
             minRows={6} maxRows={18}
             autoFocus
             enhanceKind="metadata"
-            label="Script / transcript"
-            placeholder="Paste a script, transcript, or rough outline. The AI will turn it into platform metadata."
+            label={"Roteiro / transcrição"}
+            placeholder={"Cole um roteiro, transcrição ou esboço. A IA vai transformar isso em metadados de plataforma."}
             value={text}
             onChange={(e) => setText(e.target.value)}
             slotProps={{ htmlInput: { maxLength: 20000 } }}
-            helperText={`${text.length} / 20,000 chars`}
+            helperText={("" + String(text.length) + " / 20.000 caracteres")}
           />
         )}
 
@@ -176,8 +176,8 @@ export default function ToolMetadata() {
             <TextField
               fullWidth
               autoFocus
-              label="Topic"
-              placeholder='e.g. "AI startup ideas for solo founders in 2026"'
+              label={"Tópico"}
+              placeholder={"ex.: \"ideias de startup de IA para fundadores solo em 2026\""}
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               slotProps={{ htmlInput: { maxLength: 500 } }}
@@ -187,7 +187,7 @@ export default function ToolMetadata() {
 
         {mode === "file" && (
           <Alert severity="info" sx={{ fontSize: "0.82rem" }}>
-            Upload a video below. We'll transcribe it with Whisper, then generate metadata from the transcript.
+            Envie um vídeo abaixo. Vamos transcrever com o Whisper e depois gerar metadados a partir da transcrição.
           </Alert>
         )}
       </Stack>

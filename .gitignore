@@ -33,6 +33,15 @@ storage/
 # Node
 node_modules/
 frontend/dist/
+/motion/
+/playwright-browsers/
+/validation/
+/artifacts/
+/frontend/public/source-code.zip
+/frontend/wasm-validation/
+/frontend/server-runtime/
+/deploy/backend.env
+/runtime.local.json
 
 # Serverless
 .serverless/

@@ -1,4 +1,5 @@
 import { createTheme, alpha } from "@mui/material/styles"
+import { ptBR } from '@mui/material/locale'
 
 // ── Shadow system ────────────────────────────────────────────────────────────
 const shadows = {
@@ -370,7 +371,7 @@ export default function createAppTheme(mode) {
         },
       },
     },
-  })
+  }, ptBR)
 
   return theme
 }

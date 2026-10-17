@@ -5,20 +5,20 @@ import useDocumentTitle from "../../hooks/useDocumentTitle"
 import { MEDIA_ACCEPT } from "../../components/tools/mediaAccept"
 
 export default function ToolAudioEnhance() {
-  useDocumentTitle("Enhance Audio")
+  useDocumentTitle("Melhorar Áudio")
   return (
     <ToolRunner
-      title="Enhance Audio"
-      description="Denoise hiss, normalize loudness, polish speech"
+      title={"Melhorar Áudio"}
+      description={"Remova chiados, normalize o volume, refine a fala"}
       icon={<GraphicEqOutlinedIcon fontSize="large" />}
       endpoint="/api/tools/audio-enhance"
       acceptExts={MEDIA_ACCEPT}
     >
       <Typography variant="body2" sx={{ color: "text.secondary" }}>
-        Applies noise reduction, a high-pass / low-pass trim for rumble and
-        hiss, and EBU R128 loudness normalization to -16 LUFS. Takes a video or
-        a bare audio file (audio in, mp3 out). No configuration needed — the
-        defaults work for 99% of talking-head content.
+        Aplica redução de ruído, filtro high-pass / low-pass para graves e
+        chiados, e normalização de volume EBU R128 para -16 LUFS. Aceita um vídeo ou
+        um arquivo de áudio puro (áudio na entrada, mp3 na saída). Sem configuração necessária , os
+        padrões funcionam para 99% de conteúdo de talking-head.
       </Typography>
     </ToolRunner>
   )

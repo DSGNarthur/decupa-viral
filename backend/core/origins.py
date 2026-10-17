@@ -37,6 +37,9 @@ def allowed_origins() -> set[str]:
     }
     if settings.HOST not in ("0.0.0.0", "127.0.0.1", "localhost"):
         origins.add(f"http://{settings.HOST}:{settings.PORT}")
+    from backend.core.companion import enabled, ORIGIN
+    if enabled():
+        origins.add(ORIGIN)
     return origins
 
 

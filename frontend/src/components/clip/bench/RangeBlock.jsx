@@ -72,7 +72,7 @@ export default function RangeBlock({
       {/* Edge handles. The inner pill is the visible affordance; the
           parent is the (wider) hit area, so a 2px-looking line is still
           a 10px target. */}
-      {["start", "end"].map((edge) => (
+      {["iniciar", "fim"].map((edge) => (
         <Box
           key={edge}
           onPointerDown={(e) => { e.stopPropagation(); onSelect(); onGrab(edge, e) }}
@@ -126,7 +126,7 @@ export default function RangeBlock({
             textShadow: "0 1px 3px rgba(0,0,0,0.9)",
             whiteSpace: "nowrap", overflow: "hidden", textOverflow: "clip",
           }}>
-            {len < 60 ? `${len.toFixed(1)}s` : `${Math.floor(len / 60)}m${String(Math.round(len % 60)).padStart(2, "0")}`}
+            {len < 60 ? ("" + String(len.toFixed(1)) + "s") : ("" + String(Math.floor(len / 60)) + "m" + String(String(Math.round(len % 60)).padStart(2, "0")) + "")}
           </Typography>
         )}
       </Box>
@@ -143,7 +143,7 @@ export default function RangeBlock({
           // the one that matches what the mouse sees.)
           role="button" tabIndex={0}
           onKeyDown={onActivate((e) => { e.stopPropagation(); onRemove() })}
-          aria-label={`Remove range ${index + 1}`}
+          aria-label={("Remover intervalo " + String(index + 1) + "")}
           sx={{
             position: "absolute", bottom: 3, right: EDGE_PX + 2,
             width: 16, height: 16, borderRadius: "50%",

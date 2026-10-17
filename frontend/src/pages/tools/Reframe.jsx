@@ -4,18 +4,18 @@ import ToolRunner from "../../components/tools/ToolRunner"
 import useDocumentTitle from "../../hooks/useDocumentTitle"
 
 export default function ToolReframe() {
-  useDocumentTitle("Reframe to Vertical")
+  useDocumentTitle("Reenquadrar para Vertical")
   return (
     <ToolRunner
-      title="Reframe to Vertical"
-      description="Convert 16:9 landscape to 9:16 with face-tracking"
+      title={"Reenquadrar para Vertical"}
+      description={"Converta vídeos horizontais para vertical com fundo desfocado"}
       icon={<AspectRatioOutlinedIcon fontSize="large" />}
       endpoint="/api/tools/reframe"
     >
       <Typography variant="body2" sx={{ color: "text.secondary" }}>
-        Fits the whole frame into 9:16 over a blurred, zoomed copy of itself —
-        nothing is cropped away. Sources that are already 9:16 or narrower are
-        returned unchanged; square and 4:5 clips are reframed.
+        Encaixa o quadro inteiro em 9:16 sobre uma cópia desfocada e ampliada de si mesmo ,
+        nada é cortado. Fontes que já estão em 9:16 ou mais estreitas são
+        retornadas sem alteração; clipes quadrados e 4:5 são reenquadrados.
       </Typography>
     </ToolRunner>
   )

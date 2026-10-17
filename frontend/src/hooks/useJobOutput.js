@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2025-2026 ViralMint Contributors
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import http from "../api/http"
 import useAppStore from "../store/appStore"
 
@@ -34,20 +34,13 @@ export default function useJobOutput(jobId, output) {
   const [fetched, setFetched] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  // Guards a second fetch for the same job (StrictMode double-mount, re-render
-  // on an unrelated store change). Reset when the job id changes.
-  const fetchedFor = useRef(null)
-
   const direct = output || storeOutput || null
 
   useEffect(() => {
-    if (fetchedFor.current !== jobId) {
-      fetchedFor.current = null
-      setFetched(null)
-      setError(null)
-    }
-    if (!jobId || direct || fetchedFor.current === jobId) return
-    fetchedFor.current = jobId
+    setFetched(null)
+    setError(null)
+    setLoading(false)
+    if (!jobId || direct) return
     let cancelled = false
     setLoading(true)
     http.get(`/api/jobs/${jobId}`)

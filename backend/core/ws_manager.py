@@ -17,8 +17,11 @@ class ConnectionManager:
         # user_id → set of active WebSocket connections
         self._connections: Dict[str, Set[WebSocket]] = {}
 
-    async def connect(self, websocket: WebSocket, user_id: str = "local"):
-        await websocket.accept()
+    async def connect(self, websocket: WebSocket, user_id: str = "local", subprotocol: str | None = None):
+        if subprotocol is None:
+            await websocket.accept()
+        else:
+            await websocket.accept(subprotocol=subprotocol)
         if user_id not in self._connections:
             self._connections[user_id] = set()
         self._connections[user_id].add(websocket)

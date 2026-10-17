@@ -8,14 +8,14 @@ import ToolRunner from "../../components/tools/ToolRunner"
 import useDocumentTitle from "../../hooks/useDocumentTitle"
 
 const OPS = [
-  { v: "flip_h", label: "Flip ◀▶" },
-  { v: "flip_v", label: "Flip ▲▼" },
-  { v: "rotate_cw", label: "Rotate ⟳" },
-  { v: "rotate_ccw", label: "Rotate ⟲" },
-  { v: "rotate_180", label: "Rotate 180°" },
-  { v: "loop", label: "Loop" },
+  { v: "flip_h", label: "Espelhar ◀▶" },
+  { v: "flip_v", label: "Espelhar ▲▼" },
+  { v: "rotate_cw", label: "Girar ⟳" },
+  { v: "rotate_ccw", label: "Girar ⟲" },
+  { v: "rotate_180", label: "Girar 180°" },
+  { v: "loop", label: "Repetir" },
   { v: "volume", label: "Volume" },
-  { v: "mute", label: "Remove audio" },
+  { v: "mute", label: "Remover áudio" },
 ]
 
 // Ops that can be deep-linked with ?op=… — the Tools hub lists "Remove Audio"
@@ -35,7 +35,7 @@ const VOL_PRESETS = [
 ]
 
 export default function ToolTransform() {
-  useDocumentTitle("Transform")
+  useDocumentTitle("Transformar")
   const [operation, setOperation] = useState("flip_h")
   const [loopCount, setLoopCount] = useState(2)
   const [volume, setVolume] = useState(2)
@@ -51,15 +51,15 @@ export default function ToolTransform() {
 
   return (
     <ToolRunner
-      title="Transform"
-      description="Quick edits — flip, rotate, loop, change volume, or strip the audio"
+      title={"Transformar"}
+      description={"Edições rápidas , espelhar, girar, repetir, alterar o volume ou remover o áudio"}
       icon={<TransformIcon fontSize="large" />}
       endpoint="/api/tools/transform"
       fieldBuilder={() => ({ operation, amount })}
     >
       <Stack spacing={2}>
         <Box>
-          <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 1 }}>Operation</Typography>
+          <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 1 }}>Operação</Typography>
           <ToggleButtonGroup
             exclusive size="small" value={operation}
             onChange={(_e, v) => v && setOperation(v)}
@@ -72,7 +72,7 @@ export default function ToolTransform() {
         {operation === "loop" && (
           <Box>
             <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 0.5 }}>
-              Repeat the clip {loopCount}× (back-to-back)
+              Repetir o clipe {loopCount}× (em sequência)
             </Typography>
             <Slider value={loopCount} onChange={(_e, v) => setLoopCount(v)} min={2} max={20} step={1} marks valueLabelDisplay="auto" sx={{ maxWidth: 360 }} />
           </Box>

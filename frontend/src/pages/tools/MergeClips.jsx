@@ -22,14 +22,15 @@ import useDocumentTitle from "../../hooks/useDocumentTitle"
 // Mirrors backend/api/tools.py MERGE_CLIPS_MIN/MAX. Keep in sync.
 const MIN_CLIPS = 2
 const MAX_CLIPS = 10
-const MAX_MB = 1000
+const BROWSER = import.meta.env.VITE_BROWSER_RUNTIME === 'true'
+const MAX_MB = BROWSER ? 512 : 1000
 const ACCEPT = ".mp4,.mov,.mkv,.webm,.m4v"
 
 const ASPECT_OPTIONS = [
-  { id: "auto",  label: "Auto",      sub: "match first clip" },
+  { id: "auto",  label: "Automático",      sub: "acompanha o primeiro clipe" },
   { id: "9:16",  label: "Vertical",  sub: "TikTok / Shorts" },
-  { id: "16:9",  label: "Landscape", sub: "YouTube" },
-  { id: "1:1",   label: "Square",    sub: "Instagram" },
+  { id: "16:9",  label: "Horizontal", sub: "YouTube" },
+  { id: "1:1",   label: "Quadrado",    sub: "Instagram" },
 ]
 
 // Card visual constants — kept in one place so the empty-state placeholder
@@ -37,7 +38,7 @@ const ASPECT_OPTIONS = [
 const CARD_W = 140
 
 export default function ToolMergeClips() {
-  useDocumentTitle("Merge Clips")
+  useDocumentTitle("Mesclar Clipes")
   const navigate = useNavigate()
   const inputRef = useRef(null)
   const [clips, setClips] = useState([])      // [{ id, file, url }]
@@ -94,12 +95,12 @@ export default function ToolMergeClips() {
     const valid = []
     for (const f of incoming) {
       if (f.size > maxBytes) {
-        setError(`"${f.name}" is too large (max ${MAX_MB} MB).`)
+        setError(`"${f.name}" ultrapassa o limite de ${MAX_MB} MB.`)
         continue
       }
       const ext = "." + (f.name.split(".").pop() || "").toLowerCase()
       if (!ACCEPT.split(",").includes(ext)) {
-        setError(`"${f.name}" is not a supported video format.`)
+        setError(`"${f.name}" não está em um formato de vídeo aceito.`)
         continue
       }
       valid.push({
@@ -115,7 +116,7 @@ export default function ToolMergeClips() {
         for (const c of merged.slice(MAX_CLIPS)) {
           try { URL.revokeObjectURL(c.url) } catch { /* noop */ }
         }
-        setError(`Max ${MAX_CLIPS} clips per merge — keeping the first ${MAX_CLIPS}.`)
+        setError(`O limite é ${MAX_CLIPS} clipes por união. Foram mantidos os primeiros ${MAX_CLIPS}.`)
         return merged.slice(0, MAX_CLIPS)
       }
       return merged
@@ -255,10 +256,10 @@ export default function ToolMergeClips() {
           </Box>
           <Box sx={{ minWidth: 0 }}>
             <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: -0.3 }}>
-              Merge Clips
+              Mesclar Clipes
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary", mt: 0.25, display: "block" }} noWrap>
-              Stitch multiple clips into one video — auto-cropped to your target aspect.
+              Junte vários clipes em um único vídeo, com corte automático para o formato desejado.
             </Typography>
           </Box>
         </Stack>
@@ -270,7 +271,7 @@ export default function ToolMergeClips() {
             disabled={clips.length < MIN_CLIPS}
             sx={{ flexShrink: 0, px: 3 }}
           >
-            Merge {clips.length >= MIN_CLIPS ? `${clips.length} clips` : "clips"}
+            Mesclar {clips.length >= MIN_CLIPS ? ("" + String(clips.length) + " clipes") : "clipes"}
           </Button>
         )}
       </Box>
@@ -316,11 +317,11 @@ export default function ToolMergeClips() {
                 <CloudUploadOutlinedIcon sx={{ fontSize: 40, color: "text.secondary" }} />
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
                   {clips.length === 0
-                    ? "Drop clips here or click to browse"
-                    : `Add more clips (${clips.length}/${MAX_CLIPS})`}
+                    ? "Solte os clipes aqui ou clique para procurar"
+                    : ("Adicionar mais clipes (" + String(clips.length) + "/" + String(MAX_CLIPS) + ")")}
                 </Typography>
                 <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                  {ACCEPT.replace(/\./g, "").toUpperCase()} · up to {MAX_MB} MB each · {MIN_CLIPS}-{MAX_CLIPS} clips
+                  {ACCEPT.replace(/\./g, "").toUpperCase()} · até {MAX_MB} MB cada · {MIN_CLIPS}-{MAX_CLIPS} clipes
                 </Typography>
               </Stack>
             </GlassPanel>
@@ -333,12 +334,12 @@ export default function ToolMergeClips() {
             <GlassPanel sx={{ p: 2.5 }}>
               <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                  Output aspect ratio
+                  Proporção de saída
                 </Typography>
                 <Stack
                   direction="row" alignItems="center" spacing={0.75}
-                  onClick={() => setBundle((b) => !b)}
-                  sx={{ cursor: "pointer", userSelect: "none" }}
+                  onClick={() => { if (!BROWSER) setBundle((b) => !b) }}
+                  sx={{ cursor: BROWSER ? 'default' : "pointer", opacity: BROWSER ? 0.5 : 1, userSelect: "none" }}
                 >
                   <Box
                     sx={{
@@ -358,19 +359,19 @@ export default function ToolMergeClips() {
                     />
                   </Box>
                   <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                    Export all platforms (ZIP)
+                    {BROWSER ? 'ZIP com vários formatos: em adaptação' : 'Exportar para todas as plataformas (ZIP)'}
                   </Typography>
                 </Stack>
               </Stack>
               {bundle ? (
                 <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
-                  Renders the merge three times — 9:16 (TikTok / Reels / Shorts), 1:1 (Instagram Feed),
-                  and 16:9 (YouTube) — and downloads as a single ZIP.
+                  Renderiza a mesclagem três vezes , 9:16 (TikTok / Reels / Shorts), 1:1 (Feed do Instagram)
+                  e 16:9 (YouTube) , e baixa tudo em um único ZIP.
                 </Typography>
               ) : (
                 <>
                   <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 1.5 }}>
-                    Each clip is center-cropped to fill the target. Auto picks the closest match to your first clip.
+                    Cada clipe é cortado ao centro para preencher o formato desejado. Automático escolhe a opção mais próxima do seu primeiro clipe.
                   </Typography>
                   <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                     {ASPECT_OPTIONS.map((opt) => (
@@ -401,12 +402,12 @@ export default function ToolMergeClips() {
           {/* Transition between clips */}
           <GlassPanel sx={{ p: 2, borderRadius: 2 }}>
             <Typography variant="caption" sx={{ fontWeight: 700, display: "block", mb: 1 }}>
-              Transition between clips
+              Transição entre clipes
             </Typography>
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
               {[
-                { id: "none", label: "Hard cut", sub: "Instant — fastest" },
-                { id: "crossfade", label: "Crossfade", sub: "Short dissolve" },
+                { id: "none", label: "Corte seco", sub: "Instantânea , mais rápida" },
+                { id: "crossfade", label: "Crossfade", sub: "Dissolução curta" },
               ].map((opt) => (
                 <Chip
                   key={opt.id}
@@ -422,6 +423,7 @@ export default function ToolMergeClips() {
                   }
                   color={transition === opt.id ? "primary" : "default"}
                   variant={transition === opt.id ? "filled" : "outlined"}
+                  disabled={BROWSER && opt.id !== 'none'}
                   onClick={() => setTransition(opt.id)}
                   sx={{ height: "auto", py: 0.5 }}
                 />
@@ -443,12 +445,12 @@ export default function ToolMergeClips() {
                 icon={<WarningAmberIcon />}
                 sx={{ "& .MuiAlert-message": { fontWeight: 500 } }}
               >
-                Don't leave or refresh this page — clips merging is in progress.
-                Closing the page will interrupt the process and you'll need to start over.
+                Não saia nem atualize esta página , a mesclagem dos clipes está em andamento.
+                Fechar a página vai interromper o processo e você precisará começar de novo.
               </Alert>
               <GlassPanel sx={{ p: 2.5 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                  {job.step || "Working…"}
+                  {job.step || "Processando…"}
                 </Typography>
                 <LinearProgress variant="determinate" value={job.percent || 0} sx={{ borderRadius: 1, height: 8 }} />
                 <Typography variant="caption" sx={{ color: "text.secondary", mt: 0.5, display: "block" }}>
@@ -470,19 +472,19 @@ export default function ToolMergeClips() {
                   target="_blank"
                   rel="noopener"
                 >
-                  Download
+                  Baixar
                 </Button>
-                <Button size="small" onClick={reset}>Merge more</Button>
+                <Button size="small" onClick={reset}>Mesclar mais</Button>
               </Stack>
             }>
-              Done. Your merged video is ready.
+              Pronto. Seu vídeo mesclado está pronto.
             </Alert>
           )}
 
           {/* Failed */}
           {jobFailed && (
-            <Alert severity="error" action={<Button size="small" onClick={reset}>Try again</Button>}>
-              {job?.step || terminal?.step || "Job failed"}
+            <Alert severity="error" action={<Button size="small" onClick={reset}>Tentar novamente</Button>}>
+              {job?.step || terminal?.step || "Falha na tarefa"}
             </Alert>
           )}
         </Box>
@@ -499,11 +501,11 @@ export default function ToolMergeClips() {
           sx={{ px: 2, pt: 1.5, pb: 0.5 }}
         >
           <Typography variant="overline" sx={{ color: "text.secondary", fontSize: "0.65rem", flexShrink: 0 }}>
-            Clips ({clips.length})
+            Clipes ({clips.length})
           </Typography>
           {clips.length > 0 && (
             <Typography variant="caption" sx={{ color: "text.disabled", fontSize: "0.7rem", ml: 1 }}>
-              · drag to reorder
+              · arraste para reordenar
             </Typography>
           )}
         </Stack>
@@ -516,7 +518,7 @@ export default function ToolMergeClips() {
           {clips.length === 0 ? (
             <Box sx={{ py: 3, px: 4, textAlign: "center", width: "100%" }}>
               <Typography variant="caption" sx={{ color: "text.disabled" }}>
-                No clips yet — drop or browse above to add some.
+                Nenhum clipe ainda , solte ou procure acima para adicionar.
               </Typography>
             </Box>
           ) : (
@@ -687,7 +689,7 @@ function FilmstripCard({
 
       {/* Single-line footer. */}
       <Box sx={{ p: 1 }}>
-        <Tooltip title={`${fileLabel} · ${sizeLabel}`} placement="top" enterDelay={400}>
+        <Tooltip title={("" + String(fileLabel) + " · " + String(sizeLabel) + "")} placement="top" enterDelay={400}>
           <Typography
             variant="caption"
             sx={{

@@ -15,6 +15,8 @@ import ToolRunner from "../../components/tools/ToolRunner"
 import useDocumentTitle from "../../hooks/useDocumentTitle"
 
 // Mirror of backend's SUPPORTED_LANGUAGES.
+const BROWSER = import.meta.env.VITE_BROWSER_RUNTIME === 'true'
+const LANGUAGE_NAMES = new Intl.DisplayNames(['pt-BR'], { type: 'language' })
 const LANGUAGES = [
   { code: "en", name: "English" },
   { code: "es", name: "Spanish" },
@@ -35,7 +37,7 @@ const LANGUAGES = [
   { code: "da", name: "Danish" },
   { code: "no", name: "Norwegian" },
   { code: "fi", name: "Finnish" },
-]
+].map(language => ({ ...language, name: LANGUAGE_NAMES.of(language.code) }))
 
 // ⚠️ These have to be voices the DUB ENGINE accepts, and the dub runs on
 // Edge TTS. They used to be Gemini names (Kore, Puck, Zephyr, …), which
@@ -45,17 +47,17 @@ const LANGUAGES = [
 // tests/test_voice_vocabulary_parity.py. Multilingual voices lead: this is the
 // TRANSLATE page, and only they speak the target language.
 const DUB_VOICES = [
-  { id: "en-US-AndrewMultilingualNeural", label: "Andrew (Male, natural)" },
-  { id: "en-US-AvaMultilingualNeural", label: "Ava (Female, natural)" },
-  { id: "en-US-BrianMultilingualNeural", label: "Brian (Male, warm)" },
-  { id: "en-US-EmmaMultilingualNeural", label: "Emma (Female, clear)" },
-  { id: "en-US-AriaNeural", label: "Aria (Female, classic)" },
-  { id: "en-US-GuyNeural", label: "Guy (Male, classic)" },
-  { id: "en-US-JennyNeural", label: "Jenny (Female, friendly)" },
+  { id: "en-US-AndrewMultilingualNeural", label: "Andrew (Masculino, natural)" },
+  { id: "en-US-AvaMultilingualNeural", label: "Ava (Feminino, natural)" },
+  { id: "en-US-BrianMultilingualNeural", label: "Brian (Masculino, acolhedor)" },
+  { id: "en-US-EmmaMultilingualNeural", label: "Emma (Feminino, claro)" },
+  { id: "en-US-AriaNeural", label: "Aria (Feminino, clássico)" },
+  { id: "en-US-GuyNeural", label: "Guy (Masculino, clássico)" },
+  { id: "en-US-JennyNeural", label: "Jenny (feminino, amigável)" },
 ]
 
 export default function ToolTranslate() {
-  useDocumentTitle("Translate + Dub")
+  useDocumentTitle("Traduzir + Dublar")
   const showSnackbar = useAppStore((s) => s.showSnackbar)
   const [target, setTarget] = useState("es")
   const [mode, setMode] = useState("captions_only")  // "captions_only" | "full_dub"
@@ -92,12 +94,12 @@ export default function ToolTranslate() {
       setBlobUrlRef(url)
       const audio = new Audio(url)
       audio.onended = () => { setPreviewVoice(null); URL.revokeObjectURL(url); setBlobUrlRef(null) }
-      audio.onerror = () => { showSnackbar("Couldn't play preview", "error"); setPreviewVoice(null) }
+      audio.onerror = () => { showSnackbar("Não foi possível reproduzir a prévia", "error"); setPreviewVoice(null) }
       setAudioRef(audio)
       await audio.play()
       setPreviewVoice(voice)
     } catch (e) {
-      showSnackbar(`Preview failed: ${e.response?.data?.detail || e.message}`, "error")
+      showSnackbar(("Falha na prévia: " + String(e.response?.data?.detail || e.message) + ""), "error")
     } finally {
       setPreviewLoading(null)
     }
@@ -118,18 +120,18 @@ export default function ToolTranslate() {
 
   return (
     <ToolRunner
-      title="Translate + Dub"
-      description={`Translate captions and optionally dub the audio into ${LANGUAGES.length}+ languages`}
+      title={BROWSER ? 'Traduzir legendas' : "Traduzir + Dublar"}
+      description={BROWSER ? 'Traduza as legendas e exporte o vídeo com o áudio original. Os tempos das palavras traduzidas são aproximados.' : ("Traduza as legendas e, opcionalmente, faça a dublagem do áudio para " + String(LANGUAGES.length) + " idiomas")}
       icon={<TranslateOutlinedIcon fontSize="large" />}
       endpoint="/api/tools/translate"
       fieldBuilder={fieldBuilder}
-      processLabel={mode === "full_dub" ? `Translate + dub to ${targetName}` : `Translate captions to ${targetName}`}
+      processLabel={mode === "full_dub" ? ("Traduzir + dublar para " + String(targetName) + "") : ("Traduzir legendas para " + String(targetName) + "")}
     >
       <Stack spacing={2.5}>
         {/* Target language */}
         <FormControl size="small" sx={{ minWidth: 220 }}>
-          <InputLabel>Target language</InputLabel>
-          <Select value={target} label="Target language" onChange={(e) => setTarget(e.target.value)}>
+          <InputLabel>Idioma de destino</InputLabel>
+          <Select value={target} label={"Idioma de destino"} onChange={(e) => setTarget(e.target.value)}>
             {LANGUAGES.map((l) => (
               <MenuItem key={l.code} value={l.code}>{l.name}</MenuItem>
             ))}
@@ -139,7 +141,7 @@ export default function ToolTranslate() {
         {/* Mode picker */}
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 0.75 }}>
-            What to translate
+            O que traduzir
           </Typography>
           <RadioGroup value={mode} onChange={(e) => setMode(e.target.value)}>
             <GlassPanel sx={{ p: 1, mb: 0.75, cursor: "pointer" }}
@@ -150,27 +152,28 @@ export default function ToolTranslate() {
                 label={
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 600, fontSize: "0.85rem" }}>
-                      Translated captions only
+                      Apenas legendas traduzidas
                     </Typography>
                     <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                      Keeps original audio. Burns {targetName} captions on top. Faster, cheaper.
+                      Mantém o áudio original. Insere {targetName} legendas por cima. Mais rápido e mais barato.
                     </Typography>
                   </Box>
                 }
               />
             </GlassPanel>
             <GlassPanel sx={{ p: 1, cursor: "pointer" }}
-              onClick={() => setMode("full_dub")}>
+              onClick={() => { if (!BROWSER) setMode("full_dub") }}>
               <FormControlLabel
                 value="full_dub"
+                disabled={BROWSER}
                 control={<Radio size="small" />}
                 label={
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 600, fontSize: "0.85rem" }}>
-                      Full dub (audio + captions)
+                      Dublagem completa (áudio + legendas)
                     </Typography>
                     <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                      Replaces audio with {targetName} voiceover. Adds matching captions.
+                      Substitui o áudio por {targetName} narração. Adiciona legendas correspondentes.
                     </Typography>
                   </Box>
                 }
@@ -182,10 +185,10 @@ export default function ToolTranslate() {
         {/* Voice picker — only relevant for full_dub */}
         {mode === "full_dub" && (
           <FormControl size="small" sx={{ minWidth: 260 }}>
-            <InputLabel>Voice (multilingual)</InputLabel>
+            <InputLabel>Voz (multilíngue)</InputLabel>
             <Select
               value={voiceId}
-              label="Voice (multilingual)"
+              label={"Voz (multilíngue)"}
               onChange={(e) => setVoiceId(e.target.value)}
               renderValue={(v) => DUB_VOICES.find((d) => d.id === v)?.label || v}
             >
@@ -195,7 +198,7 @@ export default function ToolTranslate() {
                 return (
                   <MenuItem key={v} value={v} sx={{ display: "flex", alignItems: "center", gap: 1, pr: 1 }}>
                     <Box sx={{ flex: 1 }}>{label}</Box>
-                    <Tooltip title={isPlaying ? "Stop preview" : "Preview voice"} placement="left" arrow>
+                    <Tooltip title={isPlaying ? "Parar prévia" : "Ouvir prévia da voz"} placement="left" arrow>
                       <IconButton
                         size="small"
                         onMouseDown={(e) => e.stopPropagation()}
@@ -217,18 +220,18 @@ export default function ToolTranslate() {
         {/* Caption style */}
         <Stack direction="row" spacing={2} flexWrap="wrap">
           <FormControl size="small" sx={{ minWidth: 140 }}>
-            <InputLabel>Caption style</InputLabel>
-            <Select value={captionStyle} label="Caption style" onChange={(e) => setCaptionStyle(e.target.value)}>
+            <InputLabel>Estilo da legenda</InputLabel>
+            <Select value={captionStyle} label={"Estilo da legenda"} onChange={(e) => setCaptionStyle(e.target.value)}>
               {CAPTION_STYLES.map((s) => <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>)}
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 140 }}>
-            <InputLabel>Emoji intensity</InputLabel>
-            <Select value={emojiStyle} label="Emoji intensity" onChange={(e) => setEmojiStyle(e.target.value)}>
-              <MenuItem value="none">None</MenuItem>
-              <MenuItem value="minimal">Minimal</MenuItem>
-              <MenuItem value="moderate">Moderate</MenuItem>
-              <MenuItem value="heavy">Heavy</MenuItem>
+            <InputLabel>Intensidade dos emojis</InputLabel>
+            <Select value={emojiStyle} label={"Intensidade dos emojis"} onChange={(e) => setEmojiStyle(e.target.value)}>
+              <MenuItem value="none">Nenhum</MenuItem>
+              <MenuItem value="minimal">Mínimo</MenuItem>
+              <MenuItem value="moderate">Moderado</MenuItem>
+              <MenuItem value="heavy">Intenso</MenuItem>
             </Select>
           </FormControl>
         </Stack>
@@ -237,14 +240,14 @@ export default function ToolTranslate() {
         <Alert severity="info" variant="outlined" sx={{ fontSize: "0.78rem" }}>
           {mode === "full_dub" ? (
             <>
-              The dubbed voiceover may run slightly longer or shorter than the original audio.
-              ViralMint applies a small speed-up (up to 1.15×) to fit; beyond that the original
-              video duration wins and any extra dub at the end is trimmed.
+              A narração dublada pode ficar um pouco mais longa ou mais curta que o áudio original.
+              O Decupa Viral aplica um pequeno aceleramento (até 1.15×) para ajustar; além disso, a duração
+              do vídeo original prevalece e qualquer dublagem extra no final é cortada.
             </>
           ) : (
             <>
-              Captions are generated with the same timestamps as the original speech, so they
-              stay in sync. Original audio plays unchanged.
+              As legendas são geradas com os mesmos timestamps da fala original, então elas
+              permanecem sincronizadas. O áudio original toca sem alterações.
             </>
           )}
         </Alert>

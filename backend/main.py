@@ -196,7 +196,11 @@ async def lifespan(app: FastAPI):
     # Check yt-dlp version (outdated versions get blocked by YouTube)
     try:
         from backend.services.ytdlp_service import check_ytdlp_version
-        check_ytdlp_version()
+        # pip/network retries must never hold the API's startup open. The
+        # installed extractor remains usable while maintenance runs.
+        import asyncio as _asyncio
+        from backend.core.task_runner import spawn_background
+        spawn_background(_asyncio.to_thread(check_ytdlp_version))
     except Exception as e:
         import logging
         logging.getLogger(__name__).warning(f"yt-dlp version check failed: {e}")
@@ -252,7 +256,7 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     app = FastAPI(
-        title="ViralMint API",
+        title=f"{settings.APP_NAME} API",
         version="1.3.1",
         lifespan=lifespan,
         docs_url="/api/docs" if settings.DEBUG else None,
@@ -260,13 +264,29 @@ def create_app() -> FastAPI:
     )
 
     # CORS — allow frontend dev server
+    from backend.core import companion
+    import inspect
+    private_network_option = {'allow_private_network': companion.enabled()} if 'allow_private_network' in inspect.signature(CORSMiddleware.__init__).parameters else {}
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[settings.FRONTEND_URL, "http://localhost:5173", "http://localhost:3000"],
+        allow_origins=[settings.FRONTEND_URL, "http://localhost:5173", "http://localhost:3000", *([companion.ORIGIN] if companion.enabled() else [])],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=['Content-Length', 'Content-Range', 'Content-Disposition', 'Accept-Ranges'],
+        **private_network_option,
     )
+
+    @app.middleware('http')
+    async def companion_auth(request: Request, call_next):
+        if companion.trusted_origin(request.headers.get('origin')) and request.method != 'OPTIONS':
+            bearer = request.headers.get('authorization', '')
+            if not bearer.startswith('Bearer ') or not companion.authorized(bearer[7:]):
+                return JSONResponse({'detail': 'Conexão com o PC expirada. Abra o aplicativo local e use Abrir na Vercel.'}, status_code=401, headers={'Access-Control-Allow-Origin': companion.ORIGIN})
+        response = await call_next(request)
+        if companion.trusted_origin(request.headers.get('origin')) and request.method == 'OPTIONS' and request.headers.get('access-control-request-private-network') == 'true':
+            response.headers['Access-Control-Allow-Private-Network'] = 'true'
+        return response
 
     # CSRF defense: reject state-changing requests whose Origin/Referer is not
     # in the allowlist. Loopback-binding (HOST=127.0.0.1) blocks LAN attacks,
@@ -307,8 +327,14 @@ def create_app() -> FastAPI:
                 )
         return await call_next(request)
 
+    @app.get("/api/health")
+    async def health():
+        return {"ok": True, "app": settings.APP_NAME, "version": "1.3.1", "upstream": "ViralMint"}
+
     # Register API routers
     app.include_router(chat.router)
+    from backend.api import companion as companion_api
+    app.include_router(companion_api.router, prefix='/api')
     app.include_router(jobs.router, prefix="/api")
     app.include_router(scout.router, prefix="/api")
     app.include_router(settings_router.router, prefix="/api")
@@ -375,6 +401,8 @@ def create_app() -> FastAPI:
 
         @app.get("/{full_path:path}")
         async def serve_spa(request: Request, full_path: str):
+            if full_path == "api" or full_path.startswith(("api/", "ws/")):
+                return JSONResponse({"detail": "Endpoint não encontrado"}, status_code=404)
             if not full_path:
                 return FileResponse(index_file, headers=shell_headers)
             # Resolve path and confirm it lives inside dist_root before serving —

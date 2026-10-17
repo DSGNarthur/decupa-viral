@@ -1121,6 +1121,10 @@ async def run_tool_translate(
 
 _HOOK_PROMPT = """You are a short-form video hook expert. Analyze the opening
 of this video based on its first ~10 seconds of spoken transcript.
+Write every explanation and rewritten opening in Brazilian Portuguese.
+Use only facts stated in the transcript. Never invent events, outcomes,
+statistics, quotes or dramatic details. If context is incomplete, say so and
+rewrite only the information available. Do not use em dashes.
 
 TRANSCRIPT (first 10s):
 {transcript}
@@ -1129,6 +1133,7 @@ Return STRICT JSON only — no markdown fences:
 {{
   "score": <integer 1-10>,
   "verdict": "<one short sentence on why it works or doesn't>",
+  "strengths": ["<supported strength, or an empty list if none>"],
   "issues": ["<problem 1>", "<problem 2>"],
   "suggested_hooks": ["<rewritten opening 1>", "<rewritten opening 2>", "<rewritten opening 3>"]
 }}"""
@@ -1183,6 +1188,19 @@ async def run_tool_hook_analysis(job_id: str, in_path: Path, user_id: str = "loc
             result = _json.loads(text)
         except _json.JSONDecodeError:
             raise RuntimeError(f"AI returned malformed JSON: {text[:200]!r}")
+        if not isinstance(result, dict) or not isinstance(result.get("score"), (int, float)):
+            raise RuntimeError("A IA retornou uma análise sem pontuação válida.")
+        if not 1 <= result["score"] <= 10:
+            raise RuntimeError("A pontuação da análise precisa estar entre 1 e 10.")
+        # Keep the original API keys and the editor's vocabulary aligned.
+        # Existing stored results remain readable by the frontend normalizer.
+        result["strengths"] = result.get("strengths") or []
+        result["weaknesses"] = result.get("issues") or result.get("weaknesses") or []
+        result["alternatives"] = result.get("suggested_hooks") or result.get("alternatives") or []
+        result["transcript"] = transcript
+        from backend.services.video_utils import probe_duration
+        analyzed_duration = await asyncio.to_thread(probe_duration, clip_audio)
+        result["duration_analyzed"] = min(10.0, analyzed_duration) if analyzed_duration else None
 
         await update_job_status(
             job_id, "success", progress_pct=100, current_step="Done",

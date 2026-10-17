@@ -43,14 +43,14 @@ export default function DataTable({ results, onSelect, onDownload, onDelete, sel
   }
 
   const columns = [
-    { key: "title", label: "Title", width: "30%" },
-    { key: "platform", label: "Platform", width: "8%" },
-    { key: "views", label: "Views", width: "10%" },
-    { key: "likes", label: "Likes", width: "8%" },
-    { key: "comments", label: "Comments", width: "8%" },
-    { key: "virality_score", label: "Score", width: "8%" },
-    { key: "upload_date", label: "Uploaded", width: "10%" },
-    { key: "_actions", label: "Actions", width: "18%", sortable: false },
+    { key: "title", label: "Título", width: "30%" },
+    { key: "platform", label: "Plataforma", width: "8%" },
+    { key: "views", label: "Visualizações", width: "10%" },
+    { key: "likes", label: "Curtidas", width: "8%" },
+    { key: "comments", label: "Comentários", width: "8%" },
+    { key: "virality_score", label: "Pontuação", width: "8%" },
+    { key: "upload_date", label: "Enviado", width: "10%" },
+    { key: "_actions", label: "Ações", width: "18%", sortable: false },
   ]
 
   return (
@@ -112,7 +112,7 @@ export default function DataTable({ results, onSelect, onDownload, onDelete, sel
               </TableCell>
               <TableCell sx={{ fontSize: "0.8rem", color: "text.secondary", whiteSpace: "nowrap" }}>
                 {r.upload_date
-                  ? new Date(r.upload_date).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })
+                  ? new Date(r.upload_date).toLocaleDateString([], { month: "curto", day: "numérico", year: "numérico" })
                   : "—"}
               </TableCell>
               <TableCell padding="none" sx={{ whiteSpace: "nowrap" }}>
@@ -125,18 +125,18 @@ export default function DataTable({ results, onSelect, onDownload, onDelete, sel
                     disabled={loadingId === r.id}
                     sx={{ mr: 0.5 }}
                   >
-                    {loadingId === r.id ? "..." : "Download"}
+                    {loadingId === r.id ? "..." : "Baixar"}
                   </Button>
                 )}
                 {r.video_url && (
-                  <Tooltip title="Open original" arrow>
+                  <Tooltip title={"Abrir original"} arrow>
                     <IconButton size="small" onClick={(e) => { e.stopPropagation(); window.open(r.video_url, "_blank", "noopener") }}
                       sx={{ color: "text.secondary", "&:hover": { color: "primary.main" } }}>
                       <LaunchIcon sx={{ fontSize: "1.1rem" }} />
                     </IconButton>
                   </Tooltip>
                 )}
-                <Tooltip title="Delete" arrow>
+                <Tooltip title={"Excluir"} arrow>
                   <IconButton size="small" onClick={(e) => { e.stopPropagation(); onDelete(r.id) }}
                     sx={{ color: "text.secondary", "&:hover": { color: "error.main" } }}>
                     <DeleteOutlineIcon sx={{ fontSize: "1.1rem" }} />

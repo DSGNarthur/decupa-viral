@@ -126,7 +126,7 @@ export default function useLibraryIndex({
       setMatchedKeys(new Set(data.matched_keys || []))
     } catch (e) {
       if (reqId !== famReqIdRef.current) return
-      showSnackbar(e.response?.data?.detail || "Could not group your library", "error")
+      showSnackbar(e.response?.data?.detail || "Não foi possível agrupar sua biblioteca", "error")
     } finally {
       if (reqId === famReqIdRef.current) setFamiliesLoading(false)
     }

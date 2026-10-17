@@ -25,7 +25,7 @@ export default function ContentCalendarCard({ calendar }) {
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
         <CalendarTodayIcon fontSize="small" color="primary" />
         <Typography variant="subtitle2" fontWeight={700}>
-          Content Calendar ({calendar.length} days)
+          Calendário de conteúdo ({calendar.length} dias)
         </Typography>
       </Box>
 

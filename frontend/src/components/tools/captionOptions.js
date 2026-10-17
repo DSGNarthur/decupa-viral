@@ -17,21 +17,21 @@
  * words_per_group) rather than being decorative.
  */
 export const CAPTION_STYLES = [
-  { value: "viral", label: "Viral", description: "Yellow highlight, ~6-word phrases" },
-  { value: "classic", label: "Classic", description: "Full sentence, no highlight" },
-  { value: "bold", label: "Bold", description: "Green highlight, ~4-word phrases" },
-  { value: "neon", label: "Neon", description: "Pink text, yellow highlight, ~6 words" },
-  { value: "minimal", label: "Minimal", description: "Plain Arial, long lines, no highlight" },
-  { value: "karaoke", label: "Karaoke", description: "Grey text lights up word by word" },
-  { value: "glow", label: "Glow", description: "Soft orange glow, ~6-word phrases" },
-  { value: "urban", label: "Bold Urban", description: "Arial Black, punchy ~3-word bursts" },
-  { value: "warm", label: "Warm Glow", description: "Georgia serif, warm cream tone" },
-  { value: "mono", label: "Monochrome", description: "Verdana, grey highlight, understated" },
+  { value: "viral", label: "Viral", description: "Destaque amarelo, frases de ~6 palavras" },
+  { value: "classic", label: "Clássico", description: "Frase completa, sem destaque" },
+  { value: "bold", label: "Negrito", description: "Destaque verde, frases de ~4 palavras" },
+  { value: "neon", label: "Neon", description: "Texto rosa, fundo amarelo, cerca de 6 palavras" },
+  { value: "minimal", label: "Mínimo", description: "Arial simples, linhas longas, sem destaque" },
+  { value: "karaoke", label: "Karaokê", description: "Texto cinza acende palavra por palavra" },
+  { value: "glow", label: "Brilho", description: "Brilho laranja suave, frases de cerca de 6 palavras" },
+  { value: "urban", label: "Urban Negrito", description: "Arial Black, rajadas impactantes de cerca de 3 palavras" },
+  { value: "warm", label: "Brilho Quente", description: "Georgia serifada, tom creme quente" },
+  { value: "mono", label: "Monocromático", description: "Verdana, destaque cinza, discreto" },
 ]
 
 export const EMOJI_LEVELS = [
-  { value: "none", label: "None" },
-  { value: "minimal", label: "Minimal" },
-  { value: "moderate", label: "Moderate" },
-  { value: "heavy", label: "Heavy" },
+  { value: "none", label: "Nenhum" },
+  { value: "minimal", label: "Mínimo" },
+  { value: "moderate", label: "Moderado" },
+  { value: "heavy", label: "Intenso" },
 ]

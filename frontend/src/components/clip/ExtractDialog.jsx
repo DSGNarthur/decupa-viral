@@ -47,11 +47,15 @@ import { autoCutEstimate } from "./autoClipCount"
 
 /* ── Extract Clips Dialog ──────────────────────────────────── */
 
-const WHISPER_QUALITIES = [
-  { value: "fast", label: "Fast (base)", desc: "~30s per 5min video" },
-  { value: "balanced", label: "Balanced (small)", desc: "~90s per 5min video" },
-  { value: "accurate", label: "Accurate (medium)", desc: "~3min per 5min video" },
-  { value: "best", label: "Best (large-v3)", desc: "~8min per 5min video" },
+const WHISPER_QUALITIES = import.meta.env.VITE_BROWSER_RUNTIME === 'true' ? [
+  { value: 'fast', label: 'Rápida (tiny)', desc: "Modelo menor para este dispositivo" },
+  { value: 'balanced', label: 'Equilibrada (base)', desc: "Modelo intermediário" },
+  { value: 'accurate', label: 'Precisa (small)', desc: "Usa mais memória e processamento" },
+] : [
+  { value: "fast", label: "Rápido (base)", desc: "~30s por vídeo de 5min" },
+  { value: "balanced", label: "Equilibrado (small)", desc: "~90s por vídeo de 5min" },
+  { value: "accurate", label: "Preciso (medium)", desc: "~3min por vídeo de 5min" },
+  { value: "best", label: "Melhor (large-v3)", desc: "~8min por vídeo de 5min" },
 ]
 
 // Style vocab comes from the shared captionOptions list (10 styles, guarded
@@ -62,10 +66,10 @@ const WHISPER_QUALITIES = [
 // (caption_service.captions_disabled handles "none" upstream).
 const CAPTION_STYLE_OPTIONS = CAPTION_STYLES.map((s) => ({ v: s.value, label: s.label }))
 const EMOJI_STYLE_OPTIONS = [
-  { v: "none", label: "Off" },
-  { v: "minimal", label: "Minimal" },
-  { v: "moderate", label: "Moderate" },
-  { v: "heavy", label: "Heavy" },
+  { v: "none", label: "Desativado" },
+  { v: "minimal", label: "Mínimo" },
+  { v: "moderate", label: "Moderado" },
+  { v: "heavy", label: "Intenso" },
 ]
 
 /* ── Settings-group rows ──────────────────────────────────────
@@ -174,8 +178,8 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <AutoAwesomeIcon color="secondary" /> Auto-cut clips
-        <Tooltip title="Reads the transcript, picks the most viral moments and cuts them straight away — no review step. To see the picks on a timeline and adjust them before cutting, use Ask AI on the bench." arrow>
+        <AutoAwesomeIcon color="secondary" /> Corte automático de clipes
+        <Tooltip title={"Lê a transcrição, escolhe os momentos mais virais e corta na hora, sem etapa de revisão. Para ver as escolhas em uma linha do tempo e ajustá-las antes de cortar, use Perguntar à IA no bench."} arrow>
           <IconButton size="small" sx={{ ml: "auto", color: "text.secondary" }}>
             <InfoOutlinedIcon sx={{ fontSize: 18 }} />
           </IconButton>
@@ -183,10 +187,10 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" sx={{ color: "text.secondary", mb: 0.5 }}>
-          From: <strong>{video.title || "Untitled"}</strong> ({formatTime(video.duration_seconds)})
+          De: <strong>{video.title || "Sem título"}</strong> ({formatTime(video.duration_seconds)})
         </Typography>
         <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 2 }}>
-          Cuts as soon as you press the button — no review step.
+          Corta assim que você aperta o botão, sem etapa de revisão.
         </Typography>
 
         <Stack spacing={2.5}>
@@ -205,39 +209,41 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
               content doesn't support that many quality clips. */}
           <Box>
             <Typography variant="caption" sx={{ fontWeight: 600, mb: 0.5, display: "block" }}>
-              Clip length & count (leave empty for auto)
+              Duração e quantidade de clipes (deixe vazio para automático)
             </Typography>
             <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
-              <TextField label="Min (s)" type="number" size="small" sx={{ width: 90 }}
+              <TextField label={"Mín (s)"} type="number" size="small" sx={{ width: 90 }}
                 value={ai.min_duration || ""}
                 error={!!durationError}
                 slotProps={{ htmlInput: { min: 10, max: 120 } }}
                 onChange={e => setAi(p => ({ ...p, min_duration: parseInt(e.target.value) || null }))} />
-              <Typography variant="body2" sx={{ color: "text.secondary" }}>to</Typography>
-              <TextField label="Max (s)" type="number" size="small" sx={{ width: 90 }}
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>a</Typography>
+              <TextField label={"Máx (s)"} type="number" size="small" sx={{ width: 90 }}
                 value={ai.max_duration || ""}
                 error={!!durationError}
                 slotProps={{ htmlInput: { min: 15, max: 180 } }}
                 onChange={e => setAi(p => ({ ...p, max_duration: parseInt(e.target.value) || null }))} />
               <Box sx={{ flex: 1 }} />
-              <TextField label="Clips (max)" type="number" size="small" sx={{ width: 110 }}
+              <TextField label={"Clipes (máx)"} type="number" size="small" sx={{ width: 110 }}
                 value={ai.max_clips || ""}
-                slotProps={{ htmlInput: { min: 1, max: 99 } }}
+                slotProps={{ htmlInput: { min: 1, max: import.meta.env.VITE_BROWSER_RUNTIME === 'true' ? 20 : 99 } }}
                 onChange={e => setAi(p => ({ ...p, max_clips: parseInt(e.target.value) || null }))} />
             </Stack>
             <Typography variant="caption" sx={{ color: "text.secondary", mt: 0.5, display: "block" }}>
               {ai.max_clips
-                ? `Up to ${estimate.clips} clip${estimate.clips === 1 ? "" : "s"}, 15–60s each — fewer if the video has less quality material.`
+                ? ("Até " + String(estimate.clips) + " clipe" + String(estimate.clips === 1 ? "" : "s") + ", de " + String(ai.min_duration || 15) + " a " + String(ai.max_duration || 60) + "s cada. Menos se o vídeo tiver menos material de qualidade.")
+                : import.meta.env.VITE_BROWSER_RUNTIME === 'true'
+                  ? "Sem quantidade definida, o navegador tenta gerar até 3 cortes. Você pode escolher até 20 por tarefa."
                 : video.duration_seconds
-                  ? `Blank means ~1 clip per 30s of content: up to ${estimate.clips} for this ${Math.round(video.duration_seconds / 60)}-minute video. Fewer if it has less quality material.`
+                  ? ("Vazio significa ~1 clipe a cada 30s de conteúdo: até " + String(estimate.clips) + " para este vídeo de " + String(Math.round(video.duration_seconds / 60)) + " minutos. Menos se tiver menos material de qualidade.")
                   /* Duration unknown (an import ffprobe could not read): the
                      backend falls back to a flat 5, so say 5 rather than
                      inventing a "0-minute video". */
-                  : `Blank means ~1 clip per 30s of content — up to ${estimate.clips} here, since this video's length is unknown.`}
+                  : ("Vazio significa ~1 clipe a cada 30s de conteúdo: até " + String(estimate.clips) + " aqui, já que a duração deste vídeo é desconhecida.")}
             </Typography>
             {durationError && (
               <Typography variant="caption" sx={{ color: "error.main", mt: 0.5, display: "block" }}>
-                Max must be at least 1 second greater than Min
+                Máx deve ser pelo menos 1 segundo maior que Mín
               </Typography>
             )}
           </Box>
@@ -258,9 +264,9 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
                 "&:hover": { bgcolor: "action.hover", color: "primary.main" },
               }}
             >
-              Advanced options
+              Opções avançadas
               <Typography variant="caption" sx={{ ml: 0.75, color: "text.disabled", fontWeight: 500 }}>
-                find specific moments · platform · genre
+                encontrar momentos específicos · plataforma · gênero
               </Typography>
             </Button>
           </Box>
@@ -273,17 +279,17 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
                   this query first, then virality. Empty = pure virality default. */}
               <Box>
                 <Typography variant="caption" sx={{ fontWeight: 600, mb: 0.5, display: "block" }}>
-                  Find specific moments <Chip label="optional" size="small" variant="outlined" sx={{ ml: 0.5, height: 18, fontSize: "0.6rem" }} />
+                  Encontrar momentos específicos <Chip label={"opcional"} size="small" variant="outlined" sx={{ ml: 0.5, height: 18, fontSize: "0.6rem" }} />
                 </Typography>
                 <TextField
                   size="small" fullWidth
-                  placeholder='e.g. "every joke that landed", "all Q&A moments", "moments where he raises his voice"'
+                  placeholder={"ex.: \"cada piada que funcionou\", \"todos os momentos de perguntas e respostas\", \"momentos em que ele levanta a voz\""}
                   value={ai.user_query}
                   onChange={e => setAi(p => ({ ...p, user_query: e.target.value }))}
                   slotProps={{ htmlInput: { maxLength: 500 } }}
                 />
                 <Typography variant="caption" sx={{ color: "text.secondary", mt: 0.5, display: "block" }}>
-                  Leave empty to find the most viral clips automatically.
+                  Deixe vazio para encontrar os clipes mais virais automaticamente.
                 </Typography>
               </Box>
 
@@ -295,21 +301,21 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
                   virality ranking, no bias. */}
               <Box>
                 <Typography variant="caption" sx={{ fontWeight: 600, mb: 0.5, display: "block" }}>
-                  Target platform <Chip label="optional" size="small" variant="outlined" sx={{ ml: 0.5, height: 18, fontSize: "0.6rem" }} />
+                  Plataforma de destino <Chip label={"opcional"} size="small" variant="outlined" sx={{ ml: 0.5, height: 18, fontSize: "0.6rem" }} />
                 </Typography>
                 <TextField select size="small" fullWidth
                   value={ai.target_platform}
                   onChange={e => setAi(p => ({ ...p, target_platform: e.target.value }))}
                 >
-                  <MenuItem value="">Any (general viral ranking)</MenuItem>
-                  <MenuItem value="tiktok">TikTok — shock / contrarian / emotional</MenuItem>
-                  <MenuItem value="youtube_shorts">YouTube Shorts — curiosity / numbers / story</MenuItem>
-                  <MenuItem value="reels">Instagram Reels — emotional / lifestyle</MenuItem>
-                  <MenuItem value="linkedin">LinkedIn — actionable / data-backed</MenuItem>
-                  <MenuItem value="twitter">Twitter / X — hot takes / debates</MenuItem>
+                  <MenuItem value="">Qualquer (ranking viral geral)</MenuItem>
+                  <MenuItem value="tiktok">TikTok , choque / contrário / emocional</MenuItem>
+                  <MenuItem value="youtube_shorts">YouTube Shorts , curiosidade / números / história</MenuItem>
+                  <MenuItem value="reels">Instagram Reels , emocional / estilo de vida</MenuItem>
+                  <MenuItem value="linkedin">LinkedIn , prático / baseado em dados</MenuItem>
+                  <MenuItem value="twitter">Twitter / X , opiniões fortes / debates</MenuItem>
                 </TextField>
                 <Typography variant="caption" sx={{ color: "text.secondary", mt: 0.5, display: "block" }}>
-                  Biases which hook types the AI prioritizes. Clip length is unchanged.
+                  Influencia quais tipos de gancho a IA prioriza. A duração dos clipes não muda.
                 </Typography>
               </Box>
 
@@ -320,24 +326,24 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
                   you can pick both. */}
               <Box>
                 <Typography variant="caption" sx={{ fontWeight: 600, mb: 0.5, display: "block" }}>
-                  Content genre <Chip label="optional" size="small" variant="outlined" sx={{ ml: 0.5, height: 18, fontSize: "0.6rem" }} />
+                  Gênero do conteúdo <Chip label={"opcional"} size="small" variant="outlined" sx={{ ml: 0.5, height: 18, fontSize: "0.6rem" }} />
                 </Typography>
                 <TextField select size="small" fullWidth
                   value={ai.genre}
                   onChange={e => setAi(p => ({ ...p, genre: e.target.value }))}
                 >
-                  <MenuItem value="">Auto-detect (no genre bias)</MenuItem>
-                  <MenuItem value="podcast">Podcast — guest's quotable moments</MenuItem>
-                  <MenuItem value="interview">Interview — best Q&amp;A answers</MenuItem>
-                  <MenuItem value="qa">Q&amp;A / AMA — question + answer pairs</MenuItem>
-                  <MenuItem value="vlog">Vlog — reactions + storytelling beats</MenuItem>
-                  <MenuItem value="tutorial">Tutorial / how-to — standalone tips</MenuItem>
-                  <MenuItem value="gaming">Gaming — big plays + reactions</MenuItem>
-                  <MenuItem value="reaction">Reaction — emotional peaks</MenuItem>
-                  <MenuItem value="lecture">Lecture / educational — concept explainers</MenuItem>
+                  <MenuItem value="">Detectar automaticamente (sem viés de gênero)</MenuItem>
+                  <MenuItem value="podcast">Podcast , momentos citáveis do convidado</MenuItem>
+                  <MenuItem value="interview">Entrevista , melhores respostas de perguntas e respostas</MenuItem>
+                  <MenuItem value="qa">Perguntas e respostas / AMA , pares de pergunta + resposta</MenuItem>
+                  <MenuItem value="vlog">Vlog , reações + momentos de narrativa</MenuItem>
+                  <MenuItem value="tutorial">Tutorial / como fazer , dicas independentes</MenuItem>
+                  <MenuItem value="gaming">Gaming , jogadas incríveis + reações</MenuItem>
+                  <MenuItem value="reaction">Reação , picos emocionais</MenuItem>
+                  <MenuItem value="lecture">Aula / educacional , explicação de conceitos</MenuItem>
                 </TextField>
                 <Typography variant="caption" sx={{ color: "text.secondary", mt: 0.5, display: "block" }}>
-                  Tells the AI what shape a "good clip" has for this content type.
+                  Diz à IA qual formato um "bom clipe" tem para este tipo de conteúdo.
                 </Typography>
               </Box>
 
@@ -352,17 +358,17 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
               so a hand-picked range never shifts). */}
           <Box>
             <Typography variant="caption" sx={{ fontWeight: 700, color: "text.secondary", letterSpacing: 0.3, display: "block", mb: 0.75 }}>
-              Every clip
+              Cada clipe
             </Typography>
             <Box sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden" }}>
 
               <SettingRow
                 icon={<SubtitlesOutlinedIcon />}
-                label="Captions"
-                sublabel={!captionsOn ? "Off also hides the AI hook overlay" : null}
+                label={"Legendas"}
+                sublabel={!captionsOn ? "Desativado também oculta a sobreposição de gancho da IA" : null}
                 summary={captionsOn
                   ? (CAPTION_STYLE_OPTIONS.find(o => o.v === settings.caption_style)?.label || settings.caption_style)
-                  : "Off"}
+                  : "Desativado"}
                 control={<RowSwitch checked={captionsOn} />}
                 onRowClick={() => set({ caption_style: captionsOn ? "none" : lastStyle.current })}
                 expanded={captionsOn}
@@ -396,7 +402,7 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
                       ))}
                     </Stack>
                     <Typography variant="caption" sx={{ color: "text.secondary", mt: 0.5, display: "block" }}>
-                      Adds 🔥 💰 ❤️ after matching words in the captions.
+                      Adiciona 🔥 💰 ❤️ após palavras correspondentes nas legendas.
                     </Typography>
                   </Box>
                 </Stack>
@@ -404,8 +410,8 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
 
               <SettingRow
                 icon={<GraphicEqOutlinedIcon />}
-                label="Remove silence & fillers"
-                sublabel={'Cuts "um"s and dead air inside each clip'}
+                label={"Remover silêncio e muletas"}
+                sublabel={"Corta \"é\"s e silêncios dentro de cada clipe"}
                 control={<RowSwitch checked={settings.remove_silence} />}
                 onRowClick={() => set({ remove_silence: !settings.remove_silence })}
                 divider
@@ -413,8 +419,8 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
 
               <SettingRow
                 icon={<CropPortraitOutlinedIcon />}
-                label="Force vertical (9:16)"
-                sublabel="Blur-fill landscape sources into portrait"
+                label={"Forçar vertical (9:16)"}
+                sublabel={"Preenche com desfoque fontes horizontais no formato retrato"}
                 control={<RowSwitch checked={settings.force_vertical} />}
                 onRowClick={() => set({ force_vertical: !settings.force_vertical })}
                 divider
@@ -422,9 +428,9 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
 
               <SettingRow
                 icon={<RecordVoiceOverOutlinedIcon />}
-                label="Transcription"
+                label={"Transcrição"}
                 summary={hasSegments && !settings.force_retranscribe
-                  ? "Cached · Whisper skipped"
+                  ? "Em cache · Whisper ignorado"
                   : WHISPER_QUALITIES.find(q => q.value === settings.whisper_quality)?.label || settings.whisper_quality}
                 control={
                   <ExpandMoreIcon sx={{
@@ -449,9 +455,9 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
                     }
                     label={
                       <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                        Run Whisper {hasSegments
-                          ? <Chip label="cached transcript available" size="small" color="success" variant="outlined" sx={{ ml: 0.5, height: 18, fontSize: "0.65rem" }} />
-                          : <Chip label="required" size="small" color="warning" variant="outlined" sx={{ ml: 0.5, height: 18, fontSize: "0.65rem" }} />
+                        Executar Whisper {hasSegments
+                          ? <Chip label={"transcrição em cache disponível"} size="small" color="success" variant="outlined" sx={{ ml: 0.5, height: 18, fontSize: "0.65rem" }} />
+                          : <Chip label={"obrigatório"} size="small" color="warning" variant="outlined" sx={{ ml: 0.5, height: 18, fontSize: "0.65rem" }} />
                         }
                       </Typography>
                     }
@@ -459,13 +465,13 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
                   />
                   {!hasSegments && (
                     <Typography variant="caption" sx={{ color: "text.secondary", display: "block", ml: 4, mb: 1 }}>
-                      No word-level transcript found — Whisper transcribes the audio first
-                      {!captionsOn ? " (still used for silence detection and per-clip titles)" : ""}
+                      Nenhuma transcrição em nível de palavra encontrada , o Whisper transcreve o áudio primeiro
+                      {!captionsOn ? " (ainda usado para detecção de silêncio e títulos por clipe)" : ""}
                     </Typography>
                   )}
                   {hasSegments && settings.force_retranscribe && (
                     <Typography variant="caption" sx={{ color: "warning.main", display: "block", ml: 4, mb: 1 }}>
-                      Re-transcribes with the selected model (replaces the cached transcript)
+                      Retranscreve com o modelo selecionado (substitui a transcrição em cache)
                     </Typography>
                   )}
                   <TextField select size="small" fullWidth
@@ -490,7 +496,7 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose}>Cancelar</Button>
         <Button variant="contained" startIcon={<ContentCutIcon />}
           disabled={!canSubmit}
           onClick={() => {
@@ -504,7 +510,7 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
             })
             onClose()
           }}>
-          {`Cut now · ${estimate.label}`}
+          {("Cortar agora · " + String(estimate.label) + "")}
         </Button>
       </DialogActions>
     </Dialog>

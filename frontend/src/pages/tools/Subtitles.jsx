@@ -13,23 +13,23 @@ import useDocumentTitle from "../../hooks/useDocumentTitle"
 // INTO the video instead, use Add Captions.
 
 const FORMATS = [
-  { value: "srt", label: "SRT", description: "Subtitles — universal" },
-  { value: "vtt", label: "VTT", description: "WebVTT — web players" },
-  { value: "txt", label: "TXT", description: "Plain transcript" },
+  { value: "srt", label: "SRT", description: "Legendas , universal" },
+  { value: "vtt", label: "VTT", description: "WebVTT , players web" },
+  { value: "txt", label: "TXT", description: "Transcrição simples" },
 ]
 
 export default function ToolSubtitles() {
-  useDocumentTitle("Export Subtitles")
+  useDocumentTitle("Exportar Legendas")
   const [format, setFormat] = useState("srt")
 
   return (
     <ToolRunner
-      title="Export Subtitles"
-      description="Transcribe a video to a downloadable .srt / .vtt subtitle file or a plain transcript"
+      title={"Exportar Legendas"}
+      description={"Transcreva um vídeo em um arquivo de legenda .srt / .vtt para download ou uma transcrição simples"}
       icon={<ClosedCaptionOutlinedIcon fontSize="large" />}
       endpoint="/api/tools/subtitles"
-      processLabel="Transcribe"
-      downloadLabel={`Download .${format}`}
+      processLabel={"Transcrever"}
+      downloadLabel={("Baixar ." + String(format) + "")}
       fieldBuilder={() => ({ format })}
     >
       <Alert
@@ -37,13 +37,13 @@ export default function ToolSubtitles() {
         icon={<RecordVoiceOverOutlinedIcon fontSize="small" />}
         sx={{ mb: 2, py: 0.5, "& .MuiAlert-message": { fontSize: "0.82rem" } }}
       >
-        Works on videos with clear spoken audio. Music-only or silent clips
-        return no subtitles. To burn captions onto the video instead, use{" "}
-        <strong>Add Captions</strong>.
+        Funciona em vídeos com áudio de fala claro. Clipes apenas com música ou silenciosos
+        não retornam legendas. Para gravar as legendas no vídeo, use{" "}
+        <strong>Adicionar Legendas</strong>.
       </Alert>
 
       <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 1 }}>
-        Output format
+        Formato de saída
       </Typography>
       <ToggleButtonGroup
         value={format}

@@ -5,7 +5,7 @@ import secrets
 import logging
 from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field
+from pydantic import Field, model_validator
 
 logger = logging.getLogger(__name__)
 
@@ -92,11 +92,21 @@ class Settings(BaseSettings):
     # ── Upload OAuth ──────────────────────────────────
     YOUTUBE_CLIENT_ID: str = ""
     YOUTUBE_CLIENT_SECRET: str = ""
-    YOUTUBE_REDIRECT_URI: str = "http://localhost:16888/api/settings/youtube-callback"
+    YOUTUBE_REDIRECT_URI: str = ""
 
     TIKTOK_CLIENT_KEY: str = ""
     TIKTOK_CLIENT_SECRET: str = ""
-    TIKTOK_REDIRECT_URI: str = "http://localhost:16888/api/settings/tiktok-upload-callback"
+    TIKTOK_REDIRECT_URI: str = ""
+
+    @model_validator(mode="after")
+    def local_oauth_callbacks(self):
+        # Independent installations must not send an authorization callback to
+        # the other app's port. Explicit registered callback URLs still win.
+        if not self.YOUTUBE_REDIRECT_URI:
+            self.YOUTUBE_REDIRECT_URI = f"http://localhost:{self.PORT}/api/settings/youtube-callback"
+        if not self.TIKTOK_REDIRECT_URI:
+            self.TIKTOK_REDIRECT_URI = f"http://localhost:{self.PORT}/api/settings/tiktok-upload-callback"
+        return self
 
     # ── Frontend ──────────────────────────────────────
     FRONTEND_URL: str = "http://localhost:5173"

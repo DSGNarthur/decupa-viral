@@ -71,7 +71,7 @@ export default function VideoEmbed({ platform, videoId, videoUrl, thumbnailUrl }
       data-orientation={vertical ? "portrait" : "landscape"}
       role={openUrl ? "link" : undefined}
       tabIndex={openUrl ? 0 : undefined}
-      aria-label={openUrl ? (isNews ? "Open the article" : "Watch on the original platform") : undefined}
+      aria-label={openUrl ? (isNews ? "Abrir o artigo" : "Assistir na plataforma original") : undefined}
       onClick={open}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open() } }}
       sx={{
@@ -115,8 +115,8 @@ export default function VideoEmbed({ platform, videoId, videoUrl, thumbnailUrl }
           sx={{ position: "absolute", inset: 0, color: "grey.400", px: 2, textAlign: "center" }}>
           {isNews ? <ArticleOutlinedIcon sx={{ fontSize: 36 }} /> : <MovieOutlinedIcon sx={{ fontSize: 36 }} />}
           <Typography variant="caption" sx={{ color: "grey.400" }}>
-            {candidates.length ? "Preview no longer available" : "No preview"}
-            {openUrl ? " — open the original to watch" : ""}
+            {candidates.length ? "Prévia não disponível" : "Sem prévia"}
+            {openUrl ? " , abra o original para assistir" : ""}
           </Typography>
         </Stack>
       )}
@@ -134,7 +134,7 @@ export default function VideoEmbed({ platform, videoId, videoUrl, thumbnailUrl }
       )}
       {openUrl && (
         <IconButton
-          aria-label={isNews ? "Open the article in a new tab" : "Watch on the original platform"}
+          aria-label={isNews ? "Abrir o artigo em uma nova aba" : "Assistir na plataforma original"}
           size="small"
           tabIndex={-1}
           sx={{

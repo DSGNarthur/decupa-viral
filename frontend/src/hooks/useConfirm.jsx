@@ -57,7 +57,7 @@ export default function useConfirm() {
       <DialogTitle>{state.title}</DialogTitle>
       <DialogContent><Typography>{state.message}</Typography></DialogContent>
       <DialogActions>
-        <Button onClick={close}>Cancel</Button>
+        <Button onClick={close}>Cancelar</Button>
         <Button
           color={state.confirmColor}
           variant="contained"

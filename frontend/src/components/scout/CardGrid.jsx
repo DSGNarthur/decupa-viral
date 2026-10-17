@@ -21,7 +21,7 @@ function VPHChip({ vph }) {
   if (!vph || vph < 100) return null
   const label = vph >= 5000 ? "TRENDING NOW" : vph >= 1000 ? "Rising" : "Active"
   const color = vph >= 5000 ? "error" : vph >= 1000 ? "warning" : "default"
-  return <Chip label={`${label} \u00B7 ${formatViews(vph)}/hr`} size="small" color={color} variant="outlined" sx={{ fontSize: "0.65rem", height: 22 }} />
+  return <Chip label={("" + String(label) + " \\u00B7 " + String(formatViews(vph)) + "/h")} size="small" color={color} variant="outlined" sx={{ fontSize: "0.65rem", height: 22 }} />
 }
 
 function OutlierChip({ score }) {
@@ -64,7 +64,7 @@ export default function CardGrid({ results, onSelect, onDownload, onDelete, sele
   const showMore = useCallback(() => setVisibleCount((c) => c + PAGE_SIZE), [])
 
   if (!results || results.length === 0) {
-    return <Typography sx={{ color: "text.secondary" }}>No results yet.</Typography>
+    return <Typography sx={{ color: "text.secondary" }}>Nenhum resultado ainda.</Typography>
   }
 
   const handleDownload = async (e, id) => {
@@ -114,7 +114,7 @@ export default function CardGrid({ results, onSelect, onDownload, onDelete, sele
             {r.is_downloaded && (
               <Chip
                 icon={isNews ? <BookmarkAddedIcon /> : <CheckCircleIcon />}
-                label={isNews ? "Saved" : "Downloaded"}
+                label={isNews ? "Salvo" : "Baixado"}
                 size="small"
                 color="success"
                 sx={{ position: "absolute", top: 8, right: 8, zIndex: 2 }}
@@ -141,7 +141,7 @@ export default function CardGrid({ results, onSelect, onDownload, onDelete, sele
                     <Box sx={{ position: "relative", zIndex: 1 }}>
                       <NewspaperIcon sx={{ fontSize: 28, color: "warning.main", mb: 0.5 }} />
                       <Typography variant="caption" sx={{ color: "text.secondary", display: "block", fontWeight: 600 }}>
-                        {r.author || newsDesc?.source || "News"}
+                        {r.author || newsDesc?.source || "Notícias"}
                       </Typography>
                       {newsDesc?.full_text_preview && (
                         <Typography variant="caption" sx={{
@@ -158,7 +158,7 @@ export default function CardGrid({ results, onSelect, onDownload, onDelete, sele
                   <>
                     <NewspaperIcon sx={{ fontSize: 28, color: "warning.main", mb: 0.5 }} />
                     <Typography variant="caption" sx={{ color: "text.secondary", display: "block", fontWeight: 600 }}>
-                      {r.author || newsDesc?.source || "News"}
+                      {r.author || newsDesc?.source || "Notícias"}
                     </Typography>
                     {newsDesc?.full_text_preview && (
                       <Typography variant="caption" sx={{
@@ -209,14 +209,14 @@ export default function CardGrid({ results, onSelect, onDownload, onDelete, sele
             <CardContent sx={{ p: 1.5 }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.5, flexWrap: "wrap", gap: 0.5 }}>
                 <Box sx={{ display: "flex", gap: 0.5, alignItems: "center", flexWrap: "wrap" }}>
-                  <Chip label={isNews ? "NEWS" : r.platform} size="small" variant="outlined"
+                  <Chip label={isNews ? "NOTÍCIAS" : r.platform} size="small" variant="outlined"
                     icon={isNews ? <NewspaperIcon sx={{ fontSize: "14px !important" }} /> : undefined}
                     sx={{ textTransform: "uppercase", fontSize: "0.65rem", height: 22,
                       ...(isNews && { borderColor: "warning.main", color: "warning.main" }) }} />
                   {!isNews && <VPHChip vph={r.views_per_hour} />}
                   {!isNews && <OutlierChip score={r.outlier_score} />}
                   {isNews && newsDesc?.word_count > 0 && (
-                    <Chip label={`${newsDesc.word_count} words`} size="small" variant="outlined" sx={{ fontSize: "0.6rem", height: 20 }} />
+                    <Chip label={("" + String(newsDesc.word_count) + " palavras")} size="small" variant="outlined" sx={{ fontSize: "0.6rem", height: 20 }} />
                   )}
                   {isNews && newsDesc?.emotional_tone && (
                     <Chip label={newsDesc.emotional_tone} size="small" variant="outlined" color="info" sx={{ fontSize: "0.6rem", height: 20 }} />
@@ -236,14 +236,14 @@ export default function CardGrid({ results, onSelect, onDownload, onDelete, sele
                 /* News meta line */
                 <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 1 }}>
                   {r.author || newsDesc?.source || ""}
-                  {r.upload_date && ` · ${new Date(r.upload_date).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}`}
-                  {newsDesc?.engagement > 0 && ` · ${formatViews(newsDesc.engagement)} engagement`}
+                  {r.upload_date && (" · " + String(new Date(r.upload_date).toLocaleDateString([], { month: "curto", day: "numérico", year: "numérico" })) + "")}
+                  {newsDesc?.engagement > 0 && (" · " + String(formatViews(newsDesc.engagement)) + " engajamento")}
                 </Typography>
               ) : (
                 /* Video meta line */
                 <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 1 }}>
                   {r.author} &middot; <VisibilityIcon sx={{ fontSize: 12, verticalAlign: "middle", mr: 0.3 }} />{formatViews(r.views)} &middot; <ThumbUpIcon sx={{ fontSize: 12, verticalAlign: "middle", mr: 0.3 }} />{formatViews(r.likes || 0)}
-                  {r.upload_date && ` \u00B7 ${new Date(r.upload_date).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}`}
+                  {r.upload_date && (" \\u00B7 " + String(new Date(r.upload_date).toLocaleDateString([], { month: "curto", day: "numérico", year: "numérico" })) + "")}
                 </Typography>
               )}
 
@@ -258,12 +258,12 @@ export default function CardGrid({ results, onSelect, onDownload, onDelete, sele
                     disabled={loadingId === r.id}
                     color={isNews ? "warning" : "primary"}
                   >
-                    {loadingId === r.id ? "Saving..." : isNews ? "Save to Library" : "Download & Analyze"}
+                    {loadingId === r.id ? "Salvando..." : isNews ? "Salvar na Biblioteca" : "Baixar e Analisar"}
                   </Button>
                 )}
                 <Box sx={{ flex: 1 }} />
                 {r.video_url && (
-                  <Tooltip title={isNews ? "Open article" : "Open original"} arrow>
+                  <Tooltip title={isNews ? "Abrir artigo" : "Abrir original"} arrow>
                     <IconButton
                       size="small"
                       onClick={(e) => { e.stopPropagation(); window.open(r.video_url, "_blank", "noopener") }}
@@ -273,7 +273,7 @@ export default function CardGrid({ results, onSelect, onDownload, onDelete, sele
                     </IconButton>
                   </Tooltip>
                 )}
-                <Tooltip title="Delete" arrow>
+                <Tooltip title={"Excluir"} arrow>
                   <IconButton
                     size="small"
                     onClick={(e) => { e.stopPropagation(); onDelete(r.id) }}
@@ -291,7 +291,7 @@ export default function CardGrid({ results, onSelect, onDownload, onDelete, sele
     {visibleCount < results.length && (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
         <Button variant="outlined" onClick={showMore}>
-          Show more ({results.length - visibleCount} remaining)
+          Mostrar mais ({results.length - visibleCount} restantes)
         </Button>
       </Box>
     )}

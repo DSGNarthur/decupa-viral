@@ -6,35 +6,35 @@
 /* ── TTS Providers ────────────────────────────────────────────────── */
 
 export const TTS_PROVIDERS = [
-  { value: "edge_tts",   label: "Edge TTS — Free",     cost: "$0" },
-  { value: "openai_tts", label: "OpenAI TTS — Budget", cost: "~$0.015/1K chars" },
+  { value: "edge_tts",   label: "Edge TTS , Grátis",     cost: "$0" },
+  { value: "openai_tts", label: "OpenAI TTS , Econômico", cost: "~$0.015/1K chars" },
 ]
 
 /* ── Caption Styles ───────────────────────────────────────────────── */
 
 export const CAPTION_STYLES = [
-  { value: "viral",   label: "Viral — Word-by-word highlight" },
-  { value: "classic", label: "Classic — Full sentence" },
-  { value: "bold",    label: "Bold — 2-word highlight" },
-  { value: "neon",    label: "Neon — Pink & cyan glow" },
-  { value: "minimal", label: "Minimal — Clean & subtle" },
-  { value: "karaoke", label: "Karaoke — Gray-to-yellow" },
-  { value: "glow",    label: "Glow — Orange-gold accent" },
+  { value: "viral",   label: "Viral , Destaque palavra por palavra" },
+  { value: "classic", label: "Clássico , Frase completa" },
+  { value: "bold",    label: "Negrito , Destaque de 2 palavras" },
+  { value: "neon",    label: "Neon , Brilho rosa e ciano" },
+  { value: "minimal", label: "Minimalista , Limpo e sutil" },
+  { value: "karaoke", label: "Karaokê , Cinza para amarelo" },
+  { value: "glow",    label: "Brilho , Destaque laranja-dourado" },
 ]
 
 /* ── Music Genres ─────────────────────────────────────────────────── */
 
 export const MUSIC_GENRES = [
   { value: "lofi",       label: "Lo-fi Chill" },
-  { value: "cinematic",  label: "Cinematic" },
-  { value: "upbeat",     label: "Upbeat Electronic" },
-  { value: "ambient",    label: "Ambient" },
-  { value: "corporate",  label: "Corporate / Motivational" },
+  { value: "cinematic",  label: "Cinematográfico" },
+  { value: "upbeat",     label: "Electronic Upbeat" },
+  { value: "ambient",    label: "Ambiente" },
+  { value: "corporate",  label: "Corporativo / Motivacional" },
   { value: "jazz",       label: "Jazz" },
   { value: "hiphop",     label: "Hip-Hop / Trap" },
-  { value: "classical",  label: "Classical" },
+  { value: "classical",  label: "Clássico" },
   { value: "edm",        label: "EDM / Dance" },
-  { value: "acoustic",   label: "Acoustic / Folk" },
+  { value: "acoustic",   label: "Acústico / Folk" },
   { value: "rnb",        label: "R&B / Soul" },
   { value: "rock",       label: "Rock" },
 ]

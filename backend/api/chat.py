@@ -136,11 +136,22 @@ async def chat_websocket(websocket: WebSocket):
     # answers the handshake with a refusal rather than an open socket.
     from backend.core.origins import lan_mode, origin_ok
     origin = websocket.headers.get("origin")
+    from backend.core import companion
+    selected_protocol = None
+    if companion.trusted_origin(origin):
+        protocol = websocket.headers.get('sec-websocket-protocol', '')
+        if not protocol.startswith('decupa.') or not companion.authorized(protocol[7:]):
+            await websocket.close(code=1008)
+            return
+        selected_protocol = protocol
     if origin and not lan_mode() and not origin_ok(origin):
         logger.warning("Rejected /ws/chat handshake from foreign origin %r", origin[:120])
         await websocket.close(code=1008)
         return
-    await ws_manager.connect(websocket, user_id)
+    if selected_protocol is None:
+        await ws_manager.connect(websocket, user_id)
+    else:
+        await ws_manager.connect(websocket, user_id, subprotocol=selected_protocol)
 
     # Load user settings
     async with AsyncSessionLocal() as db:

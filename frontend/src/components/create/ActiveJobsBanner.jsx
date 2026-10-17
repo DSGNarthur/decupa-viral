@@ -4,6 +4,7 @@ import CancelIcon from "@mui/icons-material/Cancel"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import ExpandLessIcon from "@mui/icons-material/ExpandLess"
 import useAppStore from "../../store/appStore"
+import { jobStep } from '../../utils/jobStep'
 
 /**
  * Shared active-jobs progress banner used across all video/clip pages.
@@ -14,7 +15,7 @@ import useAppStore from "../../store/appStore"
  *  - fallbackLabel          Text shown when step/message are empty (default "Processing…").
  *  - collapseThreshold      Number of jobs before auto-collapsing (default 2).
  */
-export default function ActiveJobsBanner({ filter, onCancel, fallbackLabel = "Processing…", collapseThreshold = 2 }) {
+export default function ActiveJobsBanner({ filter, onCancel, fallbackLabel = "Processando…", collapseThreshold = 2 }) {
   const activeJobs = useAppStore((s) => s.activeJobs)
   const [expanded, setExpanded] = useState(false)
 
@@ -32,7 +33,7 @@ export default function ActiveJobsBanner({ filter, onCancel, fallbackLabel = "Pr
         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1, cursor: "pointer" }}
           onClick={() => setExpanded(!expanded)}>
           <Chip
-            label={`${runningJobs.length} active jobs`}
+            label={("" + String(runningJobs.length) + " tarefas ativas")}
             size="small"
             color="primary"
             sx={{ fontWeight: 600, fontSize: "0.75rem" }}
@@ -74,7 +75,7 @@ function JobCard({ job, fallbackLabel, onCancel }) {
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
             <Typography variant="body2" noWrap sx={{ fontWeight: 600, fontSize: "0.85rem", flex: 1, minWidth: 0, mr: 1 }}>
-              {job.step || job.message || fallbackLabel}
+              {jobStep(job.step || job.message || fallbackLabel)}
             </Typography>
             <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexShrink: 0 }}>
               <Typography variant="caption" sx={{ color: "primary.main", fontWeight: 700 }}>
@@ -83,7 +84,7 @@ function JobCard({ job, fallbackLabel, onCancel }) {
               {onCancel && (
                 <IconButton size="small" onClick={() => onCancel(job.jobId)}
                   sx={{ p: 0.25, color: "text.disabled", "&:hover": { color: "error.main" } }}
-                  title="Cancel job">
+                  title={"Cancelar tarefa"}>
                   <CancelIcon sx={{ fontSize: 16 }} />
                 </IconButton>
               )}

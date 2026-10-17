@@ -21,9 +21,9 @@ export default function CreateModeMenu({ anchorEl, onClose, sourceId, navigate }
         music_enabled: true,
         music_genre: "lofi",
       })
-      showSnackbar("Quick video generation started! Check the Generated tab.", "success")
+      showSnackbar("Geração rápida de vídeo iniciada! Confira a aba Gerados.", "success")
     } catch (e) {
-      showSnackbar(e.response?.data?.detail || `Quick generate failed: ${e.message}`, "error")
+      showSnackbar(e.response?.data?.detail || ("Falha na geração rápida: " + String(e.message) + ""), "error")
     } finally {
       setQuickLoading(false)
     }
@@ -42,11 +42,11 @@ export default function CreateModeMenu({ anchorEl, onClose, sourceId, navigate }
         />
       </MenuItem>
       <Typography variant="caption" sx={{ px: 2, py: 0.5, color: "text.disabled", display: "block" }}>
-        Or customize in editor:
+        Ou personalize no editor:
       </Typography>
       <MenuItem onClick={() => { onClose(); navigate(`/stock?source=${sourceId}`) }}>
         <ListItemIcon><PhotoLibraryIcon fontSize="small" /></ListItemIcon>
-        <ListItemText>Stock Video</ListItemText>
+        <ListItemText>Vídeo de Banco</ListItemText>
       </MenuItem>
     </Menu>
   )

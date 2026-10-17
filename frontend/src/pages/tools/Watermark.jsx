@@ -11,14 +11,14 @@ import ToolRunner from "../../components/tools/ToolRunner"
 import useDocumentTitle from "../../hooks/useDocumentTitle"
 
 const POSITIONS = [
-  { value: "top-left", label: "Top Left" },
-  { value: "top-right", label: "Top Right" },
-  { value: "bottom-left", label: "Bottom Left" },
-  { value: "bottom-right", label: "Bottom Right" },
+  { value: "top-left", label: "Superior esquerdo" },
+  { value: "top-right", label: "Superior direito" },
+  { value: "bottom-left", label: "Inferior esquerdo" },
+  { value: "bottom-right", label: "Inferior direito" },
 ]
 
 export default function ToolWatermark() {
-  useDocumentTitle("Add Watermark")
+  useDocumentTitle("Adicionar Marca d'Água")
   const [position, setPosition] = useState("bottom-right")
   const [opacity, setOpacity] = useState(0.8)
   const [sizePct, setSizePct] = useState(8)
@@ -37,20 +37,20 @@ export default function ToolWatermark() {
 
   return (
     <ToolRunner
-      title="Add Watermark"
-      description="Brand every export with your logo"
+      title={"Adicionar Marca d'Água"}
+      description={"Marque todas as exportações com seu logo"}
       icon={<BrandingWatermarkOutlinedIcon fontSize="large" />}
       endpoint="/api/tools/watermark"
       extraFiles={{ logo }}
       canSubmit={!!logo}
-      disabledReason="Upload a logo first"
+      disabledReason={"Envie um logo primeiro"}
       fieldBuilder={() => ({ position, opacity, size_pct: sizePct })}
     >
       <Stack spacing={2.5}>
         {/* Logo upload */}
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 1 }}>
-            Logo (PNG with transparency recommended)
+            Logo (PNG com transparência recomendado)
           </Typography>
           <input
             ref={logoInputRef}
@@ -82,7 +82,7 @@ export default function ToolWatermark() {
               onClick={() => logoInputRef.current?.click()}
               sx={{ textTransform: "none" }}
             >
-              Choose logo
+              Escolher logo
             </Button>
           )}
         </Box>
@@ -90,7 +90,7 @@ export default function ToolWatermark() {
         {/* Position */}
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 1 }}>
-            Position
+            Posição
           </Typography>
           <ToggleButtonGroup
             value={position}
@@ -109,7 +109,7 @@ export default function ToolWatermark() {
         {/* Opacity */}
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, display: "block" }}>
-            Opacity: {Math.round(opacity * 100)}%
+            Opacidade: {Math.round(opacity * 100)}%
           </Typography>
           <Slider
             value={opacity} onChange={(_, v) => setOpacity(v)}
@@ -121,7 +121,7 @@ export default function ToolWatermark() {
         {/* Size */}
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, display: "block" }}>
-            Size: {sizePct}% of video height
+            Tamanho: {sizePct}% da altura do vídeo
           </Typography>
           <Slider
             value={sizePct} onChange={(_, v) => setSizePct(v)}

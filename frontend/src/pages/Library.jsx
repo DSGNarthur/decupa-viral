@@ -57,7 +57,7 @@ const IMPORT_ACCEPT = "video/*,audio/*,.mp4,.mov,.avi,.mkv,.webm,.mp3,.wav,.m4a,
 
 // Reads as a sentence in the empty state: "no audio files that were …".
 const ORIGIN_PHRASE = {
-  created: "made in ViralMint",
+  created: "made in Decupa Viral",
   edited: "made from something you already own",
   imported: "brought in from outside",
 }
@@ -84,7 +84,7 @@ function treeKeys(families, loners) {
 }
 
 export default function Library() {
-  useDocumentTitle("Library")
+  useDocumentTitle("Biblioteca")
   const theme = useTheme()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
@@ -271,7 +271,7 @@ export default function Library() {
       setDrawerItem(data.item)
       setDrawerLineage({ ancestors: data.ancestors || [], children: data.children || [] })
     } catch {
-      showSnackbar("That item is no longer in your library", "info")
+      showSnackbar("Esse item não está mais na sua biblioteca", "info")
     }
   }, [items, openItem, showSnackbar])
 
@@ -301,10 +301,10 @@ export default function Library() {
       const { data } = await http.post("/api/downloaded/import", form, {
         headers: { "Content-Type": "multipart/form-data" },
       })
-      showSnackbar(data.message || "Imported", "success")
+      showSnackbar(data.message || "Importado", "success")
       refresh()
     } catch (e) {
-      showSnackbar(e.response?.data?.detail || "Import failed", "error")
+      showSnackbar(e.response?.data?.detail || "Falha na importação", "error")
     } finally {
       setImporting(false)
     }
@@ -323,7 +323,7 @@ export default function Library() {
     const del = DELETE_BY_SOURCE[item.source]
     if (!del) {
       showSnackbar(
-        "Music tracks live in storage/music/ — remove the file there", "info",
+        "As faixas de música ficam em storage/music/ , remova o arquivo de lá", "info",
       )
       return
     }
@@ -331,9 +331,9 @@ export default function Library() {
       await del(item)
       removeLocal(item.key)
       refresh()  // facet counts and pageCount come from the server
-      showSnackbar("Deleted", "success")
+      showSnackbar("Excluído", "success")
     } catch (e) {
-      showSnackbar(e.response?.data?.detail || "Could not delete that item", "error")
+      showSnackbar(e.response?.data?.detail || "Não foi possível excluir esse item", "error")
     }
   }
 
@@ -387,8 +387,8 @@ export default function Library() {
     refresh()
     showSnackbar(
       failures.length
-        ? `Deleted ${ok}; ${failures.length} could not be deleted`
-        : `Deleted ${ok} item${ok === 1 ? "" : "s"}`,
+        ? ("Excluído " + String(ok) + "; " + String(failures.length) + " não pôde ser excluído")
+        : ("Excluído " + String(ok) + " item" + String(ok === 1 ? "" : "s") + ""),
       failures.length ? "warning" : "success",
     )
   }
@@ -409,7 +409,7 @@ export default function Library() {
     setUploadPreview((prev) => ({ ...prev, open: false }))
     try {
       await http.post(`/api/videos/${videoId}/upload`, { platforms })
-      showSnackbar(`Upload started for ${platforms.join(", ")}`, "success")
+      showSnackbar(("Upload iniciado para " + String(platforms.join(", ")) + ""), "success")
       refresh()
     } catch (e) {
       showSnackbar(e.response?.data?.detail || e.message, "error")
@@ -423,12 +423,12 @@ export default function Library() {
       // needs to know that before they retry and end up with two of them.
       showSnackbar(
         data?.best_effort
-          ? "Cancelling — the step already running will finish on its own"
-          : "Job cancelled",
+          ? "Cancelando , a etapa já em execução vai terminar sozinha"
+          : "Tarefa cancelada",
         "info",
       )
     } catch (e) {
-      showSnackbar(e.response?.data?.detail || "Could not cancel that job", "error")
+      showSnackbar(e.response?.data?.detail || "Não foi possível cancelar essa tarefa", "error")
     }
   }
 
@@ -439,21 +439,21 @@ export default function Library() {
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <PageHero
         icon={<PhotoLibraryRoundedIcon sx={{ fontSize: 22 }} />}
-        title="Library"
+        title={"Biblioteca"}
         subtitle={
           loading && !libraryTotal
-            ? "Reading your library…"
+            ? "Lendo sua biblioteca…"
             // Library-wide count only. The per-origin numbers live on the From
             // chips, where they are filter-scoped on purpose — printing them
             // here next to a library-wide total made the header contradict
             // itself as soon as you picked a media tab.
-            : `${libraryTotal} items`
+            : ("" + String(libraryTotal) + " itens")
         }
         accentColor="#0097a7"
         actions={
           <Stack direction="row" spacing={1} alignItems="center">
             <TextField
-              placeholder="Search library…"
+              placeholder={"Pesquisar na biblioteca…"}
               size="small"
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -468,12 +468,12 @@ export default function Library() {
                 button over without one, so clicking it did nothing. */}
             <Button size="small" variant="outlined" component="label"
               disabled={importing} startIcon={<FileUploadRoundedIcon />}>
-              {importing ? "Importing…" : "Import"}
+              {importing ? "Importando…" : "Importar"}
               <input type="file" hidden accept={IMPORT_ACCEPT} onChange={handleImport} />
             </Button>
             <Button size="small" variant="outlined" onClick={openActivity}
               startIcon={<BoltRoundedIcon sx={{ fontSize: 17 }} />}>
-              Activity
+              Atividade
               {(runningCount > 0 || recentFailures.length > 0) && (
                 <Box component="span" sx={{
                   ml: 0.7, px: 0.6, borderRadius: "999px", fontSize: "0.68rem", fontWeight: 700,
@@ -520,18 +520,18 @@ export default function Library() {
           }}>
             <LightbulbRoundedIcon sx={{ fontSize: 17, color: "#0097a7", mt: "1px" }} />
             <Typography sx={{ flex: 1, fontSize: "0.78rem", color: "text.secondary", lineHeight: 1.65 }}>
-              <strong>Two questions, two controls.</strong> The tabs say what a file <em>is</em>; the
-              From chips say where it <em>came from</em>. A downloaded mp3 is Audio + Sources, a
-              voice-over is Audio + Created, an enhanced podcast is Audio + Edited — all three live
-              in Audio, and none of them needs a tab of its own. Switch to
-              <strong> By source</strong> to see each download with everything you made from it.
+              <strong>Duas perguntas, dois controles.</strong> As abas dizem o que um arquivo <em>é</em>; os
+              chips De dizem de onde ele <em>veio</em>. Um mp3 baixado é Áudio + Fontes, uma
+              narração é Áudio + Criado, um podcast aprimorado é Áudio + Editado , todos os três ficam
+              em Áudio, e nenhum deles precisa de uma aba própria. Alterne para
+              <strong> Por origem</strong> para ver cada download com tudo o que você criou a partir dele.
               <br />
-              Scout results are deliberately not here — a lead is not a file you own, so it has its
-              own page. Jobs split in two: work in flight appears as a tile in the grid where it will
-              land, and the full log lives in <strong>Activity</strong> (top right), reachable from
-              every page instead of only this one.
+              Os resultados do Scout deliberadamente não estão aqui , um lead não é um arquivo que você possui, então ele tem sua
+              própria página. Os trabalhos se dividem em dois: o trabalho em andamento aparece como um bloco na grade onde vai
+              ficar, e o log completo fica em <strong>Atividade</strong> (canto superior direito), acessível de
+              todas as páginas em vez de apenas desta.
             </Typography>
-            <IconButton size="small" onClick={() => setShowWhy(false)} aria-label="Dismiss">
+            <IconButton size="small" onClick={() => setShowWhy(false)} aria-label={"Dispensar"}>
               <CloseRoundedIcon sx={{ fontSize: 15 }} />
             </IconButton>
           </Stack>
@@ -546,14 +546,14 @@ export default function Library() {
             <Box component="span" sx={{ color: originTextColor(origins[0], theme.palette.mode === "dark"), fontWeight: 700 }}>
               {ORIGINS[origins[0]]?.label}
             </Box>
-            {" is "}
+            {" é "}
             {facets.producers.slice(0, 5).map((p, i) => (
               <Box component="span" key={p.key}>
                 {i > 0 ? " · " : ""}
                 <strong>{p.count}</strong> {p.label.toLowerCase()}
               </Box>
             ))}
-            {facets.producers.length > 5 && ` · +${facets.producers.length - 5} more tools`}
+            {facets.producers.length > 5 && (" · +" + String(facets.producers.length - 5) + " mais ferramentas")}
           </Typography>
         )}
 
@@ -566,13 +566,13 @@ export default function Library() {
             <ErrorOutlineRoundedIcon sx={{ fontSize: 18, color: "error.main" }} />
             <Typography sx={{ flex: 1, fontSize: "0.8rem", color: "text.secondary" }}>
               <strong>
-                {recentFailures.length} {recentFailures.length === 1 ? "run" : "runs"} didn't finish
+                {recentFailures.length} {recentFailures.length === 1 ? "executar" : "execuções"} não terminou
               </strong>{" "}
-              in the last day — nothing was added to your library.
+              no último dia , nada foi adicionado à sua biblioteca.
             </Typography>
             <Button size="small" variant="outlined" color="error"
               onClick={openActivity}>
-              Review
+              Revisar
             </Button>
           </Stack>
         )}
@@ -603,20 +603,20 @@ export default function Library() {
           <Stack alignItems="center" spacing={1.5} sx={{ py: 10 }}>
             <InventoryRoundedIcon sx={{ fontSize: 40, color: "text.disabled" }} />
             <Typography sx={{ fontSize: "0.95rem", fontWeight: 600 }}>
-              {filtersActive ? "Nothing matches those filters" : "Your library is empty"}
+              {filtersActive ? "Nada corresponde a esses filtros" : "Sua biblioteca está vazia"}
             </Typography>
             <Typography sx={{
               fontSize: "0.82rem", color: "text.secondary", textAlign: "center", maxWidth: 380,
             }}>
               {filtersActive
                 ? (media !== "all" && origins.length === 1
-                  ? `You have no ${MEDIA[media]?.plural} that were ${ORIGIN_PHRASE[origins[0]]}.`
-                  : "Widen the media tab or the From chips to see more.")
-                : "Renders, downloads and anything you edit collect here."}
+                  ? ("Você não tem " + String(MEDIA[media]?.plural) + " que foram " + String(ORIGIN_PHRASE[origins[0]]) + ".")
+                  : "Amplie a aba de mídia ou os chips De para ver mais.")
+                : "Renders, downloads e tudo que você editar aparecem aqui."}
             </Typography>
             {filtersActive
-              ? <Button size="small" variant="outlined" onClick={clearFilters}>Clear filters</Button>
-              : <Button size="small" variant="contained" onClick={() => navigate("/stock")}>Make a video</Button>}
+              ? <Button size="small" variant="outlined" onClick={clearFilters}>Limpar filtros</Button>
+              : <Button size="small" variant="contained" onClick={() => navigate("/stock")}>Criar um vídeo</Button>}
           </Stack>
         ) : (
           <>
@@ -682,7 +682,7 @@ export default function Library() {
           },
           "& .MuiIconButton-root": { color: "primary.contrastText" },
         }}>
-          <Chip size="small" label={`${selected.size} selected`}
+          <Chip size="small" label={("" + String(selected.size) + " selecionados")}
             sx={{
               fontWeight: 800, height: 24,
               bgcolor: alpha("#fff", 0.22), color: "primary.contrastText",
@@ -694,9 +694,9 @@ export default function Library() {
               deleteSelected,
               { confirmLabel: `Delete ${selected.size}` },
             )}>
-            Delete
+            Excluir
           </Button>
-          <IconButton size="small" onClick={() => setSelected(new Map())} aria-label="Clear selection">
+          <IconButton size="small" onClick={() => setSelected(new Map())} aria-label={"Limpar seleção"}>
             <CloseRoundedIcon sx={{ fontSize: 16 }} />
           </IconButton>
         </Box>
@@ -709,16 +709,16 @@ export default function Library() {
         slotProps={{ paper: { sx: { minWidth: 190 } } }}>
         <MenuItem sx={{ fontSize: "0.84rem" }}
           onClick={() => { const it = moreMenu.item; setMoreMenu(null); openItem(it) }}>
-          Open details
+          Abrir detalhes
         </MenuItem>
         <MenuItem sx={{ fontSize: "0.84rem" }}
           component="a" href={moreMenu?.item?.stream_url} download
           onClick={() => setMoreMenu(null)}>
-          Save a copy
+          Salvar uma cópia
         </MenuItem>
         <MenuItem sx={{ fontSize: "0.84rem", color: "error.main" }}
           onClick={() => { const it = moreMenu.item; setMoreMenu(null); confirmDeleteOne(it) }}>
-          Delete
+          Excluir
         </MenuItem>
       </Menu>
 
@@ -730,7 +730,7 @@ export default function Library() {
       <Dialog open={uploadPreview.open} maxWidth="sm" fullWidth
         onClose={() => setUploadPreview((prev) => ({ ...prev, open: false }))}>
         <DialogTitle>
-          Confirm upload to{" "}
+          Confirmar envio para{" "}
           {uploadPreview.platforms.map((pl) => pl.charAt(0).toUpperCase() + pl.slice(1)).join(", ")}
         </DialogTitle>
         <DialogContent>
@@ -738,29 +738,29 @@ export default function Library() {
             <Stack spacing={1.5} sx={{ pt: 1 }}>
               {uploadPreview.platforms.includes("youtube") && (
                 <>
-                  <Typography variant="caption" color="text.secondary">YouTube title</Typography>
+                  <Typography variant="caption" color="text.secondary">Título do YouTube</Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {uploadPreview.video.youtube_title || uploadPreview.video.title || "(untitled)"}
+                    {uploadPreview.video.youtube_title || uploadPreview.video.title || "(sem título)"}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">YouTube description</Typography>
+                  <Typography variant="caption" color="text.secondary">Descrição do YouTube</Typography>
                   <Typography variant="body2" sx={{
                     whiteSpace: "pre-wrap", maxHeight: 120, overflow: "auto", color: "text.secondary",
                   }}>
-                    {uploadPreview.video.youtube_description || "(no description)"}
+                    {uploadPreview.video.youtube_description || "(sem descrição)"}
                   </Typography>
                 </>
               )}
               {uploadPreview.platforms.includes("tiktok") && (
                 <>
-                  <Typography variant="caption" color="text.secondary">TikTok title</Typography>
+                  <Typography variant="caption" color="text.secondary">Título do TikTok</Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {uploadPreview.video.tiktok_title || uploadPreview.video.title || "(untitled)"}
+                    {uploadPreview.video.tiktok_title || uploadPreview.video.title || "(sem título)"}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">TikTok description</Typography>
+                  <Typography variant="caption" color="text.secondary">Descrição do TikTok</Typography>
                   <Typography variant="body2" sx={{
                     whiteSpace: "pre-wrap", maxHeight: 120, overflow: "auto", color: "text.secondary",
                   }}>
-                    {uploadPreview.video.tiktok_description || "(no description)"}
+                    {uploadPreview.video.tiktok_description || "(sem descrição)"}
                   </Typography>
                 </>
               )}
@@ -769,9 +769,9 @@ export default function Library() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setUploadPreview((prev) => ({ ...prev, open: false }))}>
-            Cancel
+            Cancelar
           </Button>
-          <Button variant="contained" onClick={doUpload}>Upload</Button>
+          <Button variant="contained" onClick={doUpload}>Enviar</Button>
         </DialogActions>
       </Dialog>
 

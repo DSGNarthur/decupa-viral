@@ -3,11 +3,12 @@ import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom"
 import useWebSocket from "../hooks/useWebSocket"
 import useJobs from "../hooks/useJobs"
 import http from "../api/http"
+import { interceptPCDownloads } from '../companion/downloads'
 import ActivityPanel from "./librarynext/ActivityPanel"
 import { activityFromJob } from "./librarynext/assetModel"
 import {
   Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText,
-  Typography, Divider, IconButton, useMediaQuery, useTheme, Tooltip, Badge,
+  Typography, Divider, IconButton, useMediaQuery, useTheme, Tooltip, Badge, Alert, Button,
 } from "@mui/material"
 import useAppStore from "../store/appStore"
 import { pluginNavItems } from "../plugins"
@@ -29,24 +30,34 @@ const DRAWER_WIDTH = 240
 const COLLAPSED_WIDTH = 64
 
 const navItems = [
-  { to: "/",          icon: <ChatIcon />,             label: "Chat" },
-  { to: "/scout",     icon: <TravelExploreIcon />,    label: "Scout" },
-  { to: "/channels",  icon: <SensorsIcon />,          label: "My Channels" },
-  { to: "/clips",     icon: <ContentCutIcon />,       label: "Clip Studio" },
-  { to: "/videos",    icon: <VideoLibraryIcon />,     label: "Library" },
-  { to: "/stock",     icon: <PhotoLibraryIcon />,     label: "Stock Video" },
-  { to: "/motion",    icon: <MovieFilterIcon />,      label: "Motion Graphics" },
-  { to: "/tools",     icon: <BuildIcon />,            label: "Tools" },
-  { to: "/messaging", icon: <PhoneIphoneIcon />,      label: "Messaging" },
+  { to: "/clips",     icon: <ContentCutIcon />,       label: "Estúdio de cortes" },
+  { to: "/tools/video-download", icon: <VideoLibraryIcon />, label: "Baixar vídeo" },
+  { to: "/chat",      icon: <ChatIcon />,             label: "Conversas" },
+  { to: "/scout",     icon: <TravelExploreIcon />,    label: "Pesquisa de vídeos" },
+  { to: "/channels",  icon: <SensorsIcon />,          label: "Meus canais" },
+  { to: "/videos",    icon: <VideoLibraryIcon />,     label: "Biblioteca" },
+  { to: "/stock",     icon: <PhotoLibraryIcon />,     label: "Vídeo de banco" },
+  { to: "/motion",    icon: <MovieFilterIcon />,      label: "Animações" },
+  { to: "/tools",     icon: <BuildIcon />,            label: "Ferramentas" },
+  { to: "/messaging", icon: <PhoneIphoneIcon />,      label: "Mensagens" },
   ...pluginNavItems.filter(i => (i.position || "top") === "top"),
 ]
 
 const bottomItems = [
   ...pluginNavItems.filter(i => i.position === "bottom"),
-  { to: "/settings",  icon: <SettingsIcon />,     label: "Settings" },
+  { to: "/settings",  icon: <SettingsIcon />,     label: "Configurações" },
+  { to: "/about",     icon: <BuildIcon />,        label: "Sobre e código-fonte" },
+  ...(import.meta.env.VITE_BROWSER_RUNTIME === 'true' ? [{ to: '/diagnostico', icon: <BuildIcon />, label: 'Verificar dispositivo' }] : []),
 ]
 
 export default function Layout() {
+  const openVercel = async () => {
+    try {
+      const { data } = await http.post('/api/companion/link')
+      // Navigation keeps the token in a fragment, never in a server request.
+      window.location.assign(data.url)
+    } catch (error) { useAppStore.getState().showSnackbar(error.response?.data?.detail || 'Abra o aplicativo local atualizado para conectar à Vercel.', 'error') }
+  }
   useWebSocket()  // Global WS connection — active on all pages
   const location = useLocation()
   const navigate = useNavigate()
@@ -63,6 +74,10 @@ export default function Layout() {
   const openActivity = useAppStore(s => s.openActivity)
   const closeActivity = useAppStore(s => s.closeActivity)
   const showSnackbar = useAppStore(s => s.showSnackbar)
+  useEffect(() => {
+    if (import.meta.env.VITE_COMPANION_RUNTIME !== 'true') return
+    return interceptPCDownloads(message => showSnackbar(message, 'error'))
+  }, [showSnackbar])
   const removeJob = useAppStore(s => s.removeJob)
   // ONE job poll for the whole app — pages read `jobs` from the store. A second
   // useJobs() instance would double the polling for the same rows.
@@ -167,8 +182,8 @@ export default function Layout() {
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.2, overflow: "hidden" }}>
           <Box
             component="img"
-            src="/icon-192.png"
-            alt="ViralMint"
+            src="/decupa-icon.svg"
+            alt={"Decupa Viral"}
             sx={{ width: 32, height: 32, borderRadius: 1, flexShrink: 0 }}
           />
           {(!collapsed || isNarrow) && (
@@ -184,7 +199,7 @@ export default function Layout() {
                 whiteSpace: "nowrap",
               }}
             >
-              ViralMint
+              Decupa Viral
             </Typography>
           )}
         </Box>
@@ -214,8 +229,8 @@ export default function Layout() {
           navigate away from whatever you were doing. */}
       {runningJobCount > 0 && (
         <Box sx={{ px: collapsed && !isNarrow ? 0.75 : 1.5, pb: 1 }}>
-          <Tooltip title="Show activity" placement="right" arrow>
-            <ListItemButton onClick={openActivity} aria-label="Show activity"
+          <Tooltip title={"Mostrar atividade"} placement="right" arrow>
+            <ListItemButton onClick={openActivity} aria-label={"Mostrar atividade"}
               sx={{
                 borderRadius: 2, py: 0.75,
                 justifyContent: collapsed && !isNarrow ? "center" : "flex-start",
@@ -226,7 +241,7 @@ export default function Layout() {
               </Badge>
               {!(collapsed && !isNarrow) && (
                 <Typography sx={{ fontSize: "0.78rem", fontWeight: 600 }}>
-                  {runningJobCount} job{runningJobCount === 1 ? "" : "s"} running
+                  {runningJobCount} tarefa{runningJobCount === 1 ? "" : "s"} em execução
                 </Typography>
               )}
             </ListItemButton>
@@ -240,7 +255,7 @@ export default function Layout() {
         {bottomItems.map(renderNavItem)}
         {/* Expand button at the bottom when collapsed */}
         {!isNarrow && collapsed && (
-          <Tooltip title="Expand sidebar" placement="right" arrow>
+          <Tooltip title={"Expandir barra lateral"} placement="right" arrow>
             <ListItemButton
               onClick={() => setCollapsed(false)}
               sx={{
@@ -302,6 +317,9 @@ export default function Layout() {
           flexDirection: "column",
         }}
       >
+        {import.meta.env.VITE_BROWSER_RUNTIME !== 'true' && <Alert severity="info" sx={{ borderRadius: 0 }} action={import.meta.env.VITE_COMPANION_RUNTIME !== 'true' ? <Button color="inherit" size="small" onClick={openVercel}>Abrir na Vercel</Button> : undefined}>
+          {import.meta.env.VITE_COMPANION_RUNTIME === 'true' ? 'Conectado ao processador deste PC. Os motores originais e os arquivos estão no computador. Mantenha o PC ligado.' : 'Processamento completo neste PC. Abra na Vercel para usar a mesma biblioteca e os mesmos motores neste computador.'}
+        </Alert>}
         {/* Mobile top bar with hamburger */}
         {isNarrow && (
           <Box sx={{
@@ -313,7 +331,7 @@ export default function Layout() {
             <IconButton size="small" onClick={() => setMobileOpen(true)}>
               <MenuIcon />
             </IconButton>
-            <Box component="img" src="/icon-192.png" alt="" sx={{ width: 24, height: 24, borderRadius: 0.5 }} />
+            <Box component="img" src="/decupa-icon.svg" alt="" sx={{ width: 24, height: 24, borderRadius: 0.5 }} />
             <Typography
               sx={{
                 fontWeight: 700, fontSize: "0.95rem",
@@ -322,10 +340,15 @@ export default function Layout() {
                 WebkitTextFillColor: "transparent",
               }}
             >
-              ViralMint
+              Decupa Viral
             </Typography>
           </Box>
         )}
+        {import.meta.env.VITE_BROWSER_RUNTIME === 'true' && <Alert severity="info" sx={{ borderRadius: 0 }} action={<Button color="inherit" size="small" onClick={() => navigate('/diagnostico')}>Testar aparelho</Button>}>
+          {['/scout', '/channels', '/stock', '/motion', '/messaging'].includes(location.pathname)
+            ? 'Este módulo nativo do ViralMint ainda precisa de adaptação ao navegador. Ele não executa tarefas nesta publicação.'
+            : 'Versão web em validação. Os vídeos ficam neste aparelho. Mantenha a página aberta durante o processamento. O download do YouTube está indisponível no teste atual; use Importar arquivo.'}
+        </Alert>}
         <Box sx={{ flex: 1, overflow: "auto" }}>
           <Outlet />
         </Box>
@@ -352,12 +375,12 @@ export default function Layout() {
             // duplicate, so when the server reports best_effort, say so.
             showSnackbar(
               data?.best_effort
-                ? "Cancelling — the step already running will finish on its own"
-                : "Job cancelled",
+                ? "Cancelando , a etapa já em execução vai terminar sozinha"
+                : "Tarefa cancelada",
               "info",
             )
           } catch (e) {
-            showSnackbar(e.response?.data?.detail || "Could not cancel that job", "error")
+            showSnackbar(e.response?.data?.detail || "Não foi possível cancelar essa tarefa", "error")
           } finally {
             fetchJobs()
           }
@@ -375,7 +398,7 @@ export default function Layout() {
                 // outcome (or its error) to this row. Deleting now would throw
                 // that away, so leave the row; it can be removed once it stops.
                 showSnackbar(
-                  "Cancelling — the step already running will finish on its own. Remove it once it stops.",
+                  "Cancelando , a etapa já em execução vai terminar sozinha. Remova-a quando parar.",
                   "info",
                 )
               } else {
@@ -383,16 +406,16 @@ export default function Layout() {
                 // A 409 means it backs a Library file; say so rather than swallow it.
                 try {
                   await http.delete(`/api/jobs/${job.id}`)
-                  showSnackbar("Job cancelled and removed", "info")
+                  showSnackbar("Tarefa cancelada e removida", "info")
                 } catch (e2) {
-                  showSnackbar(e2.response?.data?.detail || "Job cancelled, but could not remove it", "warning")
+                  showSnackbar(e2.response?.data?.detail || "Tarefa cancelada, mas não foi possível removê-la", "warning")
                 }
               }
             } else {
-              showSnackbar("Job removed", "info")
+              showSnackbar("Tarefa removida", "info")
             }
           } catch (e) {
-            showSnackbar(e.response?.data?.detail || "Could not remove that job", "error")
+            showSnackbar(e.response?.data?.detail || "Não foi possível remover essa tarefa", "error")
           } finally {
             fetchJobs()
           }
@@ -408,13 +431,13 @@ export default function Layout() {
             const kept = data?.kept_library ?? 0
             showSnackbar(
               gone === 0 && kept > 0
-                ? `Nothing to clear — all ${kept} are files in your Library`
-                : `Cleared ${gone} ${what} job${gone === 1 ? "" : "s"}` +
-                  (kept > 0 ? ` · kept ${kept} still in your Library` : ""),
+                ? ("Nada para limpar , todos os " + String(kept) + " são arquivos na sua Biblioteca")
+                : ("Limpou " + String(gone) + " " + String(what) + " tarefa" + String(gone === 1 ? "" : "s") + "") +
+                  (kept > 0 ? (" · manteve " + String(kept) + " ainda na sua Biblioteca") : ""),
               "info",
             )
           } catch (e) {
-            showSnackbar(e.response?.data?.detail || "Could not clear those jobs", "error")
+            showSnackbar(e.response?.data?.detail || "Não foi possível limpar essas tarefas", "error")
           } finally {
             fetchJobs()
           }

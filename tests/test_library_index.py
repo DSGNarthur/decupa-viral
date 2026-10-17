@@ -83,7 +83,7 @@ async def test_a_tool_output_is_a_library_item():
         assert item is not None, "a successful tool output is missing from the index"
         assert item["media"] == "video"
         assert item["origin"] == "edited"
-        assert item["producer"] == "Captions"
+        assert item["producer"] == "Legendas"
     finally:
         await _cleanup(db)
         f.unlink(missing_ok=True)

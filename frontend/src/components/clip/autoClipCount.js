@@ -18,6 +18,7 @@ export const AUTO_CLIP_UNKNOWN_DURATION = 5
 
 /** How many clips Auto-cut aims for when the user names no number. */
 export function autoClipCount(durationSeconds) {
+  if (import.meta.env.VITE_BROWSER_RUNTIME === 'true') return 3
   if (!durationSeconds || durationSeconds <= 0) return AUTO_CLIP_UNKNOWN_DURATION
   return Math.max(
     AUTO_CLIP_MIN,
@@ -55,6 +56,6 @@ export function autoCutEstimate({ durationSeconds, requested, minDurationSeconds
   return {
     clips,
     // "up to" because the backend may return fewer; never because we're unsure.
-    label: `up to ${clips} clip${clips === 1 ? "" : "s"}`,
+    label: ("até " + String(clips) + " clipe" + String(clips === 1 ? "" : "s") + ""),
   }
 }

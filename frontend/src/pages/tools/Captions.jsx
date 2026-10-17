@@ -14,14 +14,14 @@ import useDocumentTitle from "../../hooks/useDocumentTitle"
 import { CAPTION_STYLES as STYLES, EMOJI_LEVELS } from "../../components/tools/captionOptions"
 
 export default function ToolCaptions() {
-  useDocumentTitle("Add Captions")
+  useDocumentTitle("Adicionar Legendas")
   const [style, setStyle] = useState("viral")
   const [emojiStyle, setEmojiStyle] = useState("moderate")
 
   return (
     <ToolRunner
-      title="Add Captions"
-      description="Auto-transcribe your video's speech and burn word-by-word captions in TikTok / Reels style — no typing"
+      title={"Adicionar Legendas"}
+      description={"Transcreva automaticamente a fala do seu vídeo e insira legendas palavra por palavra no estilo TikTok / Reels, sem digitar"}
       icon={<SubtitlesOutlinedIcon fontSize="large" />}
       endpoint="/api/tools/captions"
       fieldBuilder={() => ({ style, emoji_style: emojiStyle })}
@@ -35,12 +35,12 @@ export default function ToolCaptions() {
         icon={<RecordVoiceOverOutlinedIcon fontSize="small" />}
         sx={{ mb: 2, py: 0.5, "& .MuiAlert-message": { fontSize: "0.82rem" } }}
       >
-        Works on videos with clear spoken audio (talking head, voiceover,
-        interview). Music-only or silent clips return no captions.
+        Funciona em vídeos com áudio falado claro (talking head, narração,
+        entrevista). Clipes apenas com música ou silenciosos não retornam legendas.
       </Alert>
 
       <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 1 }}>
-        Caption style
+        Estilo da legenda
       </Typography>
       <ToggleButtonGroup
         value={style}
@@ -59,8 +59,8 @@ export default function ToolCaptions() {
 
       <Box sx={{ mt: 1 }}>
         <FormControl size="small" sx={{ minWidth: 180 }}>
-          <InputLabel>Emoji intensity</InputLabel>
-          <Select value={emojiStyle} label="Emoji intensity" onChange={(e) => setEmojiStyle(e.target.value)}>
+          <InputLabel>Intensidade dos emojis</InputLabel>
+          <Select value={emojiStyle} label={"Intensidade dos emojis"} onChange={(e) => setEmojiStyle(e.target.value)}>
             {EMOJI_LEVELS.map((e) => (
               <MenuItem key={e.value} value={e.value}>{e.label}</MenuItem>
             ))}

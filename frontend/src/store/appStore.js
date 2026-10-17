@@ -107,7 +107,7 @@ const useAppStore = create((set, get) => ({
   failJob: (jobId, error) => set((s) => {
     const existing = s.activeJobs[jobId]
     if (!existing) return {}
-    return { activeJobs: { ...s.activeJobs, [jobId]: { ...existing, status: "failed", step: error || "Failed" } } }
+    return { activeJobs: { ...s.activeJobs, [jobId]: { ...existing, status: "failed", step: error || "Falhou" } } }
   }),
   removeJob: (jobId) => set((s) => {
     const { [jobId]: _, ...rest } = s.activeJobs

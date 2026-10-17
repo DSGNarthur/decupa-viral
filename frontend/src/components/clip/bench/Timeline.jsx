@@ -116,7 +116,7 @@ export default function Timeline({
     if (!sourceId || !width) return null
     const cellW = Math.max(24, STRIP_H * aspect)
     const raw = Math.round(width / cellW)
-    const n = Math.max(4, Math.min(96, Math.round(raw / STRIP_STEP) * STRIP_STEP))
+    const n = Math.max(4, Math.min(import.meta.env.VITE_BROWSER_RUNTIME === 'true' ? 48 : 96, Math.round(raw / STRIP_STEP) * STRIP_STEP))
     return { url: `/api/downloaded/${sourceId}/filmstrip?n=${n}&h=${STRIP_H}`, cells: n }
   }, [sourceId, width, aspect])
 
@@ -314,7 +314,7 @@ export default function Timeline({
             }}>
               <CircularProgress size={14} thickness={5} sx={{ color: LANE_TEXT }} />
               <Typography variant="caption" sx={{ color: LANE_TEXT }}>
-                Reading frames from this video…
+                Lendo quadros deste vídeo…
               </Typography>
             </Stack>
           )}
@@ -326,10 +326,10 @@ export default function Timeline({
               color: LANE_TEXT, pointerEvents: "none",
             }}>
               {readable === "dead"
-                ? "This video has no readable frames — it may be an incomplete or cancelled download"
+                ? "Este vídeo não tem quadros legíveis, pode ser um download incompleto ou cancelado"
                 : readable === "truncated"
-                  ? "Only the beginning of this video is readable — it looks like an unfinished download, so most of the timeline won't play or cut"
-                  : "Preview frames unavailable — the timeline still works"}
+                  ? "Apenas o início deste vídeo é legível, parece um download inacabado, então a maior parte da linha do tempo não vai reproduzir ou cortar"
+                  : "Quadros de pré-visualização indisponíveis, a linha do tempo ainda funciona"}
             </Typography>
           )}
 

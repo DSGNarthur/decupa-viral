@@ -54,19 +54,23 @@ import useAppStore from "../../../store/appStore"
    review and no cap.
 */
 
-const CAPTION_OPTIONS = [{ value: "none", label: "Off" }, ...CAPTION_STYLES]
+const CAPTION_OPTIONS = [{ value: "none", label: "Desativado" }, ...CAPTION_STYLES]
 const EMOJI_OPTIONS = [
-  { v: "none", label: "Off" }, { v: "minimal", label: "Minimal" },
-  { v: "moderate", label: "Moderate" }, { v: "heavy", label: "Heavy" },
+  { v: "none", label: "Desativado" }, { v: "minimal", label: "Mínimo" },
+  { v: "moderate", label: "Moderado" }, { v: "heavy", label: "Intenso" },
 ]
-const WHISPER_QUALITIES = [
-  { v: "fast", label: "Fast (base)" },
-  { v: "balanced", label: "Balanced (small)" },
-  { v: "accurate", label: "Accurate (medium)" },
-  { v: "best", label: "Best (large-v3)" },
+const WHISPER_QUALITIES = import.meta.env.VITE_BROWSER_RUNTIME === 'true' ? [
+  { v: 'fast', label: 'Rápida (tiny)' },
+  { v: 'balanced', label: 'Equilibrada (base)' },
+  { v: 'accurate', label: 'Precisa (small)' },
+] : [
+  { v: "fast", label: "Rápido (base)" },
+  { v: "balanced", label: "Equilibrado (small)" },
+  { v: "accurate", label: "Preciso (medium)" },
+  { v: "best", label: "Melhor (large-v3)" },
 ]
 const PLATFORMS = [
-  { v: "", label: "Any platform" },
+  { v: "", label: "Qualquer plataforma" },
   { v: "tiktok", label: "TikTok" },
   { v: "youtube_shorts", label: "YouTube Shorts" },
   { v: "reels", label: "Instagram Reels" },
@@ -74,21 +78,21 @@ const PLATFORMS = [
   { v: "twitter", label: "Twitter / X" },
 ]
 const GENRES = [
-  { v: "", label: "Auto-detect genre" },
-  { v: "podcast", label: "Podcast" }, { v: "interview", label: "Interview" },
-  { v: "qa", label: "Q&A / AMA" }, { v: "vlog", label: "Vlog" },
-  { v: "tutorial", label: "Tutorial" }, { v: "gaming", label: "Gaming" },
-  { v: "reaction", label: "Reaction" }, { v: "lecture", label: "Lecture" },
+  { v: "", label: "Detectar gênero automaticamente" },
+  { v: "podcast", label: "Podcast" }, { v: "interview", label: "Entrevista" },
+  { v: "qa", label: "Perguntas e respostas / AMA" }, { v: "vlog", label: "Vlog" },
+  { v: "tutorial", label: "Tutorial" }, { v: "gaming", label: "Games" },
+  { v: "reaction", label: "Reação" }, { v: "lecture", label: "Aula" },
 ]
 
 const SHORTCUTS = [
-  ["Space", "Play / pause"],
-  ["I / O", "Set the selected clip's IN / OUT to the playhead"],
-  ["← →", "Nudge the playhead one frame (⇧ for one second)"],
-  ["J / L", "Jump 10s back / forward"],
-  ["N", "New range at the playhead"],
-  ["⌫", "Delete the selected range"],
-  ["Alt-drag", "Ignore speech snapping"],
+  ["Space", "Reproduzir / pausar"],
+  ["I / O", "Define o IN / OUT do clipe selecionado para a posição do playhead"],
+  ["← →", "Move o playhead um quadro (⇧ para um segundo)"],
+  ["J / L", "Pula 10s para trás / para frente"],
+  ["N", "Novo intervalo na posição do playhead"],
+  ["⌫", "Exclui o intervalo selecionado"],
+  ["Alt-arrastar", "Ignorar encaixe na fala"],
 ]
 
 export default function SourceBench({
@@ -194,7 +198,7 @@ export default function SourceBench({
   useEffect(() => {
     if (!sourceId || !duration || duration < 60) return
     let cancelled = false
-    const cells = Math.max(24, Math.min(96, Math.round(duration / 5 / 4) * 4))
+    const cells = Math.max(24, Math.min(import.meta.env.VITE_BROWSER_RUNTIME === 'true' ? 48 : 96, Math.round(duration / 5 / 4) * 4))
     const url = `/api/downloaded/${sourceId}/filmstrip?n=${cells}&h=48`
     const t = setTimeout(() => {
       const img = new Image()
@@ -262,11 +266,11 @@ export default function SourceBench({
 
   const addAtPlayhead = useCallback(() => {
     if (R.atCap) {
-      showSnackbar(`The bench holds ${MAX_RANGES} ranges — cut or remove some first`, "warning")
+      showSnackbar(("A bancada comporta " + String(MAX_RANGES) + " intervalos , corte ou remova alguns primeiro"), "warning")
       return
     }
     if (!R.addAt(playhead)) {
-      showSnackbar("No free space here — move the playhead, or drag on the strip", "warning")
+      showSnackbar("Sem espaço livre aqui , mova o playhead ou arraste na faixa", "warning")
     }
   }, [R, playhead, showSnackbar])
 
@@ -331,7 +335,7 @@ export default function SourceBench({
         return
       }
       if (status !== "success") {
-        finish(data?.error_message || "Could not find moments in this video", "error")
+        finish(data?.error_message || "Não foi possível encontrar momentos neste vídeo", "error")
         return
       }
       let out = data.output || null
@@ -340,7 +344,7 @@ export default function SourceBench({
       }
       const found = out?.suggestions || []
       if (!found.length) {
-        finish("The AI found no clip-worthy moments — try a wider length range", "warning")
+        finish("A IA não encontrou momentos para cortar. Tente ampliar o intervalo de duração.", "warning")
         return
       }
       const accepted = collectDeps.current.addMany(found.map((f) => ({
@@ -352,8 +356,8 @@ export default function SourceBench({
           // Two reasons a proposal can be dropped now — the cap, and an
           // overlap with something already down. Naming only the cap was
           // wrong the moment the overlap check landed.
-          ? `Added ${accepted} of ${found.length} moments — the rest overlap cuts already on the bench, or pass the ${MAX_RANGES}-range cap. Adjust them, then cut.`
-          : `Added ${accepted} moment${accepted !== 1 ? "s" : ""} — adjust them, then cut.`,
+          ? `${accepted} de ${found.length} momentos adicionados. Os demais se sobrepõem aos cortes existentes ou ultrapassam o limite de ${MAX_RANGES} intervalos. Ajuste os trechos e corte.`
+          : `${accepted} momento${accepted !== 1 ? "s" : ""} adicionado${accepted !== 1 ? "s" : ""}. Ajuste os trechos e corte.`,
         accepted < found.length ? "warning" : "success",
       )
     }
@@ -377,9 +381,9 @@ export default function SourceBench({
       if (settings.force_retranscribe) body.force_retranscribe = true
       const { data } = await http.post(`/api/downloaded/${sourceId}/suggest-clips`, body)
       setSuggestJobId(data.job_id)
-      showSnackbar("Reading the video for its strongest moments…", "info")
+      showSnackbar("Lendo o vídeo para encontrar os melhores momentos…", "info")
     } catch (e) {
-      showSnackbar(e.response?.data?.detail || "Could not start the search", "error")
+      showSnackbar(e.response?.data?.detail || "Não foi possível iniciar a busca", "error")
     }
   }
 
@@ -458,8 +462,8 @@ export default function SourceBench({
   const askAi = (
     <>
       <Tooltip title={atCap
-        ? `The bench holds ${MAX_RANGES} ranges — cut or remove some first`
-        : "Let the AI read the transcript and propose the strongest moments"}>
+        ? ("A bancada comporta " + String(MAX_RANGES) + " intervalos , corte ou remova alguns primeiro")
+        : "Deixe a IA ler a transcrição e propor os melhores momentos"}>
         <span>
           <Button
             size="small" disabled={suggesting || atCap}
@@ -469,7 +473,7 @@ export default function SourceBench({
               : <AutoAwesomeIcon sx={{ fontSize: 15 }} />}
             sx={{ textTransform: "none", fontSize: "0.7rem", fontWeight: 700, py: 0.1, px: 0.75, minWidth: 0 }}
           >
-            {suggesting ? "Reading…" : "Ask AI"}
+            {suggesting ? "Lendo…" : "Peça à IA"}
           </Button>
         </span>
       </Tooltip>
@@ -481,55 +485,55 @@ export default function SourceBench({
       >
         <Stack spacing={1.5} sx={{ p: 2, width: 360 }}>
           <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            The AI reads the transcript and proposes the strongest moments.
-            They arrive as blocks you can drag, retime or delete —{" "}
-            <strong>nothing is cut</strong> until you press Cut.
+            A IA lê a transcrição e propõe os melhores momentos.
+            Eles chegam como blocos que você pode arrastar, reajustar ou excluir ,{" "}
+            <strong>nada é cortado</strong> até você pressionar Cortar.
           </Typography>
           <Stack direction="row" spacing={1.25}>
             <TextField
-              label="How many" type="number" size="small" sx={{ flex: 1 }}
+              label={"Quantos"} type="number" size="small" sx={{ flex: 1 }}
               value={ai.max_clips}
               slotProps={{ htmlInput: { min: 1, max: MAX_RANGES } }}
               onChange={(e) => setAi((p) => ({ ...p, max_clips: e.target.value }))}
             />
             <TextField
-              label="Min (s)" type="number" size="small" sx={{ flex: 1 }}
+              label={"Mín (s)"} type="number" size="small" sx={{ flex: 1 }}
               value={ai.min_duration}
               slotProps={{ htmlInput: { min: 10, max: 120 } }}
               onChange={(e) => setAi((p) => ({ ...p, min_duration: e.target.value }))}
             />
             <TextField
-              label="Max (s)" type="number" size="small" sx={{ flex: 1 }}
+              label={"Máx (s)"} type="number" size="small" sx={{ flex: 1 }}
               value={ai.max_duration}
               slotProps={{ htmlInput: { min: 15, max: 180 } }}
               onChange={(e) => setAi((p) => ({ ...p, max_duration: e.target.value }))}
             />
           </Stack>
           <TextField
-            label="Find specific moments" size="small" fullWidth
-            placeholder={'e.g. "every joke that landed"'}
+            label={"Encontrar momentos específicos"} size="small" fullWidth
+            placeholder={"ex.: \"toda piada que funcionou\""}
             value={ai.user_query}
             slotProps={{ htmlInput: { maxLength: 500 } }}
             onChange={(e) => setAi((p) => ({ ...p, user_query: e.target.value }))}
           />
           <Stack direction="row" spacing={1.25}>
-            <TextField select label="Target platform" size="small" sx={{ flex: 1 }}
+            <TextField select label={"Plataforma de destino"} size="small" sx={{ flex: 1 }}
               value={ai.target_platform}
               onChange={(e) => setAi((p) => ({ ...p, target_platform: e.target.value }))}>
               {PLATFORMS.map((o) => <MenuItem key={o.v} value={o.v}>{o.label}</MenuItem>)}
             </TextField>
-            <TextField select label="Content genre" size="small" sx={{ flex: 1 }}
+            <TextField select label={"Gênero do conteúdo"} size="small" sx={{ flex: 1 }}
               value={ai.genre}
               onChange={(e) => setAi((p) => ({ ...p, genre: e.target.value }))}>
               {GENRES.map((o) => <MenuItem key={o.v} value={o.v}>{o.label}</MenuItem>)}
             </TextField>
           </Stack>
           <Typography variant="caption" sx={{ color: "text.disabled" }}>
-            Up to {MAX_RANGES} proposals — every one is cut through the same path
-            as a hand-drawn range.{" "}
+            Até {MAX_RANGES} propostas , cada uma é cortada pelo mesmo caminho
+            de um intervalo desenhado à mão.{" "}
             <Box component="span" onClick={() => { setAiAnchor(null); onOpenDialog() }}
               sx={{ color: "primary.main", cursor: "pointer", textDecoration: "underline" }}>
-              Need more? Auto-cut instead →
+              Precisa de mais? Corte automático →
             </Box>
           </Typography>
           <Button
@@ -541,7 +545,7 @@ export default function SourceBench({
             onClick={() => { setAiAnchor(null); findMoments() }}
             sx={{ textTransform: "none", fontWeight: 700 }}
           >
-            {suggesting ? "Reading the video…" : "Find moments"}
+            {suggesting ? "Lendo o vídeo…" : "Encontrar momentos"}
           </Button>
         </Stack>
       </Popover>
@@ -571,7 +575,7 @@ export default function SourceBench({
       <Stack direction="row" alignItems="center" spacing={1} sx={{ flexShrink: 0 }}>
         <ContentCutIcon sx={{ fontSize: 17, color: "primary.main" }} />
         <Typography variant="subtitle2" sx={{ fontWeight: 700, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {source.title || "Untitled"}
+          {source.title || "Sem título"}
         </Typography>
         <Typography variant="caption" sx={{ color: "text.secondary", flexShrink: 0 }}>
           {formatTime(duration)}
@@ -579,12 +583,12 @@ export default function SourceBench({
         <Box sx={{ flex: 1 }} />
 
         <Tooltip title={segments.length
-          ? (snapEnabled ? "Handles snap to sentence boundaries — click to free them (or hold Alt while dragging)"
-                         : "Handles move freely — click to snap them to sentence boundaries")
-          : "This video has no transcript, so there are no sentence boundaries to snap to"}>
+          ? (snapEnabled ? "As alças se encaixam nos limites das frases , clique para soltá-las (ou segure Alt ao arrastar)"
+                         : "As alças se movem livremente , clique para encaixá-las nos limites das frases")
+          : "Este vídeo não tem transcrição, então não há limites de frases para encaixar"}>
           <span>
             <IconButton size="small" disabled={!segments.length}
-              aria-label={snapEnabled ? "Snapping to sentences is on" : "Snapping to sentences is off"}
+              aria-label={snapEnabled ? "O encaixe nas frases está ativado" : "O encaixe nas frases está desativado"}
               aria-pressed={snapEnabled && segments.length > 0}
               onClick={() => setSnapEnabled((v) => !v)}
               sx={{ color: snapEnabled && segments.length ? "success.main" : "text.disabled" }}>
@@ -592,8 +596,8 @@ export default function SourceBench({
             </IconButton>
           </span>
         </Tooltip>
-        <Tooltip title="Keyboard shortcuts">
-          <IconButton size="small" aria-label="Keyboard shortcuts"
+        <Tooltip title={"Atalhos de teclado"}>
+          <IconButton size="small" aria-label={"Atalhos de teclado"}
             onClick={(e) => setHelpAnchor(e.currentTarget)} sx={{ color: "text.secondary" }}>
             <KeyboardIcon sx={{ fontSize: 17 }} />
           </IconButton>
@@ -708,14 +712,14 @@ export default function SourceBench({
           onClick={togglePlay}
           sx={{ textTransform: "none", fontWeight: 700, minWidth: 128 }}
         >
-          {playing ? "Pause" : R.active ? `Play clip ${R.ranges.indexOf(R.active) + 1}` : "Play clip"}
+          {playing ? "Pausar" : R.active ? ("Reproduzir clipe " + String(R.ranges.indexOf(R.active) + 1) + "") : "Reproduzir clipe"}
         </Button>
         <Tooltip title={scoped
-          ? "Playback is limited to the selected clip — it starts at IN and stops at OUT"
-          : "Playback runs through the whole source, ignoring the selection"}>
+          ? "A reprodução é limitada ao clipe selecionado , ela começa no IN e para no OUT"
+          : "A reprodução percorre a fonte inteira, ignorando a seleção"}>
           <Chip
             size="small"
-            label={scoped ? "Selection only" : "Whole video"}
+            label={scoped ? "Somente seleção" : "Vídeo inteiro"}
             color={scoped ? "primary" : "default"}
             variant={scoped ? "filled" : "outlined"}
             onClick={() => setScoped((v) => !v)}
@@ -751,12 +755,12 @@ export default function SourceBench({
           onRangeChange={R.update}
           onRangeCommit={R.settle}
           onRangeAdd={(a, b) => {
-            if (atCap) { showSnackbar(`The bench holds ${MAX_RANGES} ranges — cut or remove some first`, "warning"); return }
+            if (atCap) { showSnackbar(("A bancada comporta " + String(MAX_RANGES) + " intervalos , corte ou remova alguns primeiro"), "warning"); return }
             if (R.add(a, b) == null) {
               // add() refused: the span was clamped away by a pending cut,
               // or is shorter than the 1s floor. Say so — a drag that lands
               // nothing with no word reads as a broken timeline.
-              showSnackbar("No room there — that stretch is under a pending cut or shorter than 1s", "info")
+              showSnackbar("Não há espaço ali , esse trecho está sob um corte pendente ou tem menos de 1s", "info")
             }
           }}
           onRangeRemove={R.remove}
@@ -764,13 +768,13 @@ export default function SourceBench({
         />
         <Stack direction="row" spacing={1.5} sx={{ mt: 0.75, px: 0.25 }} alignItems="center" flexWrap="wrap" useFlexGap>
           <Typography variant="caption" sx={{ color: "text.disabled" }}>
-            Drag on the strip to make a clip · drag its edges to trim
+            Arraste na faixa para criar um clipe · arraste as bordas para aparar
           </Typography>
           <Box sx={{ flex: 1 }} />
           {segments.length > 0 && (
-            <LegendDot color="success.main" label="speech" />
+            <LegendDot color="success.main" label={"fala"} />
           )}
-          {ghosts.length > 0 && <LegendDot color="text.disabled" label="already cut" />}
+          {ghosts.length > 0 && <LegendDot color="text.disabled" label={"já cortado"} />}
         </Stack>
       </Box>
 
@@ -778,7 +782,7 @@ export default function SourceBench({
       <Divider sx={{ flexShrink: 0 }} />
       <Stack direction="row" spacing={1.25} alignItems="center" flexWrap="wrap" useFlexGap sx={{ flexShrink: 0 }}>
         <TextField
-          select size="small" label="Captions" sx={{ width: 132 }}
+          select size="small" label={"Legendas"} sx={{ width: 132 }}
           value={settings.caption_style}
           onChange={(e) => onSettings({ caption_style: e.target.value })}
         >
@@ -786,24 +790,24 @@ export default function SourceBench({
         </TextField>
         {settings.caption_style !== "none" && (
           <TextField
-            select size="small" label="Emoji" sx={{ width: 112 }}
+            select size="small" label={"Emoji"} sx={{ width: 112 }}
             value={settings.emoji_style}
             onChange={(e) => onSettings({ emoji_style: e.target.value })}
           >
             {EMOJI_OPTIONS.map((o) => <MenuItem key={o.v} value={o.v}>{o.label}</MenuItem>)}
           </TextField>
         )}
-        <Tooltip title="Convert a landscape source to 9:16 with a blurred fill">
+        <Tooltip title={"Converta uma fonte horizontal para 9:16 com preenchimento desfocado"}>
           <Chip
-            label="Vertical 9:16" size="small"
+            label={"Vertical 9:16"} size="small"
             color={settings.force_vertical ? "primary" : "default"}
             variant={settings.force_vertical ? "filled" : "outlined"}
             onClick={() => onSettings({ force_vertical: !settings.force_vertical })}
           />
         </Tooltip>
-        <Tooltip title="Trim silent gaps and filler words INSIDE each cut — your in/out points don't move">
+        <Tooltip title={"Aparar lacunas de silêncio e muletillas DENTRO de cada corte , seus pontos de in/out não se movem"}>
           <Chip
-            label="Trim silence" size="small"
+            label={"Aparar silêncio"} size="small"
             color={settings.remove_silence ? "primary" : "default"}
             variant={settings.remove_silence ? "filled" : "outlined"}
             onClick={() => onSettings({ remove_silence: !settings.remove_silence })}
@@ -812,14 +816,14 @@ export default function SourceBench({
         {/* Transcription used to be reachable only through the dialog,
             which meant one setting forced you onto the other surface. */}
         <Tooltip title={source.has_transcript_segments
-          ? "This video already has a transcript — Whisper is skipped unless you ask for a fresh one"
-          : "No transcript yet: Whisper runs before captions, silence trimming and Ask AI"}>
+          ? "Este vídeo já tem uma transcrição , o Whisper é pulado a menos que você peça uma nova"
+          : "Ainda sem transcrição: o Whisper roda antes das legendas, do aparo de silêncio e do Perguntar à IA"}>
           <Chip
             size="small" variant="outlined"
             icon={<RecordVoiceOverIcon sx={{ fontSize: 14 }} />}
             label={source.has_transcript_segments && !settings.force_retranscribe
-              ? "Transcript cached"
-              : `Whisper: ${settings.whisper_quality}`}
+              ? "Transcrição em cache"
+              : ("Whisper: " + String(settings.whisper_quality) + "")}
             onClick={(e) => setTxAnchor(e.currentTarget)}
           />
         </Tooltip>
@@ -830,7 +834,7 @@ export default function SourceBench({
         >
           <Stack spacing={1.25} sx={{ p: 2, width: 300 }}>
             <TextField
-              select size="small" fullWidth label="Whisper quality"
+              select size="small" fullWidth label={"Qualidade do Whisper"}
               value={settings.whisper_quality}
               onChange={(e) => onSettings({ whisper_quality: e.target.value })}
             >
@@ -844,7 +848,7 @@ export default function SourceBench({
                 disabled={!source.has_transcript_segments}
                 onChange={(e) => onSettings({ force_retranscribe: e.target.checked })} />}
               label={<Typography variant="caption">
-                Re-transcribe this video{source.has_transcript_segments ? "" : " (required — none cached)"}
+                Retranscrever este vídeo{source.has_transcript_segments ? "" : " (obrigatório , nenhum em cache)"}
               </Typography>}
             />
           </Stack>
@@ -854,7 +858,7 @@ export default function SourceBench({
 
         {tooShort && (
           <Typography variant="caption" sx={{ color: "warning.main" }}>
-            This video is shorter than one second
+            Este vídeo tem menos de um segundo
           </Typography>
         )}
         {/* Cut lives in the page hero (top-right, before Auto-cut) — the
@@ -871,8 +875,8 @@ export default function SourceBench({
           const added = R.addMany(items)
           showSnackbar(
             added === items.length
-              ? `Added ${added} range${added !== 1 ? "s" : ""}`
-              : `Added ${added} of ${items.length} — the rest overlap ranges already on the bench, or pass the ${MAX_RANGES}-range cap`,
+              ? ("Adicionado " + String(added) + " intervalo" + String(added !== 1 ? "s" : "") + "")
+              : ("Adicionado " + String(added) + " de " + String(items.length) + " , o restante sobrepõe intervalos já na bancada, ou passa do limite de " + String(MAX_RANGES) + " intervalos"),
             added === items.length ? "success" : "warning",
           )
           setPasteOpen(false)
@@ -897,12 +901,12 @@ function PasteRangesDialog({ open, onClose, duration, room, onAdd }) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <ContentPasteIcon color="primary" /> Paste timestamps
+        <ContentPasteIcon color="primary" /> Colar timestamps
       </DialogTitle>
       <DialogContent>
         <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 1.5 }}>
-          One range per line, or separated by commas. <code>0:42-1:05</code>,{" "}
-          <code>2:10 → 2:38</code>, <code>1:02:00 to 1:02:30</code> all work.
+          Um intervalo por linha, ou separados por vírgulas. <code>0:42-1:05</code>,{" "}
+          <code>2:10 → 2:38</code>, <code>1:02:00 a 1:02:30</code> todos funcionam.
         </Typography>
         <TextField
           autoFocus multiline minRows={5} maxRows={12} fullWidth size="small"
@@ -914,8 +918,8 @@ function PasteRangesDialog({ open, onClose, duration, room, onAdd }) {
         <Stack spacing={0.5} sx={{ mt: 1.25 }}>
           {ranges.length > 0 && (
             <Typography variant="caption" sx={{ color: "success.main", fontWeight: 700 }}>
-              {ranges.length} range{ranges.length !== 1 ? "s" : ""} read
-              {willAdd < ranges.length && ` · only ${willAdd} will fit`}
+              {ranges.length} intervalo{ranges.length !== 1 ? "s" : ""} lido
+              {willAdd < ranges.length && (" · apenas " + String(willAdd) + " caberá")}
             </Typography>
           )}
           {errors.map((e, i) => (
@@ -926,10 +930,10 @@ function PasteRangesDialog({ open, onClose, duration, room, onAdd }) {
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose}>Cancelar</Button>
         <Button variant="contained" disabled={willAdd === 0}
           onClick={() => onAdd(ranges.slice(0, willAdd))}>
-          Add {willAdd || ""} to timeline
+          Adicionar {willAdd || ""} à linha do tempo
         </Button>
       </DialogActions>
     </Dialog>

@@ -1492,11 +1492,15 @@ async def _run_with_limit(coro):
                                 job_id[:8])
                     return
                 _active_runners.add(job_id)
+                from backend.core.local_power import keep_awake_for_jobs
+                keep_awake_for_jobs(True)
             try:
                 await coro
             finally:
                 if job_id:
                     _active_runners.discard(job_id)
+                    from backend.core.local_power import keep_awake_for_jobs
+                    keep_awake_for_jobs(bool(_active_runners))
     except Exception as e:
         # Last-resort catch — individual task runners should handle their own errors,
         # but if something leaks through, log it instead of crashing silently.

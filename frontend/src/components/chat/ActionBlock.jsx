@@ -5,10 +5,10 @@ import MovieIcon from "@mui/icons-material/Movie"
 import UploadIcon from "@mui/icons-material/Upload"
 
 const actionConfig = {
-  start_scout: { icon: <RadarIcon fontSize="small" />, label: "Scouting" },
-  start_download: { icon: <DownloadIcon fontSize="small" />, label: "Downloading" },
-  start_generate: { icon: <MovieIcon fontSize="small" />, label: "Generating" },
-  start_upload: { icon: <UploadIcon fontSize="small" />, label: "Uploading" },
+  start_scout: { icon: <RadarIcon fontSize="small" />, label: "Prospectando" },
+  start_download: { icon: <DownloadIcon fontSize="small" />, label: "Baixando" },
+  start_generate: { icon: <MovieIcon fontSize="small" />, label: "Gerando" },
+  start_upload: { icon: <UploadIcon fontSize="small" />, label: "Enviando" },
 }
 
 export default function ActionBlock({ action }) {

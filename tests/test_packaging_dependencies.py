@@ -93,4 +93,4 @@ def test_no_requirement_pins_a_version_below_its_documented_floor():
     assert (int(m.group(1)), int(m.group(2))) >= (0, 15), (
         "curl-cffi floor dropped below 0.15 — see the comment above it"
     )
-    assert re.search(r"^yt-dlp>=\d{4}\.\d+", text, re.M), "the yt-dlp floor is gone"
+    assert re.search(r"^yt-dlp(?:\[default\])?>=\d{4}\.\d+", text, re.M), "the yt-dlp floor is gone"

@@ -84,8 +84,8 @@ function PairCode({ code }) {
       }}>
         {code}
       </Box>
-      <Tooltip title={copied ? "Copied" : "Copy code"}>
-        <IconButton size="small" onClick={copy} aria-label="Copy pairing code">
+      <Tooltip title={copied ? "Copiado" : "Copiar código"}>
+        <IconButton size="small" onClick={copy} aria-label={"Copiar código de pareamento"}>
           {copied ? <CheckIcon fontSize="small" /> : <ContentCopyIcon fontSize="small" />}
         </IconButton>
       </Tooltip>
@@ -97,14 +97,14 @@ function PairCode({ code }) {
 function ReconnectingNote() {
   return (
     <Alert severity="warning" variant="outlined">
-      Paired, but the connection dropped. ViralMint is reconnecting on its own — there is
-      nothing to redo. Messages sent meanwhile may arrive late.
+      Pareado, mas a conexão caiu. O Decupa Viral está reconectando sozinho , não há
+      nada a refazer. Mensagens enviadas nesse meio tempo podem chegar atrasadas.
     </Alert>
   )
 }
 
 export default function Messaging() {
-  useDocumentTitle("Messaging")
+  useDocumentTitle("Mensagens")
   const showSnackbar = useAppStore((s) => s.showSnackbar)
 
   const [loading, setLoading] = useState(true)
@@ -237,7 +237,7 @@ export default function Messaging() {
         setSlInfo({ bot_user_id: "", team_name: "", chat_id: "", error: "" })
       }
     } catch (e) {
-      showSnackbar("Failed to load messaging status", "error")
+      showSnackbar("Falha ao carregar o status de mensagens", "error")
     } finally {
       setLoading(false)
     }
@@ -250,7 +250,7 @@ export default function Messaging() {
       ws.on("telegram_connected", (msg) => {
         setTgState(STATE.CONNECTED)
         setTgInfo(prev => ({ ...prev, chat_id: msg.chat_id || prev.chat_id }))
-        showSnackbar("Telegram connected — you'll receive notifications here", "success")
+        showSnackbar("Telegram conectado , você receberá notificações aqui", "success")
       }),
       ws.on("whatsapp_qr", (msg) => {
         setWaQr(msg.qr || "")
@@ -276,12 +276,12 @@ export default function Messaging() {
       ws.on("discord_connected", (msg) => {
         setDcState(DC_STATE.CONNECTED)
         setDcInfo(prev => ({ ...prev, chat_id: msg.chat_id || prev.chat_id }))
-        showSnackbar("Discord connected — you'll receive notifications here", "success")
+        showSnackbar("Discord conectado , você receberá notificações aqui", "success")
       }),
       ws.on("slack_connected", (msg) => {
         setSlState(SL_STATE.CONNECTED)
         setSlInfo(prev => ({ ...prev, chat_id: msg.chat_id || prev.chat_id }))
-        showSnackbar("Slack connected — you'll receive notifications here", "success")
+        showSnackbar("Slack conectado , você receberá notificações aqui", "success")
       }),
     ]
     return () => { unsubs.forEach(fn => fn()) }
@@ -289,7 +289,7 @@ export default function Messaging() {
 
   const handleConnect = async () => {
     if (!botToken.trim()) {
-      showSnackbar("Paste your bot token first", "warning")
+      showSnackbar("Cole primeiro o token do seu bot", "warning")
       return
     }
     setSaving(true)
@@ -305,12 +305,12 @@ export default function Messaging() {
       setTgState(data.chat_id ? STATE.CONNECTED : STATE.AWAITING_START)
       setBotToken("")
       showSnackbar(
-        data.chat_id ? "Telegram connected" : "Bot ready — open it and tap Start to link your account",
+        data.chat_id ? "Telegram conectado" : "Bot pronto , abra ele e toque em Iniciar para vincular sua conta",
         "success",
       )
     } catch (e) {
       setTgState(STATE.DISCONNECTED)
-      showSnackbar(e.response?.data?.detail || "Connect failed", "error")
+      showSnackbar(e.response?.data?.detail || "Falha na conexão", "error")
     } finally {
       setSaving(false)
     }
@@ -321,9 +321,9 @@ export default function Messaging() {
       await http.post("/api/messaging/telegram/disconnect")
       setTgState(STATE.DISCONNECTED)
       setTgInfo({ bot_username: "", bot_url: "", chat_id: "", pair_code: "" })
-      showSnackbar("Telegram disconnected", "info")
+      showSnackbar("Telegram desconectado", "info")
     } catch (e) {
-      showSnackbar(e.response?.data?.detail || "Disconnect failed", "error")
+      showSnackbar(e.response?.data?.detail || "Falha ao desconectar", "error")
     }
   }
 
@@ -331,9 +331,9 @@ export default function Messaging() {
     setTesting(true)
     try {
       await http.post("/api/messaging/telegram/test")
-      showSnackbar("Test message sent — check Telegram", "success")
+      showSnackbar("Mensagem de teste enviada , verifique o Telegram", "success")
     } catch (e) {
-      showSnackbar(e.response?.data?.detail || "Test failed — link the bot to your account first", "error")
+      showSnackbar(e.response?.data?.detail || "Teste falhou , vincule o bot à sua conta primeiro", "error")
     } finally {
       setTesting(false)
     }
@@ -345,10 +345,10 @@ export default function Messaging() {
     try {
       await http.post("/api/messaging/whatsapp/connect")
       setWaState(WA_STATE.PAIRING)
-      showSnackbar("Generating QR code — scan it from your phone", "info")
+      showSnackbar("Gerando código QR , escaneie pelo seu celular", "info")
     } catch (e) {
       setWaState(WA_STATE.DISCONNECTED)
-      showSnackbar(e.response?.data?.detail || "WhatsApp connect failed", "error")
+      showSnackbar(e.response?.data?.detail || "Falha na conexão com WhatsApp", "error")
     } finally {
       setWaSaving(false)
     }
@@ -360,9 +360,9 @@ export default function Messaging() {
       setWaState(WA_STATE.DISCONNECTED)
       setWaInfo({ chat_id: "", error: "" })
       setWaQr("")
-      showSnackbar("WhatsApp disconnected", "info")
+      showSnackbar("WhatsApp desconectado", "info")
     } catch (e) {
-      showSnackbar(e.response?.data?.detail || "Disconnect failed", "error")
+      showSnackbar(e.response?.data?.detail || "Falha ao desconectar", "error")
     }
   }
 
@@ -370,9 +370,9 @@ export default function Messaging() {
     setWaTesting(true)
     try {
       await http.post("/api/messaging/whatsapp/test")
-      showSnackbar("Test message sent — check WhatsApp", "success")
+      showSnackbar("Mensagem de teste enviada , verifique o WhatsApp", "success")
     } catch (e) {
-      showSnackbar(e.response?.data?.detail || "Test failed — is WhatsApp paired?", "error")
+      showSnackbar(e.response?.data?.detail || "Teste falhou , o WhatsApp está pareado?", "error")
     } finally {
       setWaTesting(false)
     }
@@ -380,7 +380,7 @@ export default function Messaging() {
 
   const handleDCConnect = async () => {
     if (!dcToken.trim()) {
-      showSnackbar("Paste your Discord bot token first", "warning")
+      showSnackbar("Cole primeiro o token do seu bot do Discord", "warning")
       return
     }
     setDcSaving(true)
@@ -397,12 +397,12 @@ export default function Messaging() {
       setDcState(data.chat_id ? DC_STATE.CONNECTED : DC_STATE.AWAITING_DM)
       setDcToken("")
       showSnackbar(
-        data.chat_id ? "Discord connected" : "Bot online — DM it the pairing code to finish setup",
+        data.chat_id ? "Discord conectado" : "Bot online , envie o código de pareamento por mensagem direta para concluir a configuração",
         "success",
       )
     } catch (e) {
       setDcState(DC_STATE.DISCONNECTED)
-      showSnackbar(e.response?.data?.detail || "Discord connect failed", "error")
+      showSnackbar(e.response?.data?.detail || "Falha na conexão com Discord", "error")
     } finally {
       setDcSaving(false)
     }
@@ -413,9 +413,9 @@ export default function Messaging() {
       await http.post("/api/messaging/discord/disconnect")
       setDcState(DC_STATE.DISCONNECTED)
       setDcInfo({ bot_username: "", bot_invite_url: "", chat_id: "", error: "" })
-      showSnackbar("Discord disconnected", "info")
+      showSnackbar("Discord desconectado", "info")
     } catch (e) {
-      showSnackbar(e.response?.data?.detail || "Disconnect failed", "error")
+      showSnackbar(e.response?.data?.detail || "Falha ao desconectar", "error")
     }
   }
 
@@ -423,9 +423,9 @@ export default function Messaging() {
     setDcTesting(true)
     try {
       await http.post("/api/messaging/discord/test")
-      showSnackbar("Test message sent — check Discord", "success")
+      showSnackbar("Mensagem de teste enviada , verifique o Discord", "success")
     } catch (e) {
-      showSnackbar(e.response?.data?.detail || "Test failed — DM your bot the pairing code first", "error")
+      showSnackbar(e.response?.data?.detail || "Teste falhou , envie o código de pareamento por mensagem direta para o seu bot primeiro", "error")
     } finally {
       setDcTesting(false)
     }
@@ -433,7 +433,7 @@ export default function Messaging() {
 
   const handleSLConnect = async () => {
     if (!slBotToken.trim() || !slAppToken.trim()) {
-      showSnackbar("Paste both the bot token (xoxb-) and app-level token (xapp-)", "warning")
+      showSnackbar("Cole tanto o token do bot (xoxb-) quanto o token de nível de aplicativo (xapp-)", "warning")
       return
     }
     setSlSaving(true)
@@ -454,12 +454,12 @@ export default function Messaging() {
       setSlBotToken("")
       setSlAppToken("")
       showSnackbar(
-        data.chat_id ? "Slack connected" : "Bot online — DM it the pairing code to finish setup",
+        data.chat_id ? "Slack conectado" : "Bot online , envie o código de pareamento por mensagem direta para concluir a configuração",
         "success",
       )
     } catch (e) {
       setSlState(SL_STATE.DISCONNECTED)
-      showSnackbar(e.response?.data?.detail || "Slack connect failed", "error")
+      showSnackbar(e.response?.data?.detail || "Falha na conexão com Slack", "error")
     } finally {
       setSlSaving(false)
     }
@@ -470,9 +470,9 @@ export default function Messaging() {
       await http.post("/api/messaging/slack/disconnect")
       setSlState(SL_STATE.DISCONNECTED)
       setSlInfo({ bot_user_id: "", team_name: "", chat_id: "", error: "" })
-      showSnackbar("Slack disconnected", "info")
+      showSnackbar("Slack desconectado", "info")
     } catch (e) {
-      showSnackbar(e.response?.data?.detail || "Disconnect failed", "error")
+      showSnackbar(e.response?.data?.detail || "Falha ao desconectar", "error")
     }
   }
 
@@ -480,45 +480,45 @@ export default function Messaging() {
     setSlTesting(true)
     try {
       await http.post("/api/messaging/slack/test")
-      showSnackbar("Test message sent — check Slack", "success")
+      showSnackbar("Mensagem de teste enviada , verifique o Slack", "success")
     } catch (e) {
-      showSnackbar(e.response?.data?.detail || "Test failed — DM your bot the pairing code first", "error")
+      showSnackbar(e.response?.data?.detail || "Teste falhou , envie o código de pareamento por mensagem direta para o seu bot primeiro", "error")
     } finally {
       setSlTesting(false)
     }
   }
 
   const statusChip = () => {
-    if (tgState === STATE.CONNECTED) return <Chip icon={<CheckCircleIcon />} label="Connected" color="success" size="small" />
-    if (tgState === STATE.AWAITING_START) return <Chip label="Needs pairing" color="warning" size="small" />
-    if (tgState === STATE.RECONNECTING) return <Chip label="Reconnecting…" color="warning" size="small" />
-    if (tgState === STATE.CONNECTING) return <Chip label="Connecting…" size="small" />
-    return <Chip label="Not connected" size="small" />
+    if (tgState === STATE.CONNECTED) return <Chip icon={<CheckCircleIcon />} label={"Conectado"} color="success" size="small" />
+    if (tgState === STATE.AWAITING_START) return <Chip label={"Precisa de pareamento"} color="warning" size="small" />
+    if (tgState === STATE.RECONNECTING) return <Chip label={"Reconectando…"} color="warning" size="small" />
+    if (tgState === STATE.CONNECTING) return <Chip label={"Conectando…"} size="small" />
+    return <Chip label={"Não conectado"} size="small" />
   }
 
   const waStatusChip = () => {
-    if (waState === WA_STATE.CONNECTED) return <Chip icon={<CheckCircleIcon />} label="Connected" color="success" size="small" />
-    if (waState === WA_STATE.PAIRING) return <Chip label="Scan QR code" color="warning" size="small" />
-    if (waState === WA_STATE.RECONNECTING) return <Chip label="Reconnecting…" color="warning" size="small" />
-    if (waState === WA_STATE.UNAVAILABLE) return <Chip label="Unavailable" size="small" />
-    return <Chip label="Not connected" size="small" />
+    if (waState === WA_STATE.CONNECTED) return <Chip icon={<CheckCircleIcon />} label={"Conectado"} color="success" size="small" />
+    if (waState === WA_STATE.PAIRING) return <Chip label={"Escanear código QR"} color="warning" size="small" />
+    if (waState === WA_STATE.RECONNECTING) return <Chip label={"Reconectando…"} color="warning" size="small" />
+    if (waState === WA_STATE.UNAVAILABLE) return <Chip label={"Indisponível"} size="small" />
+    return <Chip label={"Não conectado"} size="small" />
   }
 
   const dcStatusChip = () => {
-    if (dcState === DC_STATE.CONNECTED) return <Chip icon={<CheckCircleIcon />} label="Connected" color="success" size="small" />
-    if (dcState === DC_STATE.AWAITING_DM) return <Chip label="Needs pairing" color="warning" size="small" />
-    if (dcState === DC_STATE.RECONNECTING) return <Chip label="Reconnecting…" color="warning" size="small" />
-    if (dcState === DC_STATE.CONNECTING) return <Chip label="Connecting…" size="small" />
-    if (dcState === DC_STATE.UNAVAILABLE) return <Chip label="Unavailable" size="small" />
-    return <Chip label="Not connected" size="small" />
+    if (dcState === DC_STATE.CONNECTED) return <Chip icon={<CheckCircleIcon />} label={"Conectado"} color="success" size="small" />
+    if (dcState === DC_STATE.AWAITING_DM) return <Chip label={"Precisa de pareamento"} color="warning" size="small" />
+    if (dcState === DC_STATE.RECONNECTING) return <Chip label={"Reconectando…"} color="warning" size="small" />
+    if (dcState === DC_STATE.CONNECTING) return <Chip label={"Conectando…"} size="small" />
+    if (dcState === DC_STATE.UNAVAILABLE) return <Chip label={"Indisponível"} size="small" />
+    return <Chip label={"Não conectado"} size="small" />
   }
 
   const slStatusChip = () => {
-    if (slState === SL_STATE.CONNECTED) return <Chip icon={<CheckCircleIcon />} label="Connected" color="success" size="small" />
-    if (slState === SL_STATE.AWAITING_DM) return <Chip label="Needs pairing" color="warning" size="small" />
-    if (slState === SL_STATE.CONNECTING) return <Chip label="Connecting…" size="small" />
-    if (slState === SL_STATE.UNAVAILABLE) return <Chip label="Unavailable" size="small" />
-    return <Chip label="Not connected" size="small" />
+    if (slState === SL_STATE.CONNECTED) return <Chip icon={<CheckCircleIcon />} label={"Conectado"} color="success" size="small" />
+    if (slState === SL_STATE.AWAITING_DM) return <Chip label={"Precisa de pareamento"} color="warning" size="small" />
+    if (slState === SL_STATE.CONNECTING) return <Chip label={"Conectando…"} size="small" />
+    if (slState === SL_STATE.UNAVAILABLE) return <Chip label={"Indisponível"} size="small" />
+    return <Chip label={"Não conectado"} size="small" />
   }
 
   return (
@@ -535,10 +535,10 @@ export default function Messaging() {
           <PhoneIphoneIcon sx={{ color: "#5865F2", fontSize: 26 }} />
           <Box>
             <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: -0.3 }}>
-              Messaging
+              Mensagens
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              Connect a messaging app to control ViralMint from your phone and receive job notifications
+              Conecte um aplicativo de mensagens para controlar o Decupa Viral pelo seu celular e receber notificações de tarefas
             </Typography>
           </Box>
         </Stack>
@@ -561,7 +561,7 @@ export default function Messaging() {
             <Box sx={{ flex: 1 }}>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>Telegram</Typography>
               <Typography variant="caption" color="text.secondary">
-                Two-way chat with your ViralMint planner and job notifications
+                Chat bidirecional com seu planejador Decupa Viral e notificações de tarefas
               </Typography>
             </Box>
             {statusChip()}
@@ -573,7 +573,7 @@ export default function Messaging() {
             <Stack spacing={2}>
               {tgState === STATE.RECONNECTING ? <ReconnectingNote /> : (
               <Alert severity="success" variant="outlined">
-                Connected to{" "}
+                Conectado a{" "}
                 {tgInfo.bot_url ? (
                   <Link href={tgInfo.bot_url} target="_blank" rel="noreferrer" sx={{ fontWeight: 600 }}>
                     @{tgInfo.bot_username}
@@ -581,7 +581,7 @@ export default function Messaging() {
                 ) : (
                   <strong>@{tgInfo.bot_username}</strong>
                 )}
-                . Send any message to your bot to chat with the planner.
+                . Envie qualquer mensagem para seu bot para conversar com o planejador.
               </Alert>
               )}
               <Stack direction="row" spacing={1.5}>
@@ -591,7 +591,7 @@ export default function Messaging() {
                   onClick={handleTest}
                   disabled={testing}
                 >
-                  Send test message
+                  Enviar mensagem de teste
                 </Button>
                 <Button
                   variant="outlined"
@@ -599,7 +599,7 @@ export default function Messaging() {
                   startIcon={<LogoutIcon />}
                   onClick={handleDisconnect}
                 >
-                  Disconnect
+                  Desconectar
                 </Button>
               </Stack>
             </Stack>
@@ -610,26 +610,26 @@ export default function Messaging() {
               <Alert severity="info" variant="outlined" icon={false}>
                 <Stack spacing={1.25}>
                   <Typography variant="body2">
-                    Bot ready. Open{" "}
+                    Bot pronto. Abra{" "}
                     {tgInfo.bot_url ? (
                       <Link href={tgInfo.bot_url} target="_blank" rel="noreferrer" sx={{ fontWeight: 600 }}>
                         @{tgInfo.bot_username}
                       </Link>
                     ) : (
-                      <strong>your bot</strong>
+                      <strong>seu bot</strong>
                     )}
-                    {" "}in Telegram and tap <strong>Start</strong> — the link carries your pairing
-                    code, so that one tap links the bot to your account. If Telegram doesn't show a
-                    Start button, send the bot this code:
+                    {" "}no Telegram e toque em <strong>Start</strong> , o link carrega seu código
+                    de pareamento, então esse único toque vincula o bot à sua conta. Se o Telegram não mostrar um
+                    botão Start, envie este código para o bot:
                   </Typography>
                   <PairCode code={tgInfo.pair_code} />
                   <Typography variant="caption" color="text.secondary">{PRIVATE_NOTE}</Typography>
                 </Stack>
               </Alert>
               <Stack direction="row" spacing={1.5}>
-                <Button variant="outlined" onClick={fetchStatus}>Refresh status</Button>
+                <Button variant="outlined" onClick={fetchStatus}>Atualizar status</Button>
                 <Button variant="outlined" color="error" startIcon={<LogoutIcon />} onClick={handleDisconnect}>
-                  Cancel
+                  Cancelar
                 </Button>
               </Stack>
             </Stack>
@@ -638,16 +638,16 @@ export default function Messaging() {
           {(tgState === STATE.DISCONNECTED || tgState === STATE.CONNECTING) && (
             <Stack spacing={2}>
               <Typography variant="body2" color="text.secondary">
-                Create a bot via{" "}
+                Crie um bot via{" "}
                 <Link href="https://t.me/BotFather" target="_blank" rel="noreferrer">@BotFather</Link>
-                {" "}on Telegram (send <code>/newbot</code>), then paste the bot token below.
+                {" "}no Telegram (envie <code>/newbot</code>), depois cole o token do bot abaixo.
               </Typography>
               <TextField
-                label="Bot token"
+                label={"Token do bot"}
                 type="password"
                 fullWidth
                 size="small"
-                placeholder="123456789:ABCdef..."
+                placeholder={"123456789:ABCdef..."}
                 value={botToken}
                 onChange={(e) => setBotToken(e.target.value)}
                 disabled={saving}
@@ -660,7 +660,7 @@ export default function Messaging() {
                   disabled={saving || !botToken.trim()}
                   startIcon={saving ? <CircularProgress size={16} color="inherit" /> : null}
                 >
-                  {saving ? "Connecting…" : "Connect"}
+                  {saving ? "Conectando…" : "Conectar"}
                 </Button>
               </Box>
             </Stack>
@@ -678,7 +678,7 @@ export default function Messaging() {
             <Box sx={{ flex: 1 }}>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>WhatsApp</Typography>
               <Typography variant="caption" color="text.secondary">
-                Two-way chat + notifications via QR-scan device pairing
+                Chat bidirecional + notificações via pareamento de dispositivo por leitura de QR code
               </Typography>
             </Box>
             {waStatusChip()}
@@ -688,12 +688,12 @@ export default function Messaging() {
 
           {waState === WA_STATE.UNAVAILABLE && (
             <Alert severity="warning" variant="outlined">
-              WhatsApp support requires the <code>neonize</code> Python package, which ships a
-              native library. Install dependencies with <code>pip install -r requirements.txt</code>,
-              then restart the app.
+              O suporte ao WhatsApp requer o pacote Python <code>neonize</code> , que inclui uma
+              biblioteca nativa. Instale as dependências com <code>pip install -r requirements.txt</code>,
+              depois reinicie o app.
               {waInfo.error && (
                 <Typography variant="caption" display="block" sx={{ mt: 1, opacity: 0.8 }}>
-                  Details: {waInfo.error}
+                  Detalhes: {waInfo.error}
                 </Typography>
               )}
             </Alert>
@@ -703,9 +703,9 @@ export default function Messaging() {
             <Stack spacing={2}>
               {waState === WA_STATE.RECONNECTING ? <ReconnectingNote /> : (
               <Alert severity="success" variant="outlined">
-                WhatsApp paired. To chat with the planner, write in your own <strong>Message
-                yourself</strong> chat; job notifications arrive there too. Messages in any other
-                chat are never read.
+                WhatsApp pareado. Para conversar com o planejador, escreva na sua própria conversa de <strong>Mensagem
+                para si mesmo</strong> ; as notificações de tarefas também chegam lá. Mensagens em qualquer outro
+                chat nunca são lidas.
               </Alert>
               )}
               <Stack direction="row" spacing={1.5}>
@@ -716,7 +716,7 @@ export default function Messaging() {
                   disabled={waTesting}
                   sx={{ bgcolor: "#25D366", "&:hover": { bgcolor: "#128C7E" } }}
                 >
-                  Send test message
+                  Enviar mensagem de teste
                 </Button>
                 <Button
                   variant="outlined"
@@ -724,7 +724,7 @@ export default function Messaging() {
                   startIcon={<LogoutIcon />}
                   onClick={handleWADisconnect}
                 >
-                  Disconnect
+                  Desconectar
                 </Button>
               </Stack>
             </Stack>
@@ -733,12 +733,12 @@ export default function Messaging() {
           {(waState === WA_STATE.DISCONNECTED || waState === WA_STATE.PAIRING) && (
             <Stack spacing={2}>
               <Typography variant="body2" color="text.secondary">
-                Get scout, download, and upload alerts on WhatsApp — and chat with ViralMint
-                straight from your phone. Pairs in seconds, just like WhatsApp Web.
+                Receba alertas de busca, download e upload no WhatsApp , e converse com o Decupa Viral
+                direto do seu celular. Pareia em segundos, igual ao WhatsApp Web.
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Click Connect to generate a QR code, then open WhatsApp → Settings → Linked
-                Devices → Link a Device to scan it.
+                Clique em Conectar para gerar um QR code, depois abra WhatsApp → Configurações → Dispositivos
+                Conectados → Conectar um dispositivo para escaneá-lo.
               </Typography>
               <Box>
                 <Button
@@ -753,8 +753,8 @@ export default function Messaging() {
                   sx={{ bgcolor: "#25D366", "&:hover": { bgcolor: "#128C7E" } }}
                 >
                   {waState === WA_STATE.PAIRING
-                    ? "Waiting for scan…"
-                    : waSaving ? "Generating QR…" : "Connect WhatsApp"}
+                    ? "Aguardando leitura…"
+                    : waSaving ? "Gerando QR…" : "Conectar WhatsApp"}
                 </Button>
               </Box>
             </Stack>
@@ -772,7 +772,7 @@ export default function Messaging() {
             <Box sx={{ flex: 1 }}>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>Discord</Typography>
               <Typography variant="caption" color="text.secondary">
-                DM your bot to chat with the planner and get job notifications
+                Envie uma DM para seu bot para conversar com o planejador e receber notificações de tarefas
               </Typography>
             </Box>
             {dcStatusChip()}
@@ -782,11 +782,11 @@ export default function Messaging() {
 
           {dcState === DC_STATE.UNAVAILABLE && (
             <Alert severity="warning" variant="outlined">
-              Discord support requires the <code>discord.py</code> Python package. Install
-              dependencies with <code>pip install -r requirements.txt</code>, then restart the app.
+              O suporte ao Discord requer o pacote Python <code>discord.py</code> . Instale
+              as dependências com <code>pip install -r requirements.txt</code>, depois reinicie o app.
               {dcInfo.error && (
                 <Typography variant="caption" display="block" sx={{ mt: 1, opacity: 0.8 }}>
-                  Details: {dcInfo.error}
+                  Detalhes: {dcInfo.error}
                 </Typography>
               )}
             </Alert>
@@ -796,8 +796,8 @@ export default function Messaging() {
             <Stack spacing={2}>
               {dcState === DC_STATE.RECONNECTING ? <ReconnectingNote /> : (
               <Alert severity="success" variant="outlined">
-                Connected as <strong>{dcInfo.bot_username}</strong>. DM your bot on Discord to
-                chat with the planner — notifications arrive in the same thread.
+                Conectado como <strong>{dcInfo.bot_username}</strong>. Envie uma DM para seu bot no Discord para
+                conversar com o planejador , as notificações chegam na mesma conversa.
               </Alert>
               )}
               <Stack direction="row" spacing={1.5}>
@@ -808,7 +808,7 @@ export default function Messaging() {
                   disabled={dcTesting}
                   sx={{ bgcolor: "#5865F2", "&:hover": { bgcolor: "#4752C4" } }}
                 >
-                  Send test message
+                  Enviar mensagem de teste
                 </Button>
                 <Button
                   variant="outlined"
@@ -816,7 +816,7 @@ export default function Messaging() {
                   startIcon={<LogoutIcon />}
                   onClick={handleDCDisconnect}
                 >
-                  Disconnect
+                  Desconectar
                 </Button>
               </Stack>
             </Stack>
@@ -827,26 +827,26 @@ export default function Messaging() {
               <Alert severity="info" variant="outlined" icon={false}>
                 <Stack spacing={1.25}>
                   <Typography variant="body2">
-                    Bot online as <strong>{dcInfo.bot_username}</strong>.
+                    Bot online como <strong>{dcInfo.bot_username}</strong>.
                     {dcInfo.bot_invite_url && (
                       <>
                         {" "}
                         <Link href={dcInfo.bot_invite_url} target="_blank" rel="noreferrer" sx={{ fontWeight: 600 }}>
-                          Invite it to a server
+                          Convide-o para um servidor
                         </Link>
-                        {" "}if you haven't yet, then
+                        {" "}se ainda não fez isso, depois
                       </>
                     )}
-                    {" "}DM the bot this pairing code:
+                    {" "}envie ao bot este código de pareamento por DM:
                   </Typography>
                   <PairCode code={dcInfo.pair_code} />
                   <Typography variant="caption" color="text.secondary">{PRIVATE_NOTE}</Typography>
                 </Stack>
               </Alert>
               <Stack direction="row" spacing={1.5}>
-                <Button variant="outlined" onClick={fetchStatus}>Refresh status</Button>
+                <Button variant="outlined" onClick={fetchStatus}>Atualizar status</Button>
                 <Button variant="outlined" color="error" startIcon={<LogoutIcon />} onClick={handleDCDisconnect}>
-                  Cancel
+                  Cancelar
                 </Button>
               </Stack>
             </Stack>
@@ -855,19 +855,19 @@ export default function Messaging() {
           {(dcState === DC_STATE.DISCONNECTED || dcState === DC_STATE.CONNECTING) && (
             <Stack spacing={2}>
               <Typography variant="body2" color="text.secondary">
-                Create a bot at{" "}
+                Crie um bot em{" "}
                 <Link href="https://discord.com/developers/applications" target="_blank" rel="noreferrer">
                   discord.com/developers/applications
                 </Link>
-                {" "}— click <strong>New Application</strong> → <strong>Bot</strong> → copy the token and paste below.
-                DMs work without any privileged intents.
+                {" "}, clique em <strong>New Application</strong> → <strong>Bot</strong> → copie o token e cole abaixo.
+                DMs funcionam sem nenhum privileged intent.
               </Typography>
               <TextField
-                label="Bot token"
+                label={"Token do bot"}
                 type="password"
                 fullWidth
                 size="small"
-                placeholder="MTI..."
+                placeholder={"MTI..."}
                 value={dcToken}
                 onChange={(e) => setDcToken(e.target.value)}
                 disabled={dcSaving}
@@ -881,7 +881,7 @@ export default function Messaging() {
                   startIcon={dcSaving ? <CircularProgress size={16} color="inherit" /> : null}
                   sx={{ bgcolor: "#5865F2", "&:hover": { bgcolor: "#4752C4" } }}
                 >
-                  {dcSaving ? "Connecting…" : "Connect"}
+                  {dcSaving ? "Conectando…" : "Conectar"}
                 </Button>
               </Box>
             </Stack>
@@ -899,7 +899,7 @@ export default function Messaging() {
             <Box sx={{ flex: 1 }}>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>Slack</Typography>
               <Typography variant="caption" color="text.secondary">
-                Socket Mode — no public URL needed. DM your bot to chat and get notifications.
+                Socket Mode , sem necessidade de URL pública. Envie uma DM para seu bot para conversar e receber notificações.
               </Typography>
             </Box>
             {slStatusChip()}
@@ -909,11 +909,11 @@ export default function Messaging() {
 
           {slState === SL_STATE.UNAVAILABLE && (
             <Alert severity="warning" variant="outlined">
-              Slack support requires the <code>slack-sdk</code> Python package. Install
-              dependencies with <code>pip install -r requirements.txt</code>, then restart the app.
+              O suporte ao Slack requer o <code>slack-sdk</code> . Instale
+              as dependências com <code>pip install -r requirements.txt</code>, depois reinicie o app.
               {slInfo.error && (
                 <Typography variant="caption" display="block" sx={{ mt: 1, opacity: 0.8 }}>
-                  Details: {slInfo.error}
+                  Detalhes: {slInfo.error}
                 </Typography>
               )}
             </Alert>
@@ -922,8 +922,8 @@ export default function Messaging() {
           {slState === SL_STATE.CONNECTED && (
             <Stack spacing={2}>
               <Alert severity="success" variant="outlined">
-                Connected to <strong>{slInfo.team_name || "your Slack workspace"}</strong>. DM
-                your bot in Slack to chat with the planner — notifications arrive in the same thread.
+                Conectado ao <strong>{slInfo.team_name || "seu workspace do Slack"}</strong>. Envie
+                uma DM para seu bot no Slack para conversar com o planejador , as notificações chegam na mesma conversa.
               </Alert>
               <Stack direction="row" spacing={1.5}>
                 <Button
@@ -933,7 +933,7 @@ export default function Messaging() {
                   disabled={slTesting}
                   sx={{ bgcolor: "#611F69", "&:hover": { bgcolor: "#4A154B" } }}
                 >
-                  Send test message
+                  Enviar mensagem de teste
                 </Button>
                 <Button
                   variant="outlined"
@@ -941,7 +941,7 @@ export default function Messaging() {
                   startIcon={<LogoutIcon />}
                   onClick={handleSLDisconnect}
                 >
-                  Disconnect
+                  Desconectar
                 </Button>
               </Stack>
             </Stack>
@@ -952,17 +952,17 @@ export default function Messaging() {
               <Alert severity="info" variant="outlined" icon={false}>
                 <Stack spacing={1.25}>
                   <Typography variant="body2">
-                    Bot online{slInfo.team_name ? ` in ${slInfo.team_name}` : ""}. Open Slack, find
-                    your bot in the sidebar and DM it this pairing code:
+                    Bot online{slInfo.team_name ? (" em " + String(slInfo.team_name) + "") : ""}. Abra o Slack, encontre
+                    seu bot na barra lateral e envie esta DM com o código de pareamento:
                   </Typography>
                   <PairCode code={slInfo.pair_code} />
                   <Typography variant="caption" color="text.secondary">{PRIVATE_NOTE}</Typography>
                 </Stack>
               </Alert>
               <Stack direction="row" spacing={1.5}>
-                <Button variant="outlined" onClick={fetchStatus}>Refresh status</Button>
+                <Button variant="outlined" onClick={fetchStatus}>Atualizar status</Button>
                 <Button variant="outlined" color="error" startIcon={<LogoutIcon />} onClick={handleSLDisconnect}>
-                  Cancel
+                  Cancelar
                 </Button>
               </Stack>
             </Stack>
@@ -971,31 +971,31 @@ export default function Messaging() {
           {(slState === SL_STATE.DISCONNECTED || slState === SL_STATE.CONNECTING) && (
             <Stack spacing={2}>
               <Typography variant="body2" color="text.secondary">
-                Create a Slack app at{" "}
+                Crie um app do Slack em{" "}
                 <Link href="https://api.slack.com/apps" target="_blank" rel="noreferrer">api.slack.com/apps</Link>.
-                Enable <strong>Socket Mode</strong>, generate an app-level token with{" "}
-                <code>connections:write</code>, and install the bot to your workspace with scopes{" "}
+                Ative o <strong>Socket Mode</strong>, gere um app-level token com{" "}
+                <code>connections:write</code>, e instale o bot no seu workspace com os escopos{" "}
                 <code>chat:write</code>, <code>im:history</code>, <code>im:read</code>,{" "}
-                <code>im:write</code>, <code>users:read</code>. Then subscribe to the{" "}
-                <code>message.im</code> event.
+                <code>im:write</code>, <code>users:read</code>. Depois, inscreva-se no evento{" "}
+                <code>message.im</code> .
               </Typography>
               <TextField
-                label="Bot token (xoxb-…)"
+                label={"Token do bot (xoxb-…)"}
                 type="password"
                 fullWidth
                 size="small"
-                placeholder="xoxb-..."
+                placeholder={"xoxb-..."}
                 value={slBotToken}
                 onChange={(e) => setSlBotToken(e.target.value)}
                 disabled={slSaving}
                 autoComplete="off"
               />
               <TextField
-                label="App-level token (xapp-…)"
+                label={"Token no nível do app (xapp-…)"}
                 type="password"
                 fullWidth
                 size="small"
-                placeholder="xapp-..."
+                placeholder={"xapp-..."}
                 value={slAppToken}
                 onChange={(e) => setSlAppToken(e.target.value)}
                 disabled={slSaving}
@@ -1009,7 +1009,7 @@ export default function Messaging() {
                   startIcon={slSaving ? <CircularProgress size={16} color="inherit" /> : null}
                   sx={{ bgcolor: "#611F69", "&:hover": { bgcolor: "#4A154B" } }}
                 >
-                  {slSaving ? "Connecting…" : "Connect"}
+                  {slSaving ? "Conectando…" : "Conectar"}
                 </Button>
               </Box>
             </Stack>
@@ -1029,12 +1029,12 @@ export default function Messaging() {
         fullWidth
       >
         <DialogTitle sx={{ pr: 6 }}>
-          Scan to pair WhatsApp
+          Escaneie para parear o WhatsApp
           <IconButton
             onClick={handleWADisconnect}
             size="small"
             sx={{ position: "absolute", right: 8, top: 8 }}
-            aria-label="Close"
+            aria-label={"Fechar"}
           >
             <CloseIcon fontSize="small" />
           </IconButton>
@@ -1042,8 +1042,8 @@ export default function Messaging() {
         <DialogContent>
           <Stack spacing={2} alignItems="center">
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
-              On your phone, open <strong>WhatsApp → Settings → Linked Devices → Link a Device</strong>,
-              then scan this code.
+              No seu celular, abra <strong>WhatsApp → Configurações → Dispositivos conectados → Conectar um dispositivo</strong>,
+              depois escaneie este código.
             </Typography>
             {waQr ? (
               <Box sx={{ p: 2, bgcolor: "#fff", borderRadius: 2, boxShadow: 1 }}>
@@ -1052,17 +1052,17 @@ export default function Messaging() {
             ) : (
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, py: 6 }}>
                 <CircularProgress size={20} />
-                <Typography variant="body2" color="text.secondary">Waiting for QR code…</Typography>
+                <Typography variant="body2" color="text.secondary">Aguardando o código QR…</Typography>
               </Box>
             )}
             <Typography variant="caption" color="text.secondary" sx={{ textAlign: "center" }}>
-              The code refreshes automatically. This dialog closes once pairing completes.
+              O código é atualizado automaticamente. Esta janela fecha quando o pareamento for concluído.
             </Typography>
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleWADisconnect} color="error" startIcon={<LogoutIcon />}>
-            Cancel pairing
+            Cancelar pareamento
           </Button>
         </DialogActions>
       </Dialog>

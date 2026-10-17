@@ -99,7 +99,7 @@ export default function PromptField({
           }}
         >
           {prevValue !== null && (
-            <Tooltip title="Undo enhance">
+            <Tooltip title={"Desfazer melhoria"}>
               <Button
                 size="small"
                 onClick={undo}
@@ -111,11 +111,11 @@ export default function PromptField({
                   backdropFilter: "blur(4px)",
                 }}
               >
-                Undo
+                Desfazer
               </Button>
             </Tooltip>
           )}
-          <Tooltip title={value?.trim() ? "Rewrite this into a stronger prompt" : "Generate a starting prompt"}>
+          <Tooltip title={value?.trim() ? "Reescreva isto em um prompt mais forte" : "Gerar um prompt inicial"}>
             <span>
               <Button
                 size="small"
@@ -132,7 +132,7 @@ export default function PromptField({
                   "&:hover": { bgcolor: (t) => t.palette.mode === "dark" ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.92)" },
                 }}
               >
-                {loading ? "Enhancing…" : "Enhance"}
+                {loading ? "Melhorando…" : "Melhorar"}
               </Button>
             </span>
           </Tooltip>

@@ -1,3 +1,5 @@
+import { browserSocket } from '../browser/events.js'
+import { pcSession } from '../companion/session.js'
 const WS_PROTOCOL = window.location.protocol === "https:" ? "wss:" : "ws:"
 const WS_URL = `${WS_PROTOCOL}//${window.location.host}/ws/chat`
 
@@ -30,7 +32,8 @@ class ViralMintWS {
     // Capture the socket in a local: every handler below compares it against
     // `this.ws` so a SUPERSEDED socket goes silent instead of racing the
     // current one.
-    const socket = new WebSocket(WS_URL)
+    const pc = import.meta.env?.VITE_COMPANION_RUNTIME === 'true' ? pcSession() : null
+    const socket = pc ? new WebSocket(pc.origin.replace('http:', 'ws:') + '/ws/chat', ['decupa.' + pc.token]) : new WebSocket(WS_URL)
     this.ws = socket
 
     socket.onmessage = (e) => {
@@ -112,4 +115,4 @@ class ViralMintWS {
 
 }
 
-export const ws = new ViralMintWS()
+export const ws = import.meta.env?.VITE_BROWSER_RUNTIME === 'true' ? browserSocket : new ViralMintWS()

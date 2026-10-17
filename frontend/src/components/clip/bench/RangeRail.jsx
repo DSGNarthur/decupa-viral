@@ -164,10 +164,10 @@ const Row = memo(function Row({
           fontSize: "0.6rem", fontWeight: 700, color: "text.secondary",
           flexShrink: 0, fontVariantNumeric: "tabular-nums",
         }}>
-          {len < 60 ? `${Math.round(len)}s` : `${Math.floor(len / 60)}m${String(Math.round(len % 60)).padStart(2, "0")}`}
+          {len < 60 ? ("" + String(Math.round(len)) + "s") : ("" + String(Math.floor(len / 60)) + "m" + String(String(Math.round(len % 60)).padStart(2, "0")) + "")}
         </Typography>
         <IconButton
-          size="small" aria-label={`Remove range ${index + 1}`}
+          size="small" aria-label={("Remover intervalo " + String(index + 1) + "")}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); onRemove(range.id) }}
           sx={{ p: 0.15, ml: 0.25, color: "text.disabled", "&:hover": { color: "error.main" } }}
@@ -187,7 +187,7 @@ const Row = memo(function Row({
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
             }}>
               {meta.title || meta.reason}
-              {meta.hook_score != null && ` · hook ${Number(meta.hook_score).toFixed(1)}`}
+              {meta.hook_score != null && (" · gancho " + String(Number(meta.hook_score).toFixed(1)) + "")}
             </Typography>
           </Stack>
         </Tooltip>
@@ -219,7 +219,7 @@ export default function RangeRail({
           fontSize: "0.6rem", fontWeight: 800, letterSpacing: 0.8,
           color: "text.secondary",
         }}>
-          RANGES
+          INTERVALOS
         </Typography>
         <Typography sx={{
           fontSize: "0.6rem", fontWeight: 700,
@@ -229,26 +229,26 @@ export default function RangeRail({
         </Typography>
         <Box sx={{ flex: 1 }} />
         {aiSlot}
-        <Tooltip title={atCap ? `The bench holds ${MAX_RANGES} ranges` : "Add a range at the playhead (N)"}>
+        <Tooltip title={atCap ? ("O painel contém " + String(MAX_RANGES) + " intervalos") : "Adicionar um intervalo na posição do cursor (N)"}>
           <span>
             <IconButton size="small" disabled={atCap} onClick={onAdd}
-              aria-label="Add a range at the playhead" sx={{ p: 0.2 }}>
+              aria-label={"Adicionar um intervalo na posição do cursor"} sx={{ p: 0.2 }}>
               <AddIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </span>
         </Tooltip>
-        <Tooltip title="Paste times you already have — show notes, a chapter list, a message">
+        <Tooltip title={"Cole os tempos que você já tem , notas do programa, uma lista de capítulos, uma mensagem"}>
           <span>
             <IconButton size="small" disabled={atCap} onClick={onPaste}
-              aria-label="Paste timestamps" sx={{ p: 0.2 }}>
+              aria-label={"Colar timestamps"} sx={{ p: 0.2 }}>
               <ContentPasteIcon sx={{ fontSize: 15 }} />
             </IconButton>
           </span>
         </Tooltip>
-        <Tooltip title="Remove every pending range">
+        <Tooltip title={"Remover todos os intervalos pendentes"}>
           <span>
             <IconButton size="small" disabled={!ranges.length} onClick={onClear}
-              aria-label="Clear all ranges" sx={{ p: 0.2 }}>
+              aria-label={"Limpar todos os intervalos"} sx={{ p: 0.2 }}>
               <DeleteSweepIcon sx={{ fontSize: 15 }} />
             </IconButton>
           </span>
@@ -268,12 +268,12 @@ export default function RangeRail({
         {ranges.length === 0 ? (
           <Stack spacing={0.75} sx={{ p: 1 }}>
             <Typography sx={{ fontSize: "0.66rem", color: "text.disabled", lineHeight: 1.5 }}>
-              No ranges yet. Drag across the filmstrip, press <strong>N</strong>,
-              paste timestamps, or <strong>Ask AI</strong> to propose some.
+              Ainda não há intervalos. Arraste pela tira de filmes, pressione <strong>N</strong>,
+              cole timestamps ou <strong>Peça à IA</strong> para sugerir alguns.
             </Typography>
             <Button size="small" startIcon={<AddIcon sx={{ fontSize: 15 }} />} onClick={onAdd}
               sx={{ textTransform: "none", fontSize: "0.7rem", alignSelf: "flex-start" }}>
-              Add at playhead
+              Adicionar na posição do cursor
             </Button>
           </Stack>
         ) : (

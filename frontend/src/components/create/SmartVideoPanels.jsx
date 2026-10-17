@@ -15,11 +15,11 @@ export function CompactSourcePanel({ source }) {
   if (!source) return null
   const insights = source.insights || {}
   const insightItems = [
-    insights.hook            && { label: "Hook",      color: "secondary.main", value: insights.hook },
-    insights.structure       && { label: "Structure", color: "secondary.main", value: insights.structure },
-    insights.why_viral       && { label: "Why viral", color: "warning.main",   value: insights.why_viral },
-    insights.suggested_angle && { label: "Angle",     color: "primary.main",   value: insights.suggested_angle },
-    insights.suggested_title && { label: "Title",     color: "primary.main",   value: insights.suggested_title },
+    insights.hook            && { label: "Gancho",      color: "secondary.main", value: insights.hook },
+    insights.structure       && { label: "Estrutura", color: "secondary.main", value: insights.structure },
+    insights.why_viral       && { label: "Por que viralizou", color: "warning.main",   value: insights.why_viral },
+    insights.suggested_angle && { label: "Ângulo",     color: "primary.main",   value: insights.suggested_angle },
+    insights.suggested_title && { label: "Título",     color: "primary.main",   value: insights.suggested_title },
   ].filter(Boolean)
 
   return (
@@ -29,10 +29,10 @@ export function CompactSourcePanel({ source }) {
     >
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
         <Typography variant="overline" sx={{ fontSize: "0.6rem", fontWeight: 700, color: "text.secondary", letterSpacing: "0.06em" }}>
-          Inspiration
+          Inspiração
         </Typography>
         <Typography variant="caption" sx={{ fontWeight: 700, fontSize: "0.78rem", flex: 1, minWidth: 0 }} noWrap title={source.title}>
-          {source.title || "Untitled"}
+          {source.title || "Sem título"}
         </Typography>
         {source.transcript && (
           <Button
@@ -40,8 +40,8 @@ export function CompactSourcePanel({ source }) {
             onClick={() => setShowTranscript(!showTranscript)}
             sx={{ minWidth: 0, px: 0.75, fontSize: "0.65rem", textTransform: "none", fontWeight: 600, lineHeight: 1 }}
           >
-            {showTranscript ? "Hide transcript" : "Transcript"}
-            {source.transcript_language && ` (${source.transcript_language})`}
+            {showTranscript ? "Ocultar transcrição" : "Transcrição"}
+            {source.transcript_language && (" (" + String(source.transcript_language) + ")")}
           </Button>
         )}
       </Stack>
@@ -183,7 +183,7 @@ export function VoiceRow({ voice, selected, onClick, onPreview, isPlayingPreview
           borderRadius: 0.5,
           lineHeight: 1, flexShrink: 0,
         }}>
-          FREE
+          GRÁTIS
         </Box>
       )}
     </Box>

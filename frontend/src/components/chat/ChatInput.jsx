@@ -165,7 +165,7 @@ export default function ChatInput({ onSend, disabled }) {
           <Box sx={{ px: 1.5, py: 0.75, borderBottom: 1, borderColor: "divider", display: "flex", alignItems: "center", gap: 0.5 }}>
             <SearchIcon sx={{ fontSize: 14, color: "text.secondary" }} />
             <Typography variant="caption" color="text.secondary" fontWeight={600}>
-              YouTube Search Suggestions
+              Sugestões de pesquisa do YouTube
             </Typography>
           </Box>
           <List dense sx={{ py: 0.5 }}>
@@ -210,7 +210,7 @@ export default function ChatInput({ onSend, disabled }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Message ViralMint..."
+          placeholder={"Mensagem para o Decupa Viral..."}
           disabled={disabled}
           multiline
           maxRows={6}

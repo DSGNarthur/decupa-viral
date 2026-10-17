@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 # One port above the app's default. Deliberately NOT adjacent to the ports a
 # developer is likely to be running a second backend on.
-STUDIO_PORT = 16890
+STUDIO_PORT = 16902 if os.environ.get('DECUPA_COMPANION') == '1' else 16890
 
 # `check` boots a real browser, where a plain `lint` is a static parse. The
 # ceiling matters because callers may run it more than once.
@@ -58,6 +58,43 @@ def _studio_index() -> Path:
     from backend.services.hyperframes_contract import resolve_studio_index
     from backend.services.hyperframes_service import _hyperframes_dir
     return resolve_studio_index(_hyperframes_dir())
+
+
+def _patch_studio_json_attributes() -> None:
+    """HyperFrames 0.7.111 saves HTML-escaped variable attributes, but its
+    static linter parses them without decoding entities. Use the engine's own
+    HTML attribute reader so a composition edited in the studio still lints.
+    Only patch this known implementation in the independent installation.
+    """
+    if os.environ.get("DECUPA_COMPANION") != "1":
+        return
+    from backend.services.hyperframes_service import _hyperframes_dir
+    from backend.services.hyperframes_contract import resolve_cli_js
+    root = _hyperframes_dir()
+    # Newer package bins are wrappers; the parser lives in dist/cli.js.
+    bundled = root / "node_modules" / "hyperframes" / "dist" / "cli.js"
+    cli = bundled if bundled.is_file() else resolve_cli_js(root)
+    try:
+        source = cli.read_text(encoding="utf-8")
+        marker = "function readJsonAttr(tagSource, attr2) {"
+        start = source.find(marker)
+        end = source.find("\n}\nfunction collectCompositionIds", start)
+        if start < 0 or end < 0:
+            return
+        original = source[start:end + 2]
+        if 'return match[1] ?? match[2] ?? null;' not in original:
+            return
+        if 'function readDecodedAttr(' not in source:
+            return
+        backup = cli.with_suffix(cli.suffix + ".decupa-original")
+        if not backup.exists():
+            backup.write_text(source, encoding="utf-8")
+        replacement = (marker + "\n  // Decupa: decode entities produced by the studio HTML serializer.\n"
+                       "  return readDecodedAttr(tagSource, attr2);\n}")
+        cli.write_text(source[:start] + replacement + source[end + 2:], encoding="utf-8")
+        logger.info("Motion Studio: corrected escaped JSON attribute parsing")
+    except OSError as exc:
+        logger.warning("Motion Studio: JSON attribute compatibility fix failed: %s", exc)
 
 
 def _theme_css(mode: str = "dark") -> str:
@@ -113,16 +150,20 @@ def _inject_theme(mode: str = "dark") -> None:
     if not idx.exists() or not css:
         return
     try:
-        html = idx.read_text()
+        html = idx.read_text(encoding="utf-8")
         html = re.sub(r'<style id="vm-theme">.*?</style>', "", html, flags=re.DOTALL)
         html = re.sub(r'<script id="vm-brand">.*?</script>', "", html, flags=re.DOTALL)
+        html = re.sub(r'<script id="decupa-locale">.*?</script>', "", html, flags=re.DOTALL)
         block = (f'<style id="vm-theme">{css}</style>'
                  f'<script id="vm-brand">{_studio_js(mode)}</script>')
+        locale = _templates_src_dir().parent / "studio-pt-br.js"
+        if os.environ.get("DECUPA_COMPANION") == "1" and locale.exists():
+            block += f'<script id="decupa-locale">{locale.read_text(encoding="utf-8")}</script>'
         if "</head>" in html:
             html = html.replace("</head>", block + "</head>", 1)
         else:
             html = block + html
-        idx.write_text(html)
+        idx.write_text(html, encoding="utf-8")
         logger.info("Motion Studio: ViralMint theme + brand-hide injected")
     except OSError as e:
         logger.warning("Motion Studio: theme injection failed: %s", e)
@@ -271,11 +312,20 @@ class StudioService:
         mode = "light" if str(mode).lower() == "light" else "dark"
         async with cls._lock:
             cls._seed()
+            _patch_studio_json_attributes()
             _inject_theme(mode)
             if not force and cls.is_running() and await cls._responds():
                 cls._schedule_prewarm()
                 return {"ok": True, "port": STUDIO_PORT, "mode": mode}
             await cls._kill_all()
+            # A second installation must not mistake another studio for its
+            # own preview or stop it. Fail before launching on an occupied port.
+            import socket
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+                try:
+                    probe.bind(('127.0.0.1', STUDIO_PORT))
+                except OSError as exc:
+                    raise RuntimeError(f'A porta do estúdio ({STUDIO_PORT}) está em uso. Feche o estúdio desta cópia e tente novamente.') from exc
             cmd = preview_argv(HyperFramesService.node_bin(), HyperFramesService.cli_js(),
                                _project_dir(), STUDIO_PORT)
             cls._proc = await asyncio.create_subprocess_exec(
@@ -392,6 +442,10 @@ class StudioService:
             except asyncio.TimeoutError:
                 pass
         cls._proc = None
+        if os.environ.get('DECUPA_COMPANION') == '1':
+            # HyperFrames --kill-all can affect another ViralMint install.
+            # This independent copy terminates only the process it launched.
+            return
         try:
             kill = preview_kill_argv(HyperFramesService.node_bin(), HyperFramesService.cli_js())
             p = await asyncio.create_subprocess_exec(

@@ -31,24 +31,24 @@ export function viralityColor(score) {
 
 export function viralityLabel(score) {
   if (score >= 9) return "Viral"
-  if (score >= 8) return "Strong"
-  if (score >= 6) return "Good"
-  if (score >= 4) return "Average"
-  return "Low"
+  if (score >= 8) return "Forte"
+  if (score >= 6) return "Bom"
+  if (score >= 4) return "Médio"
+  return "Baixo"
 }
 
 // Map AI-returned hook_type values to short user-facing labels. The closed set
 // lives server-side in clip_extractor; "general" is the catch-all and renders
 // as null (no chip) so we don't crowd the UI with an uninformative label.
 const HOOK_TYPE_LABEL = {
-  curiosity_gap:   "Curiosity gap",
-  contrarian:      "Contrarian",
-  emotional_peak:  "Emotional peak",
-  question:        "Question hook",
-  number_promise:  "Number promise",
-  story_loop:      "Story loop",
-  actionable_tip:  "Actionable tip",
-  shocking_claim:  "Shocking claim",
+  curiosity_gap:   "Curiosidade",
+  contrarian:      "Visão contrária",
+  emotional_peak:  "Pico emocional",
+  question:        "Pergunta",
+  number_promise:  "Promessa com números",
+  story_loop:      "História em aberto",
+  actionable_tip:  "Dica prática",
+  shocking_claim:  "Afirmação surpreendente",
 }
 
 export function hookTypeLabel(t) {

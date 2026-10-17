@@ -170,6 +170,9 @@ def test_fontsdir_survives_a_drive_colon_path(tmp_path):
     from backend.services.video_utils import ff_filter_path
     ff = _ffmpeg()
     folder = "C:/it's odd=x"
+    import os
+    if os.name == "nt":
+        folder = str(tmp_path / "it's odd=x")
     (tmp_path / folder / "fonts").mkdir(parents=True)
     shutil.copy(cs.EMOJI_FONT_FILE, tmp_path / folder / "fonts")
     (tmp_path / folder / "s.ass").write_text(

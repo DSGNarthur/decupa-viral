@@ -72,19 +72,19 @@ export default function ActivityPanel({
         px: 2, py: 1.75, borderBottom: 1, borderColor: "divider", flexShrink: 0,
       }}>
         <Box sx={{ flex: 1 }}>
-          <Typography sx={{ fontSize: "1rem", fontWeight: 700, letterSpacing: "-0.02em" }}>Activity</Typography>
+          <Typography sx={{ fontSize: "1rem", fontWeight: 700, letterSpacing: "-0.02em" }}>Atividade</Typography>
           <Typography sx={{ fontSize: "0.72rem", color: "text.secondary" }}>
-            {allRunning.length} running · {allFailed.length} failed · {allDone.length} finished
+            {allRunning.length} em execução · {allFailed.length} falhou · {allDone.length} concluído
           </Typography>
         </Box>
-        <IconButton size="small" onClick={onClose} aria-label="Close">
+        <IconButton size="small" onClick={onClose} aria-label={"Fechar"}>
           <CloseRoundedIcon fontSize="small" />
         </IconButton>
       </Stack>
 
       <Box sx={{ flex: 1, overflow: "auto", px: 2, py: 2 }}>
         {failed.length > 0 && (
-          <Section label="Needs attention" tone={theme.palette.error.main}
+          <Section label={"Precisa de atenção"} tone={theme.palette.error.main}
             more={allFailed.length - failed.length}
             onShowAll={() => setShowAll((s) => ({ ...s, failed: true }))}
             onClear={() => onClearSection?.(allFailed.map((j) => j.id), "failed")}
@@ -97,7 +97,7 @@ export default function ActivityPanel({
         {/* No clear-all for running work: cancelling a batch of renders in one
             click is not something to make easy. */}
         {running.length > 0 && (
-          <Section label="Running" more={allRunning.length - running.length}
+          <Section label={"Em execução"} more={allRunning.length - running.length}
             onShowAll={() => setShowAll((s) => ({ ...s, running: true }))}>
             {running.map((j) => (
               <JobRow key={j.id} job={j} onToast={onToast} onCancel={onCancel} onDelete={onDelete} />
@@ -105,7 +105,7 @@ export default function ActivityPanel({
           </Section>
         )}
         {done.length > 0 && (
-          <Section label="Recent" more={allDone.length - done.length}
+          <Section label={"Recentes"} more={allDone.length - done.length}
             onShowAll={() => setShowAll((s) => ({ ...s, done: true }))}
             onClear={() => onClearSection?.(allDone.map((j) => j.id), "finished")}
             clearLabel={`Clear ${allDone.length}`}>
@@ -117,14 +117,14 @@ export default function ActivityPanel({
         )}
         {jobs.length === 0 && (
           <Typography sx={{ fontSize: "0.84rem", color: "text.secondary" }}>
-            Nothing has run yet. Renders you start anywhere in the app show up here.
+            Nada foi executado ainda. Renders que você iniciar em qualquer lugar do app aparecem aqui.
           </Typography>
         )}
         {/* The store holds one fetch window, not the whole table — say so, or
             the header counts above read as totals they are not. */}
         {total > jobs.length && (
           <Typography sx={{ fontSize: "0.72rem", color: "text.disabled" }}>
-            Showing the latest {jobs.length} of {total} runs.
+            Mostrando os últimos {jobs.length} de {total} execuções.
           </Typography>
         )}
       </Box>
@@ -161,7 +161,7 @@ function Section({ label, tone, more = 0, onShowAll, onClear, clearLabel, childr
           color: "text.disabled", cursor: onShowAll ? "pointer" : "default",
           "&:hover": onShowAll ? { color: "text.primary" } : undefined,
         }}>
-          Show {more} more
+          Mostrar {more} mais
         </Typography>
       )}
     </Box>
@@ -191,27 +191,27 @@ function JobRow({ job, onToast, onOpenResult, onCancel, onDelete }) {
           <Typography noWrap sx={{ fontSize: "0.8rem", fontWeight: 600 }}>{job.label}</Typography>
           <Typography sx={{ fontSize: "0.68rem", color: "text.secondary" }}>
             {job.where} · {fmtDay(job.at)}
-            {job.state === "running" && job.percent != null && ` · ${job.percent}%`}
-            {job.state === "done" && elapsed(job) && ` · done in ${elapsed(job)}`}
-            {job.state === "cancelled" && " · Cancelled"}
+            {job.state === "running" && job.percent != null && (" · " + String(job.percent) + "%")}
+            {job.state === "done" && elapsed(job) && (" · concluído em " + String(elapsed(job)) + "")}
+            {job.state === "cancelled" && " · Cancelado"}
           </Typography>
         </Box>
         {job.state === "running" && (
           <Button size="small" sx={{ minWidth: 0, fontSize: "0.7rem" }}
             onClick={() => onCancel?.(job.id)}>
-            Cancel
+            Cancelar
           </Button>
         )}
         {job.state === "failed" && (
           <Button size="small" startIcon={<ReplayRoundedIcon sx={{ fontSize: 15 }} />}
             sx={{ fontSize: "0.7rem" }}
             onClick={() => onToast?.("Open the tool that started it to run it again")}>
-            Retry
+            Tentar novamente
           </Button>
         )}
         {job.state === "done" && job.result_key && (
-          <Tooltip title="Open what it made">
-            <IconButton size="small" aria-label="Open result"
+          <Tooltip title={"Abrir o que foi criado"}>
+            <IconButton size="small" aria-label={"Abrir resultado"}
               onClick={() => onOpenResult?.(job.result_key)}>
               <NorthEastRoundedIcon sx={{ fontSize: 15 }} />
             </IconButton>
@@ -221,8 +221,8 @@ function JobRow({ job, onToast, onOpenResult, onCancel, onDelete }) {
             and losing that was a regression. For a RUNNING job this cancels first
             and then removes the row (the endpoint cancels a live job rather than
             deleting it, by design). */}
-        <Tooltip title={job.state === "running" ? "Cancel and remove" : "Remove from the log"}>
-          <IconButton size="small" aria-label="Remove job"
+        <Tooltip title={job.state === "running" ? "Cancelar e remover" : "Remover do log"}>
+          <IconButton size="small" aria-label={"Remover job"}
             onClick={() => onDelete?.(job)}>
             <DeleteOutlineRoundedIcon sx={{ fontSize: 15 }} />
           </IconButton>
@@ -255,7 +255,7 @@ function ExpandableError({ message }) {
   return (
     <Typography
       onClick={(e) => { e.stopPropagation(); setOpen((v) => !v) }}
-      title={open ? "" : "Click to expand"}
+      title={open ? "" : "Clique para expandir"}
       sx={{
         mt: 0.75, fontSize: "0.72rem", color: "error.main", cursor: "pointer",
         ...(open

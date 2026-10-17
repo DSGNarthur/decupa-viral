@@ -43,7 +43,7 @@ function ArticleCard({ article, onSave, onGenerate }) {
       {/* Header row */}
       <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.5 }}>
         <Chip
-          label={article.source_domain || "Unknown"}
+          label={article.source_domain || "Desconhecido"}
           size="small" variant="outlined"
           sx={{ fontSize: "0.6rem", height: 18, textTransform: "lowercase" }}
         />
@@ -60,7 +60,7 @@ function ArticleCard({ article, onSave, onGenerate }) {
         )}
         <Box sx={{ flex: 1 }} />
         {article.url && (
-          <Tooltip title="Open article" arrow>
+          <Tooltip title={"Abrir artigo"} arrow>
             <IconButton size="small" onClick={() => window.open(article.url, "_blank", "noopener")}
               sx={{ p: 0.25, color: "text.secondary" }}>
               <OpenInNewIcon sx={{ fontSize: "0.85rem" }} />
@@ -77,12 +77,12 @@ function ArticleCard({ article, onSave, onGenerate }) {
       {/* Hook & Angle (always visible) */}
       {a.hook && (
         <Typography variant="caption" sx={{ color: "primary.main", fontWeight: 500, display: "block", mb: 0.25, fontSize: "0.72rem" }}>
-          Hook: "{a.hook}"
+          Gancho: "{a.hook}"
         </Typography>
       )}
       {a.suggested_angle && (
         <Typography variant="caption" sx={{ color: "text.secondary", fontStyle: "italic", display: "block", mb: 0.5, fontSize: "0.68rem" }}>
-          Angle: {a.suggested_angle}
+          Ângulo: {a.suggested_angle}
         </Typography>
       )}
 
@@ -94,7 +94,7 @@ function ArticleCard({ article, onSave, onGenerate }) {
           endIcon={expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
           sx={{ fontSize: "0.65rem", color: "text.secondary", p: 0, minHeight: 0, textTransform: "none" }}
         >
-          {expanded ? "Less" : `Talking points${a.talking_points ? ` (${a.talking_points.length})` : ""}`}
+          {expanded ? "Menos" : ("Pontos de discussão" + String(a.talking_points ? (" (" + String(a.talking_points.length) + ")") : "") + "")}
         </Button>
       )}
 
@@ -103,7 +103,7 @@ function ArticleCard({ article, onSave, onGenerate }) {
           {a.talking_points && a.talking_points.length > 0 && (
             <Box sx={{ mb: 0.75 }}>
               <Typography variant="caption" sx={{ fontWeight: 600, fontSize: "0.65rem", color: "text.secondary" }}>
-                Talking Points
+                Pontos de discussão
               </Typography>
               {a.talking_points.map((tp, i) => (
                 <Typography key={i} variant="caption" sx={{ display: "block", fontSize: "0.68rem", lineHeight: 1.4, color: "text.primary" }}>
@@ -115,7 +115,7 @@ function ArticleCard({ article, onSave, onGenerate }) {
           {a.key_quotes && a.key_quotes.length > 0 && (
             <Box sx={{ mb: 0.5 }}>
               <Typography variant="caption" sx={{ fontWeight: 600, fontSize: "0.65rem", color: "text.secondary" }}>
-                Key Quotes
+                Citações principais
               </Typography>
               {a.key_quotes.map((q, i) => (
                 <Typography key={i} variant="caption" sx={{ display: "block", fontSize: "0.68rem", fontStyle: "italic", lineHeight: 1.4, color: "text.primary" }}>
@@ -126,7 +126,7 @@ function ArticleCard({ article, onSave, onGenerate }) {
           )}
           {a.suggested_title && (
             <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.65rem" }}>
-              Suggested title: <strong>{a.suggested_title}</strong>
+              Título sugerido: <strong>{a.suggested_title}</strong>
             </Typography>
           )}
           {a.suggested_hashtags && a.suggested_hashtags.length > 0 && (
@@ -145,12 +145,12 @@ function ArticleCard({ article, onSave, onGenerate }) {
         <Button size="small" variant="outlined" startIcon={<BookmarkAddIcon />}
           onClick={() => onSave(article.id)}
           sx={{ fontSize: "0.68rem", textTransform: "none" }}>
-          Save to Library
+          Salvar na biblioteca
         </Button>
         <Button size="small" variant="contained" startIcon={<MovieCreationIcon />}
           onClick={() => onGenerate(article.id)}
           sx={{ fontSize: "0.68rem", textTransform: "none" }}>
-          Generate Video
+          Gerar vídeo
         </Button>
       </Stack>
     </Paper>
@@ -170,7 +170,7 @@ export default function NewsResultsCard({ results, query }) {
   const handleSave = async (articleId) => {
     try {
       await http.post("/api/news/save", { article_ids: [articleId] })
-      showSnackbar("Article saved to Library!", "success")
+      showSnackbar("Artigo salvo na biblioteca!", "success")
     } catch (err) {
       showSnackbar(err.response?.data?.detail || err.message, "error")
     }
@@ -180,7 +180,7 @@ export default function NewsResultsCard({ results, query }) {
     // Save to library first, then user can generate from Videos page
     try {
       await http.post("/api/news/save", { article_ids: [articleId] })
-      showSnackbar("Article saved to Library — open Library to generate video", "success")
+      showSnackbar("Artigo salvo na Biblioteca , abra a Biblioteca para gerar vídeo", "success")
     } catch (err) {
       showSnackbar(err.response?.data?.detail || err.message, "error")
     }
@@ -191,7 +191,7 @@ export default function NewsResultsCard({ results, query }) {
     try {
       const ids = results.map(r => r.id)
       await http.post("/api/news/save", { article_ids: ids })
-      showSnackbar(`${ids.length} articles saved to Library!`, "success")
+      showSnackbar(("" + String(ids.length) + " artigos salvos na Biblioteca!"), "success")
     } catch (err) {
       showSnackbar(err.response?.data?.detail || err.message, "error")
     } finally {
@@ -210,19 +210,19 @@ export default function NewsResultsCard({ results, query }) {
         <Stack direction="row" spacing={1} alignItems="center">
           <NewspaperIcon sx={{ fontSize: 18, color: "primary.main" }} />
           <Typography variant="body2" sx={{ fontWeight: 700 }}>
-            News Research
+            Pesquisa de Notícias
           </Typography>
           {query && (
             <Chip label={query} size="small" variant="outlined" sx={{ fontSize: "0.65rem", height: 20 }} />
           )}
           <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            {results.length} article{results.length !== 1 ? "s" : ""} found
+            {results.length} artigo{results.length !== 1 ? "s" : ""} encontrado
           </Typography>
         </Stack>
         <Button size="small" variant="outlined" startIcon={<BookmarkAddIcon />}
           onClick={handleSaveAll} disabled={saving}
           sx={{ fontSize: "0.68rem", textTransform: "none" }}>
-          {saving ? "Saving..." : "Save All"}
+          {saving ? "Salvando..." : "Salvar Tudo"}
         </Button>
       </Stack>
 
@@ -242,7 +242,7 @@ export default function NewsResultsCard({ results, query }) {
       {!expanded && results.length > 6 && (
         <Button size="small" variant="text" onClick={() => setExpanded(true)}
           sx={{ mt: 1, color: "text.secondary", textTransform: "none" }}>
-          Show all {results.length} articles
+          Mostrar todos os {results.length} artigos
         </Button>
       )}
     </Box>

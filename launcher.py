@@ -34,9 +34,9 @@ from pathlib import Path
 
 # ─── Constants ─────────────────────────────────────────────────────────────────
 
-PORT = 16888
+PORT = int(os.environ.get("PORT", "16889"))
 URL = f"http://localhost:{PORT}"
-APP_NAME = "ViralMint"
+APP_NAME = "Decupa"
 
 # PyInstaller bundle detection. Two run modes:
 #   • Source (`python launcher.py`, non-frozen): the backend is started via
@@ -62,11 +62,11 @@ if FROZEN:
     BACKEND_LOG = _DATA_DIR / "logs" / "launcher-backend.log"
 else:
     ROOT = Path(__file__).parent
-    _DATA_DIR = ROOT
+    _DATA_DIR = Path(os.environ.get("VIRALMINT_DATA_DIR", str(ROOT)))
     ICON_PATH = ROOT / "frontend" / "public" / "icon-192.png"
     BACKEND_BIN = None
     FRONTEND_DIST = None
-    BACKEND_LOG = ROOT / "storage" / "tmp" / "launcher-backend.log"
+    BACKEND_LOG = _DATA_DIR / "storage" / "tmp" / "launcher-backend.log"
 
 
 # The launcher had a `~/ViralMint/launcher.json` preferences file with
@@ -157,7 +157,7 @@ _backend_log = None
 _status_lock = threading.Lock()
 
 _MAX_BACKEND_LOG_BYTES = 5_000_000  # rotate at 5MB
-_LAUNCHER_SENTINEL_PORT = 16887     # one-less than service port; single-instance guard
+_LAUNCHER_SENTINEL_PORT = PORT + 10000  # independent local launcher guard
 _launcher_sentinel_sock = None      # kept alive for lifetime of launcher process
 
 # ── Crash watchdog state ──
@@ -580,7 +580,7 @@ def is_ready(timeout=0.4):
         return False
     import urllib.request
     try:
-        with urllib.request.urlopen(f"{URL}/health", timeout=timeout) as resp:
+        with urllib.request.urlopen(f"{URL}/api/health", timeout=timeout) as resp:
             return getattr(resp, "status", 200) == 200
     except Exception:
         return False

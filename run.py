@@ -41,8 +41,9 @@ def check_env_file():
             print("⚠️  No .env file found. Create one from .env.example")
 
 def ensure_storage_dirs():
+    data_root = Path(os.environ.get("VIRALMINT_DATA_DIR", str(ROOT)))
     for d in ["videos", "audio", "generated", "thumbnails", "tmp"]:
-        (ROOT / "storage" / d).mkdir(parents=True, exist_ok=True)
+        (data_root / "storage" / d).mkdir(parents=True, exist_ok=True)
     print("✅ Storage directories ready")
 
 def check_imagemagick():
@@ -74,6 +75,9 @@ def check_node():
 
 def build_frontend():
     """Install npm deps and build if dist/ doesn't exist or is stale."""
+    external_dist = os.environ.get("VIRALMINT_FRONTEND_DIST")
+    if external_dist and (Path(external_dist) / "index.html").is_file():
+        return
     fe_dir = ROOT / "frontend"
     dist_dir = fe_dir / "dist"
     if not (fe_dir / "node_modules").exists():

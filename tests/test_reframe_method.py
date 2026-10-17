@@ -167,7 +167,7 @@ def test_fit_into_frame_only_exists_where_we_decided_it_should():
             continue
         if FIT_SIGNATURE not in path.read_text():
             continue
-        rel = str(path.relative_to(BACKEND))
+        rel = path.relative_to(BACKEND).as_posix()
         if rel not in ALLOWED:
             offenders.append(rel)
     assert not offenders, (

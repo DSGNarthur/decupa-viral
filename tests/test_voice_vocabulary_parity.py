@@ -72,7 +72,9 @@ def test_the_offered_edge_names_match_the_engines_own(page, const):
     assert rows, f"{const} rows parsed empty"
     for vid, shown in rows:
         engine = real[vid]
-        assert engine in shown, (
+        # Identity is the provider voice id, while descriptive labels are
+        # localized in Decupa. Preserve the proper voice name in either locale.
+        assert engine.split(" (")[0] in shown, (
             f'{page}: {vid} is shown as "{shown}" but the engine calls it "{engine}"'
         )
 

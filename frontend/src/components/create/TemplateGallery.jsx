@@ -15,7 +15,7 @@ const STOCK_TEMPLATES = [
   {
     id: "hook_story_cta",
     name: "Hook → Story → CTA",
-    desc: "Classic viral structure: grab attention, tell a story, drive action",
+    desc: "Estrutura viral clássica: prender a atenção, contar uma história, impulsionar a ação",
     icon: "🎣",
     tags: ["viral", "short-form"],
     defaults: {
@@ -28,7 +28,7 @@ const STOCK_TEMPLATES = [
   {
     id: "listicle",
     name: "Top 5 Listicle",
-    desc: "Numbered list format that keeps viewers watching for the next item",
+    desc: "Formato de lista numerada que mantém os espectadores assistindo para ver o próximo item",
     icon: "📋",
     tags: ["educational", "retention"],
     defaults: {
@@ -41,7 +41,7 @@ const STOCK_TEMPLATES = [
   {
     id: "before_after",
     name: "Before & After",
-    desc: "Show transformation — problem vs solution, old vs new",
+    desc: "Mostre a transformação: problema versus solução, antigo versus novo",
     icon: "🔄",
     tags: ["transformation", "satisfying"],
     defaults: {
@@ -54,7 +54,7 @@ const STOCK_TEMPLATES = [
   {
     id: "did_you_know",
     name: "Did You Know?",
-    desc: "Curiosity-driven educational content that feels like discovery",
+    desc: "Conteúdo educativo movido pela curiosidade que parece uma descoberta",
     icon: "💡",
     tags: ["educational", "curiosity"],
     defaults: {
@@ -67,7 +67,7 @@ const STOCK_TEMPLATES = [
   {
     id: "story_time",
     name: "Story Time",
-    desc: "Personal narrative that builds emotional connection",
+    desc: "Narrativa pessoal que constrói conexão emocional",
     icon: "📖",
     tags: ["narrative", "emotional"],
     defaults: {
@@ -130,14 +130,14 @@ export default function TemplateGallery({ mode, onApply, variant }) {
       const resp = await http.post(`/api/templates/refresh?mode=${mode}&niche=${encodeURIComponent(refreshNiche.trim())}`)
       if (resp.data?.templates?.length) {
         setTrendingTemplates(prev => [...resp.data.templates, ...prev.filter(t => t.niche !== refreshNiche.trim().toLowerCase())])
-        showSnackbar(`Generated ${resp.data.templates.length} trending templates`, "success")
+        showSnackbar(("" + String(resp.data.templates.length) + " templates em alta gerados"), "success")
       } else {
-        showSnackbar(resp.data?.message || resp.data?.error || "No templates generated — try a different niche", "warning")
+        showSnackbar(resp.data?.message || resp.data?.error || "Nenhum template gerado , tente um nicho diferente", "warning")
       }
     } catch (err) {
       console.error("Template generation failed:", err)
       const detail = err.response?.data?.detail || err.response?.data?.error || err.message || "Unknown error"
-      showSnackbar(`Template generation failed: ${detail}`, "error")
+      showSnackbar(("Falha ao gerar template: " + String(detail) + ""), "error")
     } finally {
       setGenerating(false)
     }
@@ -149,9 +149,9 @@ export default function TemplateGallery({ mode, onApply, variant }) {
     try {
       await http.delete(`/api/templates/${template.id}`)
       setTrendingTemplates(prev => prev.filter(t => t.id !== template.id))
-      showSnackbar("Template deleted", "success")
+      showSnackbar("Template excluído", "success")
     } catch {
-      showSnackbar("Failed to delete template", "error")
+      showSnackbar("Falha ao excluir template", "error")
     }
   }
 
@@ -189,12 +189,12 @@ export default function TemplateGallery({ mode, onApply, variant }) {
             Templates
           </Typography>
           <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            Pick a starting point
+            Escolha um ponto de partida
           </Typography>
           {trendingTemplates.length > 0 && (
             <Chip
               icon={<TrendingUpIcon sx={{ fontSize: 14 }} />}
-              label={`${trendingTemplates.length} trending`}
+              label={("" + String(trendingTemplates.length) + " em alta")}
               size="small"
               color="warning"
               variant="outlined"
@@ -257,7 +257,7 @@ export default function TemplateGallery({ mode, onApply, variant }) {
           <TrendingUpIcon sx={{ fontSize: 16, color: "text.secondary" }} />
           <TextField
             size="small"
-            placeholder="Enter niche to generate trending templates..."
+            placeholder={"Digite o nicho para gerar templates em alta..."}
             value={refreshNiche}
             onChange={(e) => setRefreshNiche(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleGenerateTrending()}
@@ -266,7 +266,7 @@ export default function TemplateGallery({ mode, onApply, variant }) {
               "& .MuiInputBase-root": { height: 32, fontSize: "0.8rem" },
             }}
           />
-          <Tooltip title="Generate trending templates from YouTube search data + your scout results">
+          <Tooltip title={"Gere templates em alta a partir dos dados de busca do YouTube + seus resultados de garimpo"}>
             <span>
               <Button
                 size="small"
@@ -276,7 +276,7 @@ export default function TemplateGallery({ mode, onApply, variant }) {
                 startIcon={generating ? <CircularProgress size={14} /> : <RefreshIcon sx={{ fontSize: 16 }} />}
                 sx={{ fontSize: "0.75rem", textTransform: "none", whiteSpace: "nowrap", height: 32 }}
               >
-                {generating ? "Generating..." : "Generate Template"}
+                {generating ? "Gerando..." : "Gerar Template"}
               </Button>
             </span>
           </Tooltip>
@@ -316,7 +316,7 @@ function TemplateCard({ template: t, isSelected, onSelect, onDelete, isTrending 
         <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Chip
             icon={<TrendingUpIcon sx={{ fontSize: 10 }} />}
-            label={t.niche || "trending"}
+            label={t.niche || "em alta"}
             size="small"
             color="warning"
             sx={{

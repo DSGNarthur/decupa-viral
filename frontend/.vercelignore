@@ -1,0 +1,12 @@
+node_modules
+.env*
+*.db
+runtime.local.json
+validation
+.git
+*.log
+Decupa-Viral-Web/
+wasm-validation/
+/api/
+/server-runtime/
+/requirements.txt

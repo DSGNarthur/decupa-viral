@@ -11,7 +11,7 @@ import useDocumentTitle from "../../hooks/useDocumentTitle"
 
 // Aspect presets, as width/height ratios. "free" leaves the box unconstrained.
 const PRESETS = [
-  { value: "free", label: "Free", ratio: 0 },
+  { value: "free", label: "Grátis", ratio: 0 },
   { value: "9:16", label: "9:16", ratio: 9 / 16 },
   { value: "1:1", label: "1:1", ratio: 1 },
   { value: "16:9", label: "16:9", ratio: 16 / 9 },
@@ -67,7 +67,7 @@ function CropCanvas({ box, setBox, preset }) {
   if (!previewUrl) {
     return (
       <Typography variant="caption" sx={{ color: "text.secondary" }}>
-        Add a video, then drag a box over the frame to set the crop.
+        Adicione um vídeo, depois arraste uma caixa sobre o quadro para definir o corte.
       </Typography>
     )
   }
@@ -149,12 +149,12 @@ function CropCanvas({ box, setBox, preset }) {
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mt: 1 }}>
         <Typography variant="caption" sx={{ color: "text.secondary", flex: 1 }}>
           {box && srcW > 0
-            ? `Crop ${Math.round(srcW * box.w) & ~1} × ${Math.round(srcH * box.h) & ~1} px `
-              + `from ${srcW} × ${srcH}`
-            : "Drag a box over the frame. Tap once to reset to the whole frame."}
+            ? ("Cortar " + String(Math.round(srcW * box.w) & ~1) + " × " + String(Math.round(srcH * box.h) & ~1) + " px ")
+              + ("de " + String(srcW) + " × " + String(srcH) + "")
+            : "Arraste uma caixa sobre o quadro. Toque uma vez para redefinir para o quadro inteiro."}
         </Typography>
         {box && (
-          <Button size="small" onClick={() => setBox(null)}>Reset</Button>
+          <Button size="small" onClick={() => setBox(null)}>Redefinir</Button>
         )}
       </Stack>
     </Box>
@@ -162,26 +162,26 @@ function CropCanvas({ box, setBox, preset }) {
 }
 
 export default function ToolCrop() {
-  useDocumentTitle("Crop Video")
+  useDocumentTitle("Recortar Vídeo")
   const [box, setBox] = useState(null)          // {x,y,w,h} normalized, or null
   const [preset, setPreset] = useState("free")
 
   return (
     <ToolRunner
-      title="Crop Video"
-      description="Drag a box over the frame and keep just that part."
+      title={"Recortar Vídeo"}
+      description={"Arraste uma caixa sobre o quadro e mantenha apenas essa parte."}
       icon={<CropOutlinedIcon fontSize="large" />}
       endpoint="/api/tools/crop"
-      processLabel="Crop"
-      downloadLabel="Download cropped"
+      processLabel={"Recortar"}
+      downloadLabel={"Baixar recorte"}
       canSubmit={!!box}
-      disabledReason={box ? "" : "Drag a crop box over the frame"}
+      disabledReason={box ? "" : "Arraste uma caixa de recorte sobre o quadro"}
       costNote={
         <Typography variant="caption" sx={{ color: "text.secondary" }}>
-          Runs locally with FFmpeg — the video never leaves your machine. The
-          audio track is copied across untouched, so cropping costs nothing in
-          sound quality. Want the framing chosen for you instead? Reframe to
-          Vertical tracks faces and picks the crop itself.
+          Roda localmente com FFmpeg , o vídeo nunca sai da sua máquina. A
+          faixa de áudio é copiada sem alterações, então o recorte não custa nada em
+          qualidade de som. Prefere que o enquadramento seja escolhido para você? Reenquadrar para
+          Vertical rastreia rostos e escolhe o recorte sozinho.
         </Typography>
       }
       fieldBuilder={() => ({
@@ -191,7 +191,7 @@ export default function ToolCrop() {
       <Stack spacing={2}>
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 0.75 }}>
-            Shape
+            Forma
           </Typography>
           <ToggleButtonGroup
             size="small"

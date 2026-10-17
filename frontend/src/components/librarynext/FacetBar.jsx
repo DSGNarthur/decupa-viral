@@ -76,7 +76,7 @@ export default function FacetBar({
               >
                 <Icon sx={{ fontSize: 16, color: active ? "primary.main" : "inherit" }} />
                 <Typography sx={{ fontSize: "0.79rem", fontWeight: active ? 700 : 500, letterSpacing: "-0.01em" }}>
-                  {k === "all" ? "All" : MEDIA[k].label}
+                  {k === "all" ? "Todos" : MEDIA[k].label}
                 </Typography>
                 <Typography sx={{
                   fontSize: "0.68rem", fontWeight: 600, fontVariantNumeric: "tabular-nums",
@@ -89,7 +89,7 @@ export default function FacetBar({
           })}
         </Box>
         <Typography sx={{ fontSize: "0.7rem", color: "text.disabled", display: { xs: "none", lg: "block" } }}>
-          what it is
+          o que é
         </Typography>
       </Stack>
 
@@ -99,7 +99,7 @@ export default function FacetBar({
           fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.09em",
           textTransform: "uppercase", color: "text.disabled", mr: 0.2,
         }}>
-          From
+          De
         </Typography>
         {ORIGIN_KEYS.map((k) => {
           const active = origins.includes(k)
@@ -142,17 +142,17 @@ export default function FacetBar({
         })}
 
         <Typography sx={{ fontSize: "0.7rem", color: "text.disabled", display: { xs: "none", lg: "block" }, ml: 0.3 }}>
-          where it came from
+          de onde veio
         </Typography>
 
         <Box sx={{ width: "1px", height: 20, bgcolor: "divider", mx: 0.5 }} />
 
         <Select
           size="small" value={producer} onChange={(e) => onProducerChange(e.target.value)}
-          aria-label="Filter by tool"
+          aria-label={"Filtrar por ferramenta"}
           sx={{ height: 28, fontSize: "0.76rem", "& .MuiSelect-select": { py: 0 }, minWidth: 132 }}
         >
-          <MenuItem value="all" sx={{ fontSize: "0.8rem" }}>Any tool</MenuItem>
+          <MenuItem value="all" sx={{ fontSize: "0.8rem" }}>Qualquer ferramenta</MenuItem>
           {producerOptions.map((p) => (
             <MenuItem key={p.key} value={p.key} sx={{ fontSize: "0.8rem" }}>
               {p.label} <Box component="span" sx={{ ml: 0.6, color: "text.disabled" }}>{p.count}</Box>
@@ -162,13 +162,13 @@ export default function FacetBar({
 
         <Select
           size="small" value={sort} onChange={(e) => onSortChange(e.target.value)}
-          aria-label="Sort"
+          aria-label={"Ordenar"}
           sx={{ height: 28, fontSize: "0.76rem", "& .MuiSelect-select": { py: 0 }, minWidth: 116 }}
         >
-          <MenuItem value="newest" sx={{ fontSize: "0.8rem" }}>Newest</MenuItem>
-          <MenuItem value="oldest" sx={{ fontSize: "0.8rem" }}>Oldest</MenuItem>
-          <MenuItem value="longest" sx={{ fontSize: "0.8rem" }}>Longest</MenuItem>
-          <MenuItem value="title" sx={{ fontSize: "0.8rem" }}>Title A–Z</MenuItem>
+          <MenuItem value="newest" sx={{ fontSize: "0.8rem" }}>Mais recentes</MenuItem>
+          <MenuItem value="oldest" sx={{ fontSize: "0.8rem" }}>Mais antigos</MenuItem>
+          <MenuItem value="longest" sx={{ fontSize: "0.8rem" }}>Mais longos</MenuItem>
+          <MenuItem value="title" sx={{ fontSize: "0.8rem" }}>Título A,Z</MenuItem>
         </Select>
 
         <Box sx={{ flex: 1 }} />
@@ -178,17 +178,17 @@ export default function FacetBar({
           onChange={(_, v) => v && onViewChange(v)}
           sx={{ height: 28, "& .MuiToggleButton-root": { px: 1.1, fontSize: "0.72rem", textTransform: "none", gap: 0.5 } }}
         >
-          <ToggleButton value="grid" aria-label="Grid view">
-            <GridViewRoundedIcon sx={{ fontSize: 15 }} /> Grid
+          <ToggleButton value="grid" aria-label={"Visualização em grade"}>
+            <GridViewRoundedIcon sx={{ fontSize: 15 }} /> Grade
           </ToggleButton>
-          <ToggleButton value="tree" aria-label="Group by source">
-            <AccountTreeRoundedIcon sx={{ fontSize: 15 }} /> By source
+          <ToggleButton value="tree" aria-label={"Agrupar por origem"}>
+            <AccountTreeRoundedIcon sx={{ fontSize: 15 }} /> Por origem
           </ToggleButton>
         </ToggleButtonGroup>
 
-        <Tooltip title={dense ? "Comfortable rows" : "Dense rows"}>
+        <Tooltip title={dense ? "Linhas confortáveis" : "Linhas compactas"}>
           <IconButton size="small" onClick={() => onDenseChange(!dense)}
-            aria-label={dense ? "Comfortable rows" : "Dense rows"}
+            aria-label={dense ? "Linhas confortáveis" : "Linhas compactas"}
             sx={{ border: 1, borderColor: "divider", borderRadius: "8px", width: 28, height: 28 }}>
             {dense ? <ViewModuleRoundedIcon sx={{ fontSize: 16 }} /> : <ViewComfyRoundedIcon sx={{ fontSize: 16 }} />}
           </IconButton>

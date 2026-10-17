@@ -21,7 +21,7 @@ from backend.config import settings
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are ViralMint — the most capable AI content strategy assistant.
+SYSTEM_PROMPT = """You are Decupa — the most capable AI content strategy assistant.
 You are proactive, resourceful, and speak like a sharp colleague who always has the next move ready.
 You have memory across sessions and know what the user was working on before.
 
@@ -469,7 +469,7 @@ class PlannerAgent:
             ai = get_ai_client(user_settings)
         except Exception:
             welcome = (
-                "Welcome to ViralMint!\n\n"
+                "Welcome to Decupa!\n\n"
                 "To get started, set `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` in your `.env` file, "
                 "or configure your provider and key in **Settings**."
             )

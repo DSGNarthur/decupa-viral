@@ -85,11 +85,11 @@ export default function AssetDrawer({
   const facts = useMemo(() => {
     if (!item) return []
     const rows = [
-      ["Kind", MEDIA[item.media]?.label],
+      ["Tipo", MEDIA[item.media]?.label],
       ["Origin", ORIGINS[item.origin]?.hint],
       ["Made by", item.producer],
       ["Added", fmtDayLong(item.created_at)],
-      ["Duration", formatClock(item.duration_seconds)],
+      ["Duração", formatClock(item.duration_seconds)],
       ["Aspect", item.aspect],
       ["File", item.ext ? `.${item.ext}` : null],
       ["Size", fmtSize(item.size_mb)],
@@ -115,11 +115,11 @@ export default function AssetDrawer({
     }
     try {
       await endpoints[item.source]()
-      showSnackbar("Deleted", "info")
+      showSnackbar("Excluído", "info")
       onDeleted?.(item)
       onClose?.()
     } catch (e) {
-      showSnackbar(e.response?.data?.detail || "Could not delete that item", "error")
+      showSnackbar(e.response?.data?.detail || "Não foi possível excluir esse item", "error")
     }
   }
 
@@ -172,12 +172,12 @@ export default function AssetDrawer({
                 </Typography>
                 <Typography sx={{ fontSize: "0.72rem", color: "text.secondary", mt: 0.25 }}>
                   {item.producer}
-                  {item.duration_seconds != null && ` · ${formatClock(item.duration_seconds)}`}
-                  {item.aspect && ` · ${item.aspect}`}
-                  {` · ${fmtDayLong(item.created_at)}`}
+                  {item.duration_seconds != null && (" · " + String(formatClock(item.duration_seconds)) + "")}
+                  {item.aspect && (" · " + String(item.aspect) + "")}
+                  {(" · " + String(fmtDayLong(item.created_at)) + "")}
                 </Typography>
               </Box>
-              <IconButton size="small" onClick={onClose} aria-label="Close">
+              <IconButton size="small" onClick={onClose} aria-label={"Fechar"}>
                 <CloseRoundedIcon fontSize="small" />
               </IconButton>
             </Stack>
@@ -236,8 +236,8 @@ export default function AssetDrawer({
                 ) : (
                   <Typography sx={{ fontSize: "0.78rem", color: "text.disabled", px: 3, textAlign: "center" }}>
                     {item.ext === "zip"
-                      ? "Archive — save a copy to open it"
-                      : "Text file — save a copy to read it"}
+                      ? "Arquivo , salve uma cópia para abrir"
+                      : "Arquivo de texto , salve uma cópia para ler"}
                   </Typography>
                 )}
               </Box>
@@ -254,8 +254,8 @@ export default function AssetDrawer({
                   fontWeight: 600, px: 1.5,
                 },
               }}>
-              <Tab label="Details" />
-              <Tab label={`Lineage${hasLineage ? ` (${ancestors.length + derivatives.length})` : ""}`} />
+              <Tab label={"Detalhes"} />
+              <Tab label={("Linhagem" + String(hasLineage ? (" (" + String(ancestors.length + derivatives.length) + ")") : "") + "")} />
             </Tabs>
             <Divider />
           </Box>
@@ -293,8 +293,8 @@ export default function AssetDrawer({
                   )
                 ) : (
                   <Typography sx={{ fontSize: "0.84rem", color: "text.secondary" }}>
-                    Couldn't load the full record. Everything the library knows about it is in the
-                    header above.
+                    Não foi possível carregar o registro completo. Tudo o que a biblioteca sabe sobre ele está no
+                    cabeçalho acima.
                   </Typography>
                 )
               ) : (
@@ -320,12 +320,12 @@ export default function AssetDrawer({
               <Stack spacing={1.25}>
                 {!hasLineage && (
                   <Typography sx={{ fontSize: "0.82rem", color: "text.secondary" }}>
-                    Nothing links to this yet. Edits you make from it will show up here.
+                    Nada está vinculado a isto ainda. As edições que você fizer a partir daqui aparecerão aqui.
                   </Typography>
                 )}
                 {ancestors.length > 0 && (
                   <>
-                    <SectionLabel>Made from</SectionLabel>
+                    <SectionLabel>Criado a partir de</SectionLabel>
                     {ancestors.map((a) => (
                       <LineageRow key={a.key} item={a}
                         icon={<NorthEastRoundedIcon sx={{ fontSize: 14 }} />} onOpen={onOpen} />
@@ -334,7 +334,7 @@ export default function AssetDrawer({
                 )}
                 {derivatives.length > 0 && (
                   <>
-                    <SectionLabel>Used to make</SectionLabel>
+                    <SectionLabel>Usado para criar</SectionLabel>
                     {derivatives.map((c) => (
                       <LineageRow key={c.key} item={c}
                         icon={<SubdirectoryArrowRightRoundedIcon sx={{ fontSize: 14 }} />} onOpen={onOpen} />
@@ -354,11 +354,11 @@ export default function AssetDrawer({
             }}>
               <Button variant="contained" size="small" startIcon={<DownloadRoundedIcon />}
                 sx={{ flex: 1 }} href={item.stream_url} download>
-                Save a copy
+                Salvar uma cópia
               </Button>
-              <Tooltip title="Delete">
+              <Tooltip title={"Excluir"}>
                 <Button variant="outlined" size="small" color="error" sx={{ minWidth: 0, px: 1.25 }}
-                  aria-label="Delete" onClick={handleDelete}>
+                  aria-label={"Excluir"} onClick={handleDelete}>
                   <DeleteOutlineRoundedIcon fontSize="small" />
                 </Button>
               </Tooltip>

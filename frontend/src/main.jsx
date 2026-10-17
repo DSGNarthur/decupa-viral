@@ -3,6 +3,8 @@ import ReactDOM from "react-dom/client"
 import { CssBaseline } from "@mui/material"
 import App from "./App"
 import ThemeWrapper from "./ThemeWrapper"
+import CompanionConnect from './pages/CompanionConnect'
+import { prepareCompanion } from './companion/session'
 import { installTranslationGuard } from "./utils/translationGuard"
 
 // Self-hosted Inter — replaces the previous fonts.googleapis.com link.
@@ -19,11 +21,31 @@ import "@fontsource/inter/700.css"
 // React tracks, which otherwise crashes the app into the ErrorBoundary.
 installTranslationGuard()
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+const root = ReactDOM.createRoot(document.getElementById('root'))
+
+async function start({ interactive = false } = {}) {
+  let connected = true, companionError = ''
+  if (import.meta.env.VITE_COMPANION_RUNTIME === 'true') {
+    root.render(<ThemeWrapper><CssBaseline /><p role="status" style={{ padding: 32 }}>Conectando ao processador deste PC. Permita o acesso à rede local se o navegador solicitar.</p></ThemeWrapper>)
+    try { connected = await prepareCompanion({ interactive }) }
+    catch (error) { connected = false; companionError = error.message }
+  }
+  if (import.meta.env.VITE_BROWSER_RUNTIME === 'true') {
+    try {
+      const { prepareBrowserRuntime } = await import('./browser/bootstrap')
+      await prepareBrowserRuntime()
+    } catch (error) {
+      root.render(<p role="alert">{error.message}</p>)
+      return
+    }
+  }
+  root.render(
   <React.StrictMode>
     <ThemeWrapper>
       <CssBaseline />
-      <App />
+      {connected ? <App /> : <CompanionConnect error={companionError} onConnect={() => start({ interactive: true })} />}
     </ThemeWrapper>
   </React.StrictMode>
 )
+}
+start()

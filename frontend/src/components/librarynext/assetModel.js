@@ -35,8 +35,8 @@ import { toDate } from "../../utils/format"
 // without reading a single word.
 export const ORIGINS = {
   created: {
-    label: "Created",
-    hint: "Made in ViralMint from a prompt, script or brief",
+    label: "Criado",
+    hint: "Feito no Decupa Viral a partir de um prompt, roteiro ou briefing",
     light: "#c96442",   // brand terracotta — the app's own act of making
     // Text-only step-down. Decoration and text have different contrast floors
     // — 3:1 vs 4.5:1 — and the brand terracotta falls between them: measured
@@ -51,14 +51,14 @@ export const ORIGINS = {
     // The word was wrong — the bucket is overwhelmingly videos downloaded from
     // links, so "Imported" read as a claim about the handful of disk imports.
     // "Sources" covers all three and matches the "By source" grouping.
-    label: "Sources",
-    hint: "Raw material that came from outside — downloaded from a link, imported from your disk, or uploaded",
+    label: "Fontes",
+    hint: "Material bruto que veio de fora , baixado de um link, importado do seu disco ou enviado",
     light: "#0e7490",
     dark: "#22b8cf",
   },
   edited: {
-    label: "Edited",
-    hint: "Made from something already in your library — a clip, a reframe, burned captions, extracted audio",
+    label: "Editado",
+    hint: "Feito a partir de algo que já está na sua biblioteca , um clipe, um reenquadramento, legendas incorporadas, áudio extraído",
     light: "#6d5bd0",
     dark: "#a78bfa",
   },
@@ -90,10 +90,10 @@ export function originTextColor(origin, isDark) {
 
 // ── The media axis ──────────────────────────────────────────────────────────
 export const MEDIA = {
-  video: { label: "Video", plural: "videos" },
-  image: { label: "Image", plural: "images" },
-  audio: { label: "Audio", plural: "audio files" },
-  doc: { label: "Files", plural: "files" },
+  video: { label: "Vídeo", plural: "vídeos" },
+  image: { label: "Imagem", plural: "imagens" },
+  audio: { label: "Áudio", plural: "arquivos de áudio" },
+  doc: { label: "Arquivos", plural: "arquivos" },
 }
 
 export const MEDIA_KEYS = ["video", "image", "audio", "doc"]
@@ -106,42 +106,42 @@ export const MEDIA_KEYS = ["video", "image", "audio", "doc"]
 // another.
 export const PRODUCERS = {
   // generated_videos.source_type — the studios.
-  smart_video: { label: "Stock Video", media: "video", origin: "created" },
-  motion_graphics: { label: "Motion Graphics", media: "video", origin: "created" },
+  smart_video: { label: "Vídeo de Banco", media: "video", origin: "created" },
+  motion_graphics: { label: "Animações", media: "video", origin: "created" },
   // A clip is cut FROM a source you own — derived, not created. Filing it under
   // "Generated" is why a clip and the video it came from could never be seen
   // together.
-  clip_extraction: { label: "Clipper", media: "video", origin: "edited" },
+  clip_extraction: { label: "Cortes", media: "video", origin: "edited" },
 
   // Made here from nothing you already owned.
-  "tool:voiceover": { label: "Voice-over", media: "audio", origin: "created" },
+  "tool:voiceover": { label: "Narração", media: "audio", origin: "created" },
 
   // Editors — every one of these is EDITED from something you already own, and
   // not one of them appeared anywhere before the Library index existed.
-  "tool:captions": { label: "Captions", media: "video", origin: "edited" },
-  "tool:reframe": { label: "Reframe", media: "video", origin: "edited" },
-  "tool:trim": { label: "Trim", media: "video", origin: "edited" },
-  "tool:speed": { label: "Speed", media: "video", origin: "edited" },
-  "tool:transform": { label: "Transform", media: "video", origin: "edited" },
-  "tool:merge_clips": { label: "Merge", media: "video", origin: "edited" },
-  "tool:watermark": { label: "Watermark", media: "video", origin: "edited" },
-  "tool:auto_zoom": { label: "Auto zoom", media: "video", origin: "edited" },
-  "tool:remove_silence": { label: "Silence cut", media: "video", origin: "edited" },
-  "tool:compress": { label: "Compress", media: "video", origin: "edited" },
-  "tool:crop": { label: "Crop", media: "video", origin: "edited" },
-  "tool:translate": { label: "Translate", media: "video", origin: "edited" },
-  "tool:music_visualizer": { label: "Visualizer", media: "video", origin: "edited" },
-  "tool:audio_enhance": { label: "Enhanced", media: "video", origin: "edited" },
+  "tool:captions": { label: "Legendas", media: "video", origin: "edited" },
+  "tool:reframe": { label: "Reenquadrar", media: "video", origin: "edited" },
+  "tool:trim": { label: "Cortar", media: "video", origin: "edited" },
+  "tool:speed": { label: "Velocidade", media: "video", origin: "edited" },
+  "tool:transform": { label: "Transformar", media: "video", origin: "edited" },
+  "tool:merge_clips": { label: "Mesclar", media: "video", origin: "edited" },
+  "tool:watermark": { label: "Marca d'água", media: "video", origin: "edited" },
+  "tool:auto_zoom": { label: "Zoom automático", media: "video", origin: "edited" },
+  "tool:remove_silence": { label: "Corte de silêncio", media: "video", origin: "edited" },
+  "tool:compress": { label: "Comprimir", media: "video", origin: "edited" },
+  "tool:crop": { label: "Recortar", media: "video", origin: "edited" },
+  "tool:translate": { label: "Traduzir", media: "video", origin: "edited" },
+  "tool:music_visualizer": { label: "Visualizador", media: "video", origin: "edited" },
+  "tool:audio_enhance": { label: "Aprimorado", media: "video", origin: "edited" },
   "tool:gif": { label: "GIF", media: "image", origin: "edited" },
-  "tool:subtitle_export": { label: "Subtitles", media: "doc", origin: "edited" },
-  "tool:transcript": { label: "Transcript", media: "doc", origin: "edited" },
-  "tool:auto_chapters": { label: "Chapters", media: "doc", origin: "edited" },
-  "tool:metadata": { label: "Metadata", media: "doc", origin: "edited" },
+  "tool:subtitle_export": { label: "Legendas", media: "doc", origin: "edited" },
+  "tool:transcript": { label: "Transcrição", media: "doc", origin: "edited" },
+  "tool:auto_chapters": { label: "Capítulos", media: "doc", origin: "edited" },
+  "tool:metadata": { label: "Metadados", media: "doc", origin: "edited" },
 
   // Things that came from outside.
-  download: { label: "Download", media: "video", origin: "imported" },
-  import: { label: "Import", media: "video", origin: "imported" },
-  music_upload: { label: "Upload", media: "audio", origin: "imported" },
+  download: { label: "Baixar", media: "video", origin: "imported" },
+  import: { label: "Importar", media: "video", origin: "imported" },
+  music_upload: { label: "Enviar", media: "audio", origin: "imported" },
 }
 
 /** Classify a stored row. `mediaOverride` covers the one case the key can't
@@ -149,7 +149,7 @@ export const PRODUCERS = {
 export function classify(producerKey, mediaOverride) {
   const key = normalizeProducerKey(producerKey)
   const p = PRODUCERS[key]
-  if (!p) return { label: key || "Unknown", media: mediaOverride || "video", origin: "created", unmapped: true }
+  if (!p) return { label: key || "Desconhecido", media: mediaOverride || "video", origin: "created", unmapped: true }
   return { ...p, media: mediaOverride || p.media }
 }
 
@@ -223,17 +223,17 @@ export function normalizeProducerKey(raw) {
 // Kept out of PRODUCERS on purpose — that map answers "where does this file sit
 // in the library", and these have no file.
 export const JOB_ONLY_LABELS = {
-  scout: "Scout",
-  news_scout: "News scout",
-  news_save: "Saved article",
-  analyze: "Analysis",
-  channel_analysis: "Channel analysis",
-  generate: "Stock Video",
+  scout: "Pesquisa de vídeos",
+  news_scout: "Radar de notícias",
+  news_save: "Artigo salvo",
+  analyze: "Análise",
+  channel_analysis: "Análise de canal",
+  generate: "Vídeo de Banco",
   extract_clips: "Clipper",
-  motion_render: "Motion render",
-  motion_compose: "AI Compose",
-  upload: "Upload",
-  "tool:hook_analysis": "Hook analysis",
+  motion_render: "Renderização de movimento",
+  motion_compose: "Composição com IA",
+  upload: "Enviar",
+  "tool:hook_analysis": "Análise de gancho",
   // NOT here: tool:metadata (.json) and tool:podcast_series (.zip). Both write
   // a durable file the user can download, both are producers in the map above,
   // and listing them here told Activity the opposite — so neither earned a

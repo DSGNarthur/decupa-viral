@@ -20,16 +20,16 @@ export default function SourcePanel({ source }) {
   return (
     <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 2 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-        <Typography variant="overline" sx={{ color: "text.secondary" }}>Inspiration Source</Typography>
+        <Typography variant="overline" sx={{ color: "text.secondary" }}>Fonte de Inspiração</Typography>
       </Stack>
-      <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5 }}>{source.title || "Untitled"}</Typography>
+      <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5 }}>{source.title || "Sem título"}</Typography>
 
       {source.transcript && (
         <Box sx={{ mb: 1.5 }}>
           <Button size="small" variant="text" onClick={() => setShowTranscript(!showTranscript)}
             sx={{ p: 0, minWidth: 0 }}>
-            {showTranscript ? "Hide transcript" : "Show transcript"}
-            {source.transcript_language && ` (${source.transcript_language})`}
+            {showTranscript ? "Ocultar transcrição" : "Mostrar transcrição"}
+            {source.transcript_language && (" (" + String(source.transcript_language) + ")")}
           </Button>
           {showTranscript && (
             <Paper variant="outlined" sx={{ p: 1.5, mt: 0.5, maxHeight: 150, overflowY: "auto", fontSize: "0.8rem", color: "text.secondary", lineHeight: 1.6 }}>
@@ -41,11 +41,11 @@ export default function SourcePanel({ source }) {
 
       {Object.keys(insights).length > 0 && (
         <Stack spacing={1}>
-          {insights.hook && <InsightRow label="Hook" color="secondary.main" value={insights.hook} />}
-          {insights.structure && <InsightRow label="Structure" color="secondary.main" value={insights.structure} />}
-          {insights.why_viral && <InsightRow label="Why viral" color="warning.main" value={insights.why_viral} />}
-          {insights.suggested_angle && <InsightRow label="Your angle" color="primary.main" value={insights.suggested_angle} />}
-          {insights.suggested_title && <InsightRow label="Title idea" color="primary.main" value={insights.suggested_title} />}
+          {insights.hook && <InsightRow label={"Gancho"} color="secondary.main" value={insights.hook} />}
+          {insights.structure && <InsightRow label={"Estrutura"} color="secondary.main" value={insights.structure} />}
+          {insights.why_viral && <InsightRow label={"Por que viralizou"} color="warning.main" value={insights.why_viral} />}
+          {insights.suggested_angle && <InsightRow label={"Seu ângulo"} color="primary.main" value={insights.suggested_angle} />}
+          {insights.suggested_title && <InsightRow label={"Ideia de título"} color="primary.main" value={insights.suggested_title} />}
         </Stack>
       )}
     </Paper>

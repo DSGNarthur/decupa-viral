@@ -122,6 +122,9 @@ card. Required:
 - CINEMATIC OVERLAYS (ALWAYS include BOTH, as direct children of #stage):
   GRAIN:    __GRAIN__
   VIGNETTE: __VIGNETTE__
+  Keep every text/content wrapper positioned with z-index:110 or higher so
+  decorative overlays never cover readable text. Backgrounds stay below 90.
+  Do not hide real overlap errors with data-layout-allow-occlusion.
 - BOLD TYPE HIERARCHY: oversized weights (800–900), tight leading, an accent
   colour on the key word, generous scale contrast.
 - COHESIVE COLOUR: 3–4 swatches built from the accent — accent, one tint, one
@@ -198,6 +201,8 @@ def build_brief_message(brief: dict) -> str:
         f"DIMENSIONS: {w}x{h} ({aspect})",
         f"DURATION: {duration} seconds",
         f"ACCENT COLOUR: {brief.get('accent') or '#ffd60a'}",
+        "LANGUAGE: Brazilian Portuguese for visible text and variable labels, unless the brief explicitly requests another language.",
+        "FACTS: Use only the provided content. Do not invent names, dates, statistics, claims or quotes.",
     ]
     if brief.get("style"):
         lines.append(f"STYLE: {brief['style']}")

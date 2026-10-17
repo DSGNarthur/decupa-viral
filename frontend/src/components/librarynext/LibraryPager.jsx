@@ -48,9 +48,9 @@ export default function LibraryPager({
         justifyContent="center">
         <Typography sx={{ fontSize: "0.75rem", color: "text.disabled" }}>
           {total === 0
-            ? `No ${unit}`
-            : `${first}–${last} of ${total} ${unit}`}
-          {filtersActive && libraryTotal ? ` (of ${libraryTotal} in your library)` : ""}
+            ? ("Sem " + String(unit) + "")
+            : ("" + String(first) + "," + String(last) + " de " + String(total) + " " + String(unit) + "")}
+          {filtersActive && libraryTotal ? (" (de " + String(libraryTotal) + " na sua biblioteca)") : ""}
         </Typography>
 
         {filtersActive && (
@@ -59,19 +59,19 @@ export default function LibraryPager({
               fontSize: "0.75rem", color: "primary.main", cursor: "pointer",
               fontWeight: 600,
             }}>
-            clear filters
+            limpar filtros
           </Typography>
         )}
 
         {total > PAGE_SIZES[0] && (
           <Stack direction="row" spacing={0.75} alignItems="center">
             <Typography sx={{ fontSize: "0.75rem", color: "text.disabled" }}>
-              per page
+              por página
             </Typography>
             <Select
               size="small" value={pageSize}
               onChange={(e) => onPageSize(Number(e.target.value))}
-              aria-label="Items per page"
+              aria-label={"Itens por página"}
               sx={{
                 height: 26, fontSize: "0.75rem",
                 "& .MuiSelect-select": { py: 0, pl: 1 },

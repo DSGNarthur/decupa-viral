@@ -16,8 +16,8 @@ import UserImagesPanel from "./UserImagesPanel"
 
 // Transition presets the stock pipeline can honor when stitching clips.
 export const TRANSITIONS = [
-  { id: "auto", label: "Auto" },
-  { id: "none", label: "Hard cut" },
+  { id: "auto", label: "Automático" },
+  { id: "none", label: "Corte seco" },
   { id: "fade", label: "Fade" },
   { id: "slide", label: "Slide" },
   { id: "zoom", label: "Zoom" },
@@ -50,7 +50,7 @@ export default function StudioConfigRail({
     <Box sx={{ width: { xs: 300, lg: 344 }, flexShrink: 0, overflowY: "auto", overflowX: "hidden", p: 1.75, height: "100%" }}>
       <Stack spacing={1.5}>
         {/* Visual Style — drives the render's look + the live preview palette */}
-        <Panel title="Visual Style">
+        <Panel title={"Estilo Visual"}>
           <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1 }}>
             {STYLES.map((s) => (
               <StyleSwatch
@@ -65,26 +65,26 @@ export default function StudioConfigRail({
         </Panel>
 
         {/* Format & mode */}
-        <Panel title="Format & Mode">
+        <Panel title={"Formato e Modo"}>
           <ToggleButtonGroup
             value={aspectRatio} exclusive fullWidth size="small"
             onChange={(_, v) => v && setAspectRatio(v)}
             sx={{ mb: 1, "& .MuiToggleButton-root": { textTransform: "none", fontSize: "0.78rem", py: 0.4 } }}
           >
             <ToggleButton value="9:16">9:16 · Vertical</ToggleButton>
-            <ToggleButton value="16:9">16:9 · Wide</ToggleButton>
+            <ToggleButton value="16:9">16:9 · Amplo</ToggleButton>
           </ToggleButtonGroup>
           <ToggleButtonGroup
             value={operation} exclusive fullWidth size="small"
             onChange={(_, v) => v && setOperation(v)}
             sx={{ "& .MuiToggleButton-root": { textTransform: "none", fontSize: "0.78rem", py: 0.4 } }}
           >
-            <ToggleButton value="t2v">Script → Video</ToggleButton>
-            <ToggleButton value="i2v"><ImageIcon sx={{ fontSize: 15, mr: 0.5 }} />Image</ToggleButton>
+            <ToggleButton value="t2v">Roteiro → Vídeo</ToggleButton>
+            <ToggleButton value="i2v"><ImageIcon sx={{ fontSize: 15, mr: 0.5 }} />Imagem</ToggleButton>
           </ToggleButtonGroup>
           {operation === "i2v" && (
             <Box sx={{ mt: 1.25 }}>
-              <ImageUpload label="Input image" value={startImage} onChange={setStartImage} onRemove={() => setStartImage(null)} />
+              <ImageUpload label={"Insira a imagem"} value={startImage} onChange={setStartImage} onRemove={() => setStartImage(null)} />
             </Box>
           )}
         </Panel>
@@ -96,7 +96,7 @@ export default function StudioConfigRail({
             question. The backend resolves the clash the same way — per-scene
             images win — but the UI should never create it. */}
         {operation !== "i2v" && (
-          <Panel title="Your Images">
+          <Panel title={"Suas Imagens"}>
             <UserImagesPanel
               images={userImages}
               setImages={setUserImages}
@@ -111,7 +111,7 @@ export default function StudioConfigRail({
         </Panel>
 
         {/* Transitions between stock clips */}
-        <Panel title="Transitions">
+        <Panel title={"Transições"}>
           <Stack direction="row" flexWrap="wrap" useFlexGap sx={{ gap: 0.75 }}>
             {TRANSITIONS.map((t) => (
               <Chip

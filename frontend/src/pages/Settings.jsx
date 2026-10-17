@@ -63,13 +63,13 @@ export default function Settings() {
 
   if (loading) return (
     <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}>
-      <Typography sx={{ color: "text.secondary" }}>Loading settings...</Typography>
+      <Typography sx={{ color: "text.secondary" }}>Carregando configurações...</Typography>
     </Box>
   )
   if (error || !settings) return (
     <Box sx={{ p: 4, textAlign: "center" }}>
-      <Typography sx={{ color: "error.main", mb: 2 }}>{error || "Failed to load settings"}</Typography>
-      <Button variant="outlined" onClick={fetchSettings}>Retry</Button>
+      <Typography sx={{ color: "error.main", mb: 2 }}>{error || "Falha ao carregar as configurações"}</Typography>
+      <Button variant="outlined" onClick={fetchSettings}>Tentar novamente</Button>
     </Box>
   )
 
@@ -87,10 +87,10 @@ export default function Settings() {
           <KeyIcon sx={{ color: "text.secondary", fontSize: 26 }} />
           <Box>
             <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: -0.3 }}>
-              Settings
+              Configurações
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              Manage your AI provider and system health
+              Gerencie seu provedor de IA e a saúde do sistema
             </Typography>
           </Box>
         </Stack>
@@ -102,8 +102,8 @@ export default function Settings() {
         {/* AI Provider (BYOK) */}
         <Section
           icon={<SmartToyIcon sx={{ fontSize: 20 }} />}
-          title="AI Provider"
-          description="Bring your own Anthropic, OpenAI or OpenRouter key, or your own OpenAI-compatible server — stored encrypted on this machine"
+          title={"Provedor de IA"}
+          description={"Use sua própria chave da Anthropic, OpenAI ou OpenRouter, ou seu próprio servidor compatível com OpenAI , armazenada criptografada nesta máquina"}
           accentColor="#0d9f6e"
         >
           <AIProviderSection settings={settings} updateSettings={updateSettings} />
@@ -112,8 +112,8 @@ export default function Settings() {
         {/* Service API Keys (BYOK) */}
         <Section
           icon={<KeyIcon sx={{ fontSize: 20 }} />}
-          title="Service API Keys"
-          description="Per-service API keys (YouTube, etc.) — encrypted locally, override .env at runtime"
+          title={"Chaves de API dos Serviços"}
+          description={"Chaves de API por serviço (YouTube, etc.) , criptografadas localmente, substituem o .env em tempo de execução"}
           accentColor="#2563eb"
         >
           <ServiceKeysSection settings={settings} updateSettings={updateSettings} />
@@ -122,8 +122,8 @@ export default function Settings() {
         {/* Optional add-ons */}
         <Section
           icon={<MovieFilterIcon sx={{ fontSize: 20 }} />}
-          title="Add-ons"
-          description="Optional engines that install on demand into your data folder"
+          title={"Complementos"}
+          description={"Motores opcionais que são instalados sob demanda na sua pasta de dados"}
           accentColor="#7c3aed"
         >
           <MotionGraphicsSection />
@@ -132,8 +132,8 @@ export default function Settings() {
         {/* System Health */}
         <Section
           icon={<MonitorHeartIcon sx={{ fontSize: 20 }} />}
-          title="System Health"
-          description="Service status, dependency checks, and storage usage"
+          title={"Saúde do Sistema"}
+          description={"Status dos serviços, verificação de dependências e uso de armazenamento"}
           accentColor="#dc2626"
         >
           <HealthDashboard />

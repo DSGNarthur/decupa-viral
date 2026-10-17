@@ -25,12 +25,12 @@ import useDocumentTitle from "../../hooks/useDocumentTitle"
 // names, and OpenAI's speech API rejects every one of them. Kept in step with
 // tts_service.list_voices by tests/test_voice_vocabulary_parity.py.
 const FALLBACK_OPENAI_VOICES = [
-  { voice_id: "alloy",   name: "Alloy",   gender: "Neutral", desc: "Balanced, neutral (recommended)", recommended: true },
-  { voice_id: "nova",    name: "Nova",    gender: "Female",  desc: "Bright, energetic (recommended)", recommended: true },
-  { voice_id: "echo",    name: "Echo",    gender: "Male",    desc: "Even, measured" },
-  { voice_id: "fable",   name: "Fable",   gender: "Neutral", desc: "Warm, British" },
-  { voice_id: "onyx",    name: "Onyx",    gender: "Male",    desc: "Deep, authoritative" },
-  { voice_id: "shimmer", name: "Shimmer", gender: "Female",  desc: "Soft, gentle" },
+  { voice_id: "alloy",   name: "Alloy",   gender: "Neutral", desc: "Equilibrado, neutro (recomendado)", recommended: true },
+  { voice_id: "nova",    name: "Nova",    gender: "Female",  desc: "Brilhante, energético (recomendado)", recommended: true },
+  { voice_id: "echo",    name: "Echo",    gender: "Male",    desc: "Uniforme, comedido" },
+  { voice_id: "fable",   name: "Fable",   gender: "Neutral", desc: "Caloroso, britânico" },
+  { voice_id: "onyx",    name: "Onyx",    gender: "Male",    desc: "Profundo, imponente" },
+  { voice_id: "shimmer", name: "Shimmer", gender: "Female",  desc: "Suave, gentil" },
 ]
 // Regenerated FROM edge_tts_service.RECOMMENDED_VOICES rather than re-typed:
 // four of the six names had drifted (Brian "natural" vs "warm", Emma "natural"
@@ -50,20 +50,25 @@ const FALLBACK_EDGE_VOICES = [
 // Blank-page starters — drop in a skeleton the user can fill, then "✨ Enhance"
 // it into a polished script. Each is a template with bracketed gaps.
 const SCRIPT_STARTERS = [
-  { label: "3 quick tips", text: "Here are three quick tips that will change how you [topic].\n\nFirst, [tip one].\nSecond, [tip two].\nAnd third, [tip three].\n\nTry it and let me know how it goes." },
-  { label: "Story hook", text: "I almost gave up on [thing] — until I figured out one small change.\n\nHere's exactly what happened, and the simple shift that turned it around." },
-  { label: "Product promo", text: "If you struggle with [problem], you need to see this.\n\nIt [benefit] in seconds — no [pain point] required. Here's how it works." },
-  { label: "Did you know", text: "Did you know that [surprising fact]? Most people have no idea.\n\nHere's why it matters — and the one thing you should do about it today." },
+  { label: "3 dicas rápidas", text: "Aqui estão três dicas rápidas que vão mudar como você [topic].\n\nPrimeiro, [tip one].\nSegundo, [tip two].\nE terceiro, [tip three].\n\nExperimente e me conte como foi." },
+  { label: "Gancho de story", text: "Eu quase desisti de [thing], até que descobri uma pequena mudança.\n\nAqui está exatamente o que aconteceu, e a mudança simples que virou o jogo." },
+  { label: "Promoção de produto", text: "Se você tem dificuldade com [problem], precisa ver isso.\n\nEle [benefit] em segundos, sem precisar de [pain point]. Veja como funciona." },
+  { label: "Você sabia", text: "Você sabia que [surprising fact]? A maioria das pessoas não faz ideia.\n\nAqui está por que isso importa, e a única coisa que você deveria fazer sobre isso hoje." },
 ]
 
-const MAX_CHARS = 10_000
-const VIDEO_MAX_MB = 1000  // mirrors ToolRunner default + backend VIDEO_MAX_BYTES
+const BROWSER = import.meta.env.VITE_BROWSER_RUNTIME === 'true'
+const MAX_CHARS = BROWSER ? 5_000 : 10_000
+const VIDEO_MAX_MB = BROWSER ? 512 : 1000
+const BROWSER_VOICES = [
+  { voice_id: 'pt-BR-AntonioNeural', name: 'Antônio', gender: 'Masculino', locale: 'pt-BR' },
+  { voice_id: 'pt-BR-FranciscaNeural', name: 'Francisca', gender: 'Feminino', locale: 'pt-BR' },
+]
 
 export default function ToolVoiceover() {
-  useDocumentTitle("Voice-over")
+  useDocumentTitle("Narração")
   const [text, setText] = useState("")
   const [provider, setProvider] = useState("edge_tts")
-  const [voiceId, setVoiceId] = useState(FALLBACK_EDGE_VOICES[0].voice_id)
+  const [voiceId, setVoiceId] = useState((BROWSER ? BROWSER_VOICES : FALLBACK_EDGE_VOICES)[0].voice_id)
   const [voiceInstructions, setVoiceInstructions] = useState("")
   const [video, setVideo] = useState(null)
   const videoInputRef = useRef(null)
@@ -77,7 +82,7 @@ export default function ToolVoiceover() {
   const [voicesLoading, setVoicesLoading] = useState(false)
   const [voicesError, setVoicesError] = useState(null)
 
-  const fallbackFor = (p) => p === "openai_tts" ? FALLBACK_OPENAI_VOICES : FALLBACK_EDGE_VOICES
+  const fallbackFor = (p) => BROWSER ? BROWSER_VOICES : p === "openai_tts" ? FALLBACK_OPENAI_VOICES : FALLBACK_EDGE_VOICES
   const voices = voicesByProvider[provider] ?? fallbackFor(provider)
 
   // Fetch voices for the current provider on mount + provider change.
@@ -95,20 +100,20 @@ export default function ToolVoiceover() {
       .then((res) => {
         if (cancelled) return
         let list = res.data?.voices ?? []
-        if (provider === "edge_tts") {
+        if (provider === "edge_tts" && !BROWSER) {
           list = list.filter((v) => v.name?.startsWith("⭐"))
         }
         if (list.length > 0) {
           setVoicesByProvider((prev) => ({ ...prev, [provider]: list }))
         } else {
           // Empty response — fall back to the hardcoded list.
-          setVoicesError("No voices returned by backend, using fallback list")
+          setVoicesError("Nenhuma voz retornada pelo backend, usando lista de fallback")
         }
       })
       .catch((err) => {
         if (cancelled) return
-        const msg = err.response?.data?.detail || err.message || "Network error"
-        setVoicesError(`Couldn't load voice list (${msg}). Using fallback.`)
+        const msg = err.response?.data?.detail || err.message || "Erro de conexão"
+        setVoicesError(`Não foi possível carregar as vozes (${msg}). Usando a lista padrão.`)
         // Tool stays usable via fallbackFor(provider) — see `voices` above.
       })
       .finally(() => { if (!cancelled) setVoicesLoading(false) })
@@ -182,14 +187,14 @@ export default function ToolVoiceover() {
         }
       }
       audio.onerror = () => {
-        showSnackbar("Couldn't play preview audio", "error")
+        showSnackbar("Não foi possível reproduzir o áudio da prévia", "error")
         setPreviewVoice(null)
       }
       await audio.play()
       setPreviewVoice(voice)
     } catch (err) {
       const msg = err.response?.data?.detail || err.message || "Preview failed"
-      showSnackbar(`Voice preview failed: ${msg}`, "error")
+      showSnackbar(("Falha na prévia de voz: " + String(msg) + ""), "error")
     } finally {
       setPreviewLoading(null)
     }
@@ -204,14 +209,14 @@ export default function ToolVoiceover() {
 
   return (
     <ToolRunner
-      title="Voice-over Generator"
-      description="Turn a script into natural TTS audio"
+      title={"Gerador de Locução"}
+      description={"Transforme um roteiro em áudio TTS natural"}
       icon={<RecordVoiceOverOutlinedIcon fontSize="large" />}
       endpoint="/api/tools/voiceover"
       hideFileInput
       extraFiles={{ video }}
       canSubmit={chars > 0 && !overLimit}
-      disabledReason={overLimit ? "Script is over the character limit" : "Enter a script to generate"}
+      disabledReason={overLimit ? "O roteiro ultrapassa o limite de caracteres" : "Insira um roteiro para gerar"}
       fieldBuilder={() => ({
         text,
         provider,
@@ -228,7 +233,7 @@ export default function ToolVoiceover() {
           {!text.trim() && (
             <Box>
               <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 0.75, color: "text.secondary" }}>
-                Start from a template
+                Comece com um modelo
               </Typography>
               <Stack direction="row" useFlexGap flexWrap="wrap" sx={{ gap: 0.75 }}>
                 {SCRIPT_STARTERS.map((s) => (
@@ -249,21 +254,21 @@ export default function ToolVoiceover() {
             enhanceKind="voiceover"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Paste your script here..."
+            placeholder={"Cole seu roteiro aqui..."}
             error={overLimit}
             helperText={
               overLimit
-                ? `Over ${MAX_CHARS.toLocaleString()} char limit — reduce to submit`
-                : `${chars.toLocaleString()} / ${MAX_CHARS.toLocaleString()} chars`
+                ? ("Acima do limite de " + String(MAX_CHARS.toLocaleString()) + " caracteres, reduza para enviar")
+                : ("" + String(chars.toLocaleString()) + " / " + String(MAX_CHARS.toLocaleString()) + " caracteres")
             }
           />
 
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
             <FormControl size="small" sx={{ minWidth: 180 }}>
-              <InputLabel>Provider</InputLabel>
-              <Select value={provider} label="Provider" onChange={(e) => setProvider(e.target.value)}>
-                <MenuItem value="edge_tts">Edge TTS (free)</MenuItem>
-                <MenuItem value="openai_tts">OpenAI TTS (standard)</MenuItem>
+              <InputLabel>Provedor</InputLabel>
+              <Select value={provider} label={"Provedor"} onChange={(e) => setProvider(e.target.value)}>
+                <MenuItem value="edge_tts">Edge TTS (grátis)</MenuItem>
+                {!BROWSER && <MenuItem value="openai_tts">OpenAI TTS (padrão)</MenuItem>}
               </Select>
             </FormControl>
             <Autocomplete
@@ -272,7 +277,7 @@ export default function ToolVoiceover() {
               options={voices}
               value={selectedVoice}
               loading={voicesLoading}
-              loadingText="Loading voices…"
+              loadingText="Carregando vozes…"
               noOptionsText={voicesError ?? "No voices match"}
               onChange={(_e, newVoice) => {
                 if (newVoice) setVoiceId(newVoice.voice_id)
@@ -291,7 +296,7 @@ export default function ToolVoiceover() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Voice"
+                  label={"Voz"}
                   InputProps={{
                     ...params.InputProps,
                     endAdornment: (
@@ -325,7 +330,7 @@ export default function ToolVoiceover() {
                         </Typography>
                       )}
                     </Box>
-                    <Tooltip title={isPlaying ? "Stop preview" : "Preview voice"} placement="left" arrow>
+                    <Tooltip title={isPlaying ? "Parar prévia" : "Ouvir prévia da voz"} placement="left" arrow>
                       <IconButton
                         size="small"
                         onClick={() => playPreview(option.voice_id)}
@@ -356,19 +361,19 @@ export default function ToolVoiceover() {
               fullWidth
               value={voiceInstructions}
               onChange={(e) => setVoiceInstructions(e.target.value)}
-              label="Voice instructions (optional)"
-              placeholder="e.g. Speak slowly with emphasis on key words. Use a friendly, conversational tone."
-              helperText="Steer how the OpenAI voice delivers the script. Leave blank for default."
+              label={"Instruções de voz (opcional)"}
+              placeholder={"ex.: Fale devagar com ênfase nas palavras-chave. Use um tom amigável e conversacional."}
+              helperText={"Oriente como a voz da OpenAI entrega o roteiro. Deixe em branco para o padrão."}
             />
           )}
 
           {/* Optional video overlay */}
           <Box>
             <Typography variant="caption" sx={{ fontWeight: 600, display: "block" }}>
-              Optional: overlay voice on a video
+              Opcional: sobrepor voz em um vídeo
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 1 }}>
-              The video's original audio will be replaced by the generated voice.
+              O áudio original do vídeo será substituído pela voz gerada.
             </Typography>
             <input
               ref={videoInputRef}
@@ -379,7 +384,7 @@ export default function ToolVoiceover() {
                 const f = e.target.files?.[0]
                 if (!f) { setVideo(null); return }
                 if (f.size > VIDEO_MAX_MB * 1024 * 1024) {
-                  showSnackbar(`Video too large (max ${VIDEO_MAX_MB} MB)`, "error")
+                  showSnackbar(("Vídeo muito grande (máx. " + String(VIDEO_MAX_MB) + " MB)"), "error")
                   e.target.value = ""
                   return
                 }
@@ -391,7 +396,7 @@ export default function ToolVoiceover() {
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>{video.name}</Typography>
                   <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                    {(video.size / 1024 / 1024).toFixed(1)} MB — output will be .mp4
+                    {(video.size / 1024 / 1024).toFixed(1)} MB , a saída será .mp4
                   </Typography>
                 </Box>
                 <IconButton size="small" onClick={() => setVideo(null)}><CloseIcon fontSize="small" /></IconButton>
@@ -403,7 +408,7 @@ export default function ToolVoiceover() {
                 onClick={() => videoInputRef.current?.click()}
                 sx={{ textTransform: "none" }}
               >
-                Choose video (optional)
+                Escolha um vídeo (opcional)
               </Button>
             )}
           </Box>

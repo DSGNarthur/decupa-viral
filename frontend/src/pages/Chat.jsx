@@ -81,7 +81,7 @@ const JOB_ICONS = {
 }
 
 const JOB_LABELS = {
-  scout: "Scouting", download: "Downloading", generate: "Generating", upload: "Uploading",
+  scout: "Prospectando", download: "Baixando", generate: "Gerando", upload: "Enviando",
 }
 
 function ActiveJobsPanel() {
@@ -94,7 +94,7 @@ function ActiveJobsPanel() {
   return (
     <Box sx={{ px: 1.5, pb: 1 }}>
       <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: 0.5 }}>
-        Active Jobs
+        Tarefas ativas
       </Typography>
       <Stack spacing={0.5} sx={{ mt: 0.5 }}>
         {jobList.map((job) => {
@@ -110,14 +110,14 @@ function ActiveJobsPanel() {
               "&:hover": (isFailed || isSuccess) ? { opacity: 0.7 } : {},
             }}
               onClick={() => { if (isFailed || isSuccess) removeJob(job.jobId) }}
-              title={isFailed || isSuccess ? "Click to dismiss" : ""}
+              title={isFailed || isSuccess ? "Clique para dispensar" : ""}
             >
               <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: isRunning ? 0.5 : 0 }}>
                 {isSuccess ? <CheckCircleOutlineIcon sx={{ fontSize: 14, color: "success.main" }} /> :
                   isFailed ? <ErrorOutlineIcon sx={{ fontSize: 14, color: "error.main" }} /> :
                   JOB_ICONS[job.jobType] || JOB_ICONS.scout}
                 <Typography variant="caption" sx={{ fontWeight: 500, fontSize: "0.72rem", color: "text.primary", flex: 1 }} noWrap>
-                  {isSuccess ? `${label} done` : isFailed ? `${label} failed` : `${label}...`}
+                  {isSuccess ? ("" + String(label) + " concluído") : isFailed ? ("" + String(label) + " falhou") : ("" + String(label) + "...")}
                 </Typography>
                 {isRunning && job.percent > 0 && (
                   <Typography variant="caption" sx={{ fontSize: "0.65rem", color: "text.secondary" }}>
@@ -150,33 +150,33 @@ const SIDEBAR_WIDTH = 260
 const STARTER_SUGGESTIONS = [
   {
     icon: <SearchIcon sx={{ fontSize: 28, color: "primary.main" }} />,
-    title: "Scout trending videos",
-    description: "Find viral content across YouTube, TikTok, and Douyin",
-    message: "Scout trending videos on YouTube",
+    title: "Buscar vídeos em alta",
+    description: "Encontre conteúdo viral no YouTube, TikTok e Douyin",
+    message: "Buscar vídeos em alta no YouTube",
   },
   {
     icon: <SensorsIcon sx={{ fontSize: 28, color: "primary.main" }} />,
-    title: "Analyze a channel",
-    description: "Paste a YouTube or TikTok channel URL for a full breakdown",
-    message: "Analyze a YouTube channel for me",
+    title: "Analisar um canal",
+    description: "Cole a URL de um canal do YouTube ou TikTok para uma análise completa",
+    message: "Analise um canal do YouTube para mim",
   },
   {
     icon: <AnalyticsIcon sx={{ fontSize: 28, color: "primary.main" }} />,
-    title: "Download & analyze",
-    description: "Transcribe competitors and extract viral insights",
-    message: "Download and analyze a video",
+    title: "Baixar e analisar",
+    description: "Transcreva concorrentes e extraia insights virais",
+    message: "Baixar e analisar um vídeo",
   },
   {
     icon: <AutoAwesomeIcon sx={{ fontSize: 28, color: "primary.main" }} />,
-    title: "Generate AI video",
-    description: "Create original videos with AI voice and visuals",
-    message: "Generate an original video",
+    title: "Gerar vídeo com IA",
+    description: "Crie vídeos originais com voz e visuais de IA",
+    message: "Gerar um vídeo original",
   },
   {
     icon: <NewspaperIcon sx={{ fontSize: 28, color: "primary.main" }} />,
-    title: "Scout trending news",
-    description: "Find hot articles and generate commentary videos",
-    message: "Scout trending news",
+    title: "Buscar notícias em alta",
+    description: "Encontre artigos populares e gere vídeos de comentário",
+    message: "Buscar notícias em alta",
   },
 ]
 
@@ -210,7 +210,7 @@ export default function Chat() {
       setSessions(res.data)
     }).catch((err) => {
       console.error("Failed to load chat sessions:", err)
-      showSnackbar("Could not load chat history", "warning")
+      showSnackbar("Não foi possível carregar o histórico do chat", "warning")
     })
 
     const savedSessionId = sessionStorage.getItem("vm_active_session")
@@ -287,9 +287,9 @@ export default function Chat() {
           setMessages([])
           setSuggestions(STARTER_SUGGESTIONS)
         }
-        showSnackbar("Chat deleted", "info")
+        showSnackbar("Chat excluído", "info")
       } catch {
-        showSnackbar("Failed to delete chat", "error")
+        showSnackbar("Falha ao excluir o chat", "error")
       }
     })
   }
@@ -324,7 +324,7 @@ export default function Chat() {
             startIcon={<AddIcon />}
             onClick={handleNewChat}
           >
-            New chat
+            Novo chat
           </Button>
           <IconButton
             onClick={() => setSidebarOpen(o => !o)}
@@ -364,13 +364,13 @@ export default function Chat() {
                   WebkitTextFillColor: "transparent",
                 }}
               >
-                ViralMint
+                Decupa Viral
               </Typography>
               <Typography
                 variant="body1"
                 sx={{ color: "text.secondary", mb: 5, maxWidth: 440, mx: "auto", lineHeight: 1.6, textAlign: "center" }}
               >
-                Your AI content strategy assistant. Scout trending videos, generate originals, and publish everywhere.
+                Seu assistente de estratégia de conteúdo com IA. Busque vídeos em alta, gere originais e publique em todos os lugares.
               </Typography>
 
               {suggestions.length > 0 && (
@@ -439,7 +439,7 @@ export default function Chat() {
           {isStreaming && !streamingText && (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, py: 2, px: 1, maxWidth: 900, mx: "auto" }}>
               <CircularProgress size={16} sx={{ color: "text.secondary" }} />
-              <Typography variant="body2" sx={{ color: "text.secondary" }}>Thinking...</Typography>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>Pensando...</Typography>
             </Box>
           )}
 
@@ -466,7 +466,7 @@ export default function Chat() {
           {/* Header */}
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 1.5, py: 1.25 }}>
             <Typography variant="body2" sx={{ fontWeight: 600, color: "text.primary", fontSize: "0.85rem" }}>
-              History
+              Histórico
             </Typography>
             <IconButton size="small" onClick={() => setSidebarOpen(false)} sx={{ color: "text.secondary" }}>
               <ChevronRightIcon fontSize="small" />
@@ -538,7 +538,7 @@ export default function Chat() {
 
             {sessions.length === 0 && (
               <Typography variant="caption" sx={{ color: "text.secondary", display: "block", textAlign: "center", mt: 3 }}>
-                No conversations yet
+                Nenhuma conversa ainda
               </Typography>
             )}
           </Box>
@@ -550,8 +550,8 @@ export default function Chat() {
         <DialogTitle>{confirmDialog.title}</DialogTitle>
         <DialogContent><Typography>{confirmDialog.message}</Typography></DialogContent>
         <DialogActions>
-          <Button onClick={closeConfirm}>Cancel</Button>
-          <Button color="error" variant="contained" onClick={() => { confirmDialog.onConfirm?.(); closeConfirm() }}>Delete</Button>
+          <Button onClick={closeConfirm}>Cancelar</Button>
+          <Button color="error" variant="contained" onClick={() => { confirmDialog.onConfirm?.(); closeConfirm() }}>Excluir</Button>
         </DialogActions>
       </Dialog>
     </Box>

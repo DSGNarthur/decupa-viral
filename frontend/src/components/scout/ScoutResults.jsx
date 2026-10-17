@@ -48,7 +48,7 @@ export default function ScoutResults({ results, onSelect, onRefresh }) {
     if (result?.platform === "news") {
       try {
         await http.post("/api/news/save", { article_ids: [id] })
-        showSnackbar("Saving article to Library...", "success")
+        showSnackbar("Salvando artigo na Biblioteca...", "success")
       } catch (err) {
         showSnackbar(err.response?.data?.detail || err.message, "error")
       }
@@ -56,7 +56,7 @@ export default function ScoutResults({ results, onSelect, onRefresh }) {
     }
     try {
       await http.post("/api/scout/download", { scout_result_ids: [id] })
-      showSnackbar("Downloading & analyzing video...", "success")
+      showSnackbar("Baixando e analisando vídeo...", "success")
     } catch (err) {
       showSnackbar(err.response?.data?.detail || err.message, "error")
     }
@@ -65,7 +65,7 @@ export default function ScoutResults({ results, onSelect, onRefresh }) {
   const handleDeleteOne = async (id) => {
     try {
       await http.delete(`/api/scout/results/${id}`)
-      showSnackbar("Deleted", "success")
+      showSnackbar("Excluído", "success")
       selectedIds.delete(id)
       setSelectedIds(new Set(selectedIds))
       if (selectedResult?.id === id) setSelectedResult(null)
@@ -81,7 +81,7 @@ export default function ScoutResults({ results, onSelect, onRefresh }) {
     try {
       const ids = [...selectedIds]
       await Promise.all(ids.map((id) => http.delete(`/api/scout/results/${id}`)))
-      showSnackbar(`Deleted ${ids.length} result${ids.length > 1 ? "s" : ""}`, "success")
+      showSnackbar(("Excluído " + String(ids.length) + " resultado" + String(ids.length > 1 ? "s" : "") + ""), "success")
       setSelectedIds(new Set())
       if (selectedResult && ids.includes(selectedResult.id)) setSelectedResult(null)
       onRefresh?.()
@@ -98,18 +98,18 @@ export default function ScoutResults({ results, onSelect, onRefresh }) {
       <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ mb: 2 }}>
         <ButtonGroup size="small" variant="outlined">
           <Button onClick={() => setView("cards")} variant={view === "cards" ? "contained" : "outlined"} startIcon={<GridViewIcon />}>Cards</Button>
-          <Button onClick={() => setView("table")} variant={view === "table" ? "contained" : "outlined"} startIcon={<TableRowsIcon />}>Table</Button>
+          <Button onClick={() => setView("table")} variant={view === "table" ? "contained" : "outlined"} startIcon={<TableRowsIcon />}>Tabela</Button>
         </ButtonGroup>
 
         <Box sx={{ flex: 1 }} />
 
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          {results?.length || 0} results
+          {results?.length || 0} resultados
         </Typography>
 
         {results?.length > 0 && (
           <Button size="small" variant="outlined" color="inherit" onClick={selectAll}>
-            {selectedIds.size === results.length ? "Deselect All" : "Select All"}
+            {selectedIds.size === results.length ? "Desmarcar Todos" : "Selecionar Todos"}
           </Button>
         )}
 
@@ -122,7 +122,7 @@ export default function ScoutResults({ results, onSelect, onRefresh }) {
             onClick={() => setConfirmOpen(true)}
             disabled={deleting}
           >
-            {deleting ? "Deleting..." : `Delete (${selectedIds.size})`}
+            {deleting ? "Excluindo..." : ("Excluir (" + String(selectedIds.size) + ")")}
           </Button>
         )}
       </Stack>
@@ -132,12 +132,12 @@ export default function ScoutResults({ results, onSelect, onRefresh }) {
 
       {/* Delete confirmation dialog */}
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete {selectedIds.size} result{selectedIds.size > 1 ? "s" : ""}?</DialogTitle>
-        <DialogContent><Typography>This will permanently remove the selected scout results.</Typography></DialogContent>
+        <DialogTitle>Excluir {selectedIds.size} resultado{selectedIds.size > 1 ? "s" : ""}?</DialogTitle>
+        <DialogContent><Typography>Isso removerá permanentemente os resultados de scout selecionados.</Typography></DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
+          <Button onClick={() => setConfirmOpen(false)}>Cancelar</Button>
           <Button color="error" variant="contained" disabled={deleting} onClick={() => { setConfirmOpen(false); handleBatchDelete() }}>
-            {deleting ? "Deleting..." : "Delete"}
+            {deleting ? "Excluindo..." : "Excluir"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -159,19 +159,19 @@ export default function ScoutResults({ results, onSelect, onRefresh }) {
               <Typography variant="h6" sx={{ wordBreak: "break-word" }}>{selectedResult.title}</Typography>
               {selectedResult.platform === "news" ? (
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
-                  <Chip icon={<NewspaperIcon />} label="NEWS" size="small" variant="outlined" color="warning" />
+                  <Chip icon={<NewspaperIcon />} label={"NOTÍCIAS"} size="small" variant="outlined" color="warning" />
                   <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    {selectedResult.author} · Score: {selectedResult.virality_score}
-                    {selectedResult.upload_date && ` · ${new Date(selectedResult.upload_date).toLocaleDateString()}`}
+                    {selectedResult.author} · Pontuação: {selectedResult.virality_score}
+                    {selectedResult.upload_date && (" · " + String(new Date(selectedResult.upload_date).toLocaleDateString()) + "")}
                   </Typography>
                 </Stack>
               ) : (
                 <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                  {selectedResult.author} &middot; {selectedResult.platform} &middot; <VisibilityIcon sx={{ fontSize: 14, verticalAlign: "middle", mr: 0.3 }} />{selectedResult.views?.toLocaleString()} &middot; Score: {selectedResult.virality_score}
+                  {selectedResult.author} &middot; {selectedResult.platform} &middot; <VisibilityIcon sx={{ fontSize: 14, verticalAlign: "middle", mr: 0.3 }} />{selectedResult.views?.toLocaleString()} · Pontuação: {selectedResult.virality_score}
                 </Typography>
               )}
             </Box>
-            <IconButton size="small" aria-label="Close details" onClick={() => setSelectedResult(null)}>
+            <IconButton size="small" aria-label={"Fechar detalhes"} onClick={() => setSelectedResult(null)}>
               <CloseIcon />
             </IconButton>
           </Stack>
@@ -190,19 +190,19 @@ export default function ScoutResults({ results, onSelect, onRefresh }) {
                     )}
                     {desc.hook && (
                       <Box>
-                        <Typography variant="caption" sx={{ fontWeight: 700, color: "text.secondary" }}>Video Hook</Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: "text.secondary" }}>Gancho do Vídeo</Typography>
                         <Typography variant="body2">{desc.hook}</Typography>
                       </Box>
                     )}
                     {desc.suggested_angle && (
                       <Box>
-                        <Typography variant="caption" sx={{ fontWeight: 700, color: "text.secondary" }}>Suggested Angle</Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: "text.secondary" }}>Ângulo Sugerido</Typography>
                         <Typography variant="body2">{desc.suggested_angle}</Typography>
                       </Box>
                     )}
                     {desc.talking_points?.length > 0 && (
                       <Box>
-                        <Typography variant="caption" sx={{ fontWeight: 700, color: "text.secondary" }}>Talking Points</Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: "text.secondary" }}>Pontos de Discussão</Typography>
                         {desc.talking_points.map((pt, i) => (
                           <Typography key={i} variant="body2" sx={{ pl: 1 }}>• {pt}</Typography>
                         ))}
@@ -220,7 +220,7 @@ export default function ScoutResults({ results, onSelect, onRefresh }) {
                       <Button size="small" variant="outlined" startIcon={<LaunchIcon />}
                         onClick={() => window.open(selectedResult.video_url, "_blank", "noopener")}
                         sx={{ alignSelf: "flex-start", textTransform: "none" }}>
-                        Read full article
+                        Ler artigo completo
                       </Button>
                     )}
                   </Stack>

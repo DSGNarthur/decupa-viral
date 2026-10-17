@@ -21,29 +21,29 @@ import useDocumentTitle from "../../hooks/useDocumentTitle"
 const AUTO = "auto"
 
 const LANGUAGES = [
-  { code: AUTO, label: "Auto — whatever the video has" },
-  { code: "en", label: "English" },
-  { code: "es", label: "Spanish" },
-  { code: "pt", label: "Portuguese" },
-  { code: "fr", label: "French" },
-  { code: "de", label: "German" },
-  { code: "zh", label: "Chinese" },
-  { code: "ja", label: "Japanese" },
-  { code: "ko", label: "Korean" },
-  { code: "ar", label: "Arabic" },
-  { code: "ru", label: "Russian" },
+  { code: AUTO, label: "Automático , o que o vídeo tiver" },
+  { code: "en", label: "Inglês" },
+  { code: "es", label: "Espanhol" },
+  { code: "pt", label: "Português" },
+  { code: "fr", label: "Francês" },
+  { code: "de", label: "Alemão" },
+  { code: "zh", label: "Chinês" },
+  { code: "ja", label: "Japonês" },
+  { code: "ko", label: "Coreano" },
+  { code: "ar", label: "Árabe" },
+  { code: "ru", label: "Russo" },
 ]
 
 const FORMATS = [
-  { value: "txt", label: ".txt — plain transcript", hint: "Just the words, no timestamps. Best for reading, summarising or pasting into a doc." },
-  { value: "srt", label: ".srt — timed subtitles", hint: "Timestamped cues. The format YouTube, Premiere and most editors expect." },
-  { value: "vtt", label: ".vtt — web subtitles", hint: "Timestamped cues in the WebVTT flavour used by HTML5 players." },
+  { value: "txt", label: ".txt , transcrição simples", hint: "Só as palavras, sem timestamps. Ideal para ler, resumir ou colar em um documento." },
+  { value: "srt", label: ".srt , legendas com tempo", hint: "Cues com timestamp. O formato que o YouTube, o Premiere e a maioria dos editores espera." },
+  { value: "vtt", label: ".vtt , legendas para web", hint: "Cues com timestamp no formato WebVTT usado por players HTML5." },
 ]
 
 const URL_RE = /^https?:\/\/[^\s/]+\.[^\s]+$/i
 
 export default function ToolTranscript() {
-  useDocumentTitle("Transcript Downloader")
+  useDocumentTitle("Baixador de Transcrição")
   const [params] = useSearchParams()
   const [url, setUrl] = useState(() => (params.get("url") || "").slice(0, 2000))
   const [language, setLanguage] = useState(AUTO)
@@ -55,15 +55,15 @@ export default function ToolTranscript() {
 
   return (
     <ToolRunner
-      title="Transcript Downloader"
-      description="Paste a video link and download the captions it already has — no transcription"
+      title={"Baixador de Transcrição"}
+      description={"Cole um link de vídeo e baixe as legendas que ele já tem , sem transcrição"}
       icon={<ArticleOutlinedIcon fontSize="large" />}
       endpoint="/api/tools/transcript"
-      processLabel="Get transcript"
-      downloadLabel={`Download .${format}`}
+      processLabel={"Obter transcrição"}
+      downloadLabel={("Baixar ." + String(format) + "")}
       hideFileInput
       canSubmit={valid}
-      disabledReason={valid ? "" : "Paste a valid http(s) video URL"}
+      disabledReason={valid ? "" : "Cole uma URL de vídeo http(s) válida"}
       fieldBuilder={() => ({
         url: trimmed,
         language: language === AUTO ? "" : language,
@@ -75,32 +75,32 @@ export default function ToolTranscript() {
             severity="info"
             sx={{ py: 0.5, "& .MuiAlert-message": { fontSize: "0.82rem" } }}
           >
-            Reads the subtitle track the site already publishes, so it takes seconds. Videos
-            with no captions at all can&apos;t be read this way — download the video and use{" "}
-            <strong>Export Subtitles</strong> to transcribe it instead.
+            Lê a faixa de legendas que o site já publica, então leva segundos. Vídeos
+            sem nenhuma legenda não podem ser lidos assim , baixe o vídeo e use{" "}
+            <strong>Exportar Legendas</strong> para transcrevê-lo.
           </Alert>
 
           <TextField
             fullWidth
-            label="Video URL"
+            label={"URL do vídeo"}
             placeholder="https://www.youtube.com/watch?v=…"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             error={url.length > 0 && !valid}
             helperText={
               url.length > 0 && !valid
-                ? "Must be a full http:// or https:// link"
-                : "YouTube, and any other site the downloader supports."
+                ? "Deve ser um link http:// ou https:// completo"
+                : "YouTube e qualquer outro site compatível com o baixador."
             }
           />
 
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
             <FormControl size="small" sx={{ minWidth: 260 }}>
-              <InputLabel id="transcript-language-label">Language</InputLabel>
+              <InputLabel id="transcript-language-label">Idioma</InputLabel>
               <Select
                 labelId="transcript-language-label"
                 value={language}
-                label="Language"
+                label={"Idioma"}
                 onChange={(e) => setLanguage(e.target.value)}
               >
                 {LANGUAGES.map((l) => (
@@ -110,11 +110,11 @@ export default function ToolTranscript() {
             </FormControl>
 
             <FormControl size="small" sx={{ minWidth: 230 }}>
-              <InputLabel id="transcript-format-label">Format</InputLabel>
+              <InputLabel id="transcript-format-label">Formato</InputLabel>
               <Select
                 labelId="transcript-format-label"
                 value={format}
-                label="Format"
+                label={"Formato"}
                 onChange={(e) => setFormat(e.target.value)}
               >
                 {FORMATS.map((f) => (
@@ -129,8 +129,8 @@ export default function ToolTranscript() {
           </Typography>
 
           <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            If the video only has auto-generated captions, expect missing punctuation and the odd
-            misheard word — that&apos;s the site&apos;s transcript, not ours.
+            Se o vídeo só tiver legendas geradas automaticamente, espere pontuação ausente e
+            alguma palavra mal ouvida , essa é a transcrição do site, não a nossa.
           </Typography>
         </Stack>
       }

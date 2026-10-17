@@ -43,7 +43,7 @@ export default function ScriptPanel({
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "text.secondary" }}>
             <EditNoteIcon sx={{ fontSize: 18, verticalAlign: "text-bottom", mr: 0.5 }} />
-            Script
+            Roteiro
           </Typography>
         </Stack>
 
@@ -71,13 +71,13 @@ export default function ScriptPanel({
               startIcon={<AutoFixHighIcon />}
               sx={{ whiteSpace: "nowrap", minWidth: 140 }}
             >
-              {scriptLoading ? "Generating..." : scriptGenerated ? "Regenerate" : "Generate with AI"}
+              {scriptLoading ? "Gerando..." : scriptGenerated ? "Gerar novamente" : "Gerar com IA"}
             </Button>
           </Stack>
           <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
             {sourceId
-              ? "Optional — leave empty for default AI generation based on competitor insights"
-              : "Describe your video topic — AI will write a complete narration script"
+              ? "Opcional , deixe vazio para a geração padrão de IA com base nas informações do concorrente"
+              : "Descreva o tema do seu vídeo , a IA vai escrever um roteiro de narração completo"
             }
           </Typography>
         </Box>
@@ -95,8 +95,8 @@ export default function ScriptPanel({
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 0.5 }}>
           <Typography variant="caption" sx={{ color: "text.secondary" }}>
             {wordCount > 0
-              ? `${wordCount} words \u2248 ${estSeconds}s`
-              : "Empty — AI will auto-generate if left blank"
+              ? ("" + String(wordCount) + " palavras \\u2248 " + String(estSeconds) + "s")
+              : "Vazio , a IA vai gerar automaticamente se deixar em branco"
             }
           </Typography>
           {script.trim() && (
@@ -106,7 +106,7 @@ export default function ScriptPanel({
               startIcon={<AutoFixHighIcon />}
               sx={{ fontSize: "0.75rem", textTransform: "none" }}
             >
-              Polish Script
+              Polir Roteiro
             </Button>
           )}
         </Stack>

@@ -15,6 +15,7 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber"
 import http from "../../api/http"
 import useAppStore from "../../store/appStore"
 import { toolJobTypeFor } from "./toolJobType"
+import { jobStep } from "../../utils/jobStep"
 import ToolInputContext from "./ToolInputContext"
 import PageHero from "../PageHero"
 import { GlassPanel, glassPanelSx } from "../../utils/glassFx"
@@ -63,7 +64,7 @@ function AutoPreview({ jobId }) {
   if (ready && ct.startsWith("image/")) {
     return (
       <GlassPanel sx={{ p: 1, borderRadius: 2 }}>
-        <Box component="img" src={downloadUrl} alt="Result"
+        <Box component="img" src={downloadUrl} alt={"Resultado"}
           sx={{ display: "block", width: "100%", borderRadius: 1.5 }} />
       </GlassPanel>
     )
@@ -94,9 +95,9 @@ function AutoPreview({ jobId }) {
   return (
     <Stack alignItems="center" spacing={1.5} sx={{ py: 6, px: 2 }}>
       <CheckCircleOutlinedIcon sx={{ fontSize: 48, color: "success.main" }} />
-      <Typography variant="body1" sx={{ fontWeight: 600 }}>Your file is ready</Typography>
+      <Typography variant="body1" sx={{ fontWeight: 600 }}>Seu arquivo está pronto</Typography>
       <Typography variant="caption" sx={{ color: "text.secondary", textAlign: "center" }}>
-        Download it below, or run the tool again with new settings.
+        Baixe-o abaixo, ou execute a ferramenta novamente com novas configurações.
       </Typography>
     </Stack>
   )
@@ -114,7 +115,7 @@ export default function ToolRunner({
   canSubmit = true,
   children,            // tool-specific config UI
   onJobComplete,       // optional — (jobId) => void
-  processLabel = "Process",
+  processLabel = "Processar",
   // Optional cost / usage hint string (e.g. "Free", "BYOK"). Rendered as a
   // muted caption in the PageHero secondary row. ToolRunner just forwards the
   // value through.
@@ -127,14 +128,18 @@ export default function ToolRunner({
                        //   `/api/tools/download/{jobId}` URL. Used to switch
                        //   to ?bundle=true when variations > 1 so one click
                        //   downloads a ZIP of all outputs.
-  downloadLabel = "Download",  // optional override for the button label
+  downloadLabel = "Baixar",  // optional override for the button label
+  downloadable = true, // analysis-only tools return structured data, not a file
   // Optional human-readable reason the Process button is disabled, shown as
   // a tooltip on hover. Only surfaces when canSubmit is false (a missing
   // file/script reports its own message).
   disabledReason = "",
 }) {
   const [file, setFile] = useState(null)
-  const [jobId, setJobId] = useState(null)
+  const sessionKey = `decupa_tool_job:${endpoint}`
+  const [jobId, setJobId] = useState(() => {
+    try { return sessionStorage.getItem(sessionKey) || null } catch { return null }
+  })
   const [error, setError] = useState("")
   const [dragging, setDragging] = useState(false)
   // Object URL for the selected file, so the config panel can render the very
@@ -167,6 +172,60 @@ export default function ToolRunner({
   // to bring it back after a full dismiss.
   const [resultOpen, setResultOpen] = useState(false)
   const [railCollapsed, setRailCollapsed] = useState(false)
+  const notifiedJob = useRef(null)
+
+  // Keep the last job in this tab, then ask the native engine for its actual
+  // state. A reload must not lose a finished download or depend on a WS event
+  // that arrived while the page was closed. Do not persist files or credentials.
+  useEffect(() => {
+    try {
+      if (jobId) sessionStorage.setItem(sessionKey, jobId)
+      else sessionStorage.removeItem(sessionKey)
+    } catch { /* storage can be unavailable in a private browsing session */ }
+  }, [sessionKey, jobId])
+
+  useEffect(() => {
+    if (!jobId || terminal) return undefined
+    let cancelled = false
+    let timer
+    const recover = async () => {
+      try {
+        const { data } = await http.get(`/api/jobs/${jobId}`)
+        if (cancelled) return
+        if (data.job_type !== toolJobTypeFor(endpoint)) {
+          setJobId(null)
+          return
+        }
+        if (data.status === 'success') {
+          if (downloadable) {
+            const { data: meta } = await http.get(`/api/tools/download-meta/${jobId}`)
+            if (cancelled) return
+            if (!meta.ready) {
+              setJobId(null)
+              setError('O arquivo desta tarefa não está mais disponível. Execute a ferramenta novamente.')
+              return
+            }
+          }
+          setTerminal({ status: 'success', step: data.current_step })
+          return
+        }
+        if (['failed', 'cancelled'].includes(data.status)) {
+          setTerminal({ status: 'failed', step: data.error_message || data.current_step || 'Tarefa cancelada' })
+          return
+        }
+        if (!useAppStore.getState().activeJobs[jobId]) {
+          startJob(jobId, data.job_type, data.current_step || 'Processando…')
+        }
+        useAppStore.getState().updateJobProgress(jobId, data.progress_pct || 0, data.current_step || '')
+      } catch (e) {
+        if (cancelled) return
+        if (e?.response?.status === 404) { setJobId(null); return }
+      }
+      if (!cancelled) timer = setTimeout(recover, 4000)
+    }
+    recover()
+    return () => { cancelled = true; clearTimeout(timer) }
+  }, [jobId, terminal, endpoint, startJob, downloadable])
 
   useEffect(() => {
     if (job && (job.status === "success" || job.status === "failed") && !terminal) {
@@ -184,8 +243,8 @@ export default function ToolRunner({
   // The job type the backend's `create_job(...)` really uses for this endpoint
   // (see tools/toolJobType.js — mostly derived from the slug, with the few
   // documented exceptions). If exactly one running job matches, re-attach. We
-  // deliberately don't restore completed/failed jobs — those auto-clear from
-  // the store after they reach terminal and the user has likely moved on.
+  // Restore terminal jobs from the tab's saved id above. Here we discover an
+  // in-flight job started elsewhere when this tool has no saved selection.
   useEffect(() => {
     if (jobId || terminal) return
     const expectedJobType = toolJobTypeFor(endpoint)
@@ -250,9 +309,13 @@ export default function ToolRunner({
   const handleFile = (f) => {
     setError("")
     if (!f) return
+    if (f.size === 0) {
+      setError('O arquivo está vazio. Selecione um vídeo ou áudio válido.')
+      return
+    }
     const maxBytes = maxMB * 1024 * 1024
     if (f.size > maxBytes) {
-      setError(`File too large (max ${maxMB} MB)`)
+      setError(`Arquivo muito grande (máximo de ${maxMB} MB)`)
       return
     }
     setFile(f)
@@ -273,12 +336,13 @@ export default function ToolRunner({
     // prompt, etc.) are deliberately left intact so "generate again with a
     // tweak" works without re-entering everything.
     setTerminal(null)
+    setJobId(null)
     setResultOpen(false)
     setRailCollapsed(false)
     const form = new FormData()
     if (!hideFileInput) {
       if (!file) {
-        setError("Please select a file")
+        setError("Selecione um arquivo")
         return
       }
       form.append("file", file)
@@ -312,10 +376,10 @@ export default function ToolRunner({
       // hook above — the two used to derive it independently, which is how
       // /tools/subtitles ended up tagged `tool:subtitles` while the backend
       // created `tool:subtitle_export`.
-      startJob(data.job_id, toolJobTypeFor(endpoint), "Starting...")
+      startJob(data.job_id, toolJobTypeFor(endpoint), "Iniciando…")
       setJobId(data.job_id)
     } catch (e) {
-      const msg = e?.response?.data?.detail || e.message || "Upload failed"
+      const msg = e?.response?.data?.detail || e.message || "Não foi possível enviar o arquivo"
       setError(msg)
       showSnackbar?.(msg, "error")
     }
@@ -334,7 +398,7 @@ export default function ToolRunner({
   const submitBlockedReason = !submitDisabled
     ? ""
     : missingPrimaryInput
-      ? "Select a video file first"
+      ? "Selecione primeiro um arquivo de vídeo"
       : disabledReason
 
   // ⌘/Ctrl+Enter runs the tool from anywhere in the page (incl. while a
@@ -348,7 +412,8 @@ export default function ToolRunner({
   }
 
   useEffect(() => {
-    if (jobSuccess && onJobComplete) {
+    if (jobSuccess && onJobComplete && notifiedJob.current !== jobId) {
+      notifiedJob.current = jobId
       try { onJobComplete(jobId) } catch { /* noop */ }
     }
   }, [jobSuccess, jobId, onJobComplete])
@@ -363,14 +428,10 @@ export default function ToolRunner({
 
   const reopenResult = () => { setResultOpen(true); setRailCollapsed(false) }
 
-  // Guard browser close / reload while a tool job is in progress. Modern
-  // browsers ignore the custom message and show their own generic dialog
-  // ("Reload site? Changes you made may not be saved") — but the dialog
-  // still appears, which is what we want. Doesn't catch SPA navigation;
-  // the on-screen warning Alert below is what nudges users not to use
-  // the sidebar mid-run.
+  // Only the experimental browser engine depends on this page staying open.
+  // Native jobs continue in the PC process and recover from their saved id.
   useEffect(() => {
-    if (!jobRunning) return
+    if (!jobRunning || import.meta.env.VITE_BROWSER_RUNTIME !== 'true') return
     const handler = (e) => {
       e.preventDefault()
       e.returnValue = ""
@@ -412,7 +473,7 @@ export default function ToolRunner({
                   onClick={reopenResult}
                   sx={{ flexShrink: 0 }}
                 >
-                  View result
+                  Ver resultado
                 </Button>
               )}
               {/* Tooltip needs a non-disabled wrapper to receive hover
@@ -492,7 +553,7 @@ export default function ToolRunner({
                       </Typography>
                       <Typography variant="caption" sx={{ color: "text.secondary" }}>
                         {(file.size / 1024 / 1024).toFixed(1)} MB
-                        {inputSize.w > 0 && ` · ${inputSize.w}×${inputSize.h}`}
+                        {inputSize.w > 0 && (" · " + String(inputSize.w) + "×" + String(inputSize.h) + "")}
                       </Typography>
                     </Box>
                     <IconButton size="small" onClick={(e) => { e.stopPropagation(); setFile(null) }}>
@@ -523,10 +584,10 @@ export default function ToolRunner({
                 <Stack spacing={1} alignItems="center">
                   <CloudUploadOutlinedIcon sx={{ fontSize: 40, color: "text.secondary" }} />
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    Drop a video here or click to browse
+                    Solte um vídeo aqui ou clique para procurar
                   </Typography>
                   <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                    {acceptExts.replace(/\./g, "").toUpperCase()} · up to {maxMB} MB
+                    {acceptExts.replace(/\./g, "").toUpperCase()} · até {maxMB} MB
                   </Typography>
                 </Stack>
               )}
@@ -560,12 +621,13 @@ export default function ToolRunner({
                 icon={<WarningAmberIcon />}
                 sx={{ "& .MuiAlert-message": { fontWeight: 500 } }}
               >
-                Don't leave or refresh this page — the job is in progress.
-                Closing the page will interrupt it and you'll need to start over.
+                {import.meta.env.VITE_BROWSER_RUNTIME === 'true'
+                  ? 'Mantenha esta página aberta durante o processamento neste navegador.'
+                  : 'O processamento continua no PC. Mantenha o aplicativo local aberto. Esta aba recupera a tarefa e o resultado ao recarregar.'}
               </Alert>
               <GlassPanel sx={{ p: 2.5 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                  {job.step || "Working…"}
+                  {jobStep(job.step) || "Processando…"}
                 </Typography>
                 <LinearProgress variant="determinate" value={job.percent || 0} sx={{ borderRadius: 1, height: 8 }} />
                 <Typography variant="caption" sx={{ color: "text.secondary", mt: 0.5, display: "block" }}>
@@ -581,8 +643,8 @@ export default function ToolRunner({
 
           {/* Failed */}
           {jobFailed && (
-            <Alert severity="error" action={<Button size="small" onClick={reset}>Try again</Button>}>
-              {job?.step || terminal?.step || "Job failed"}
+            <Alert severity="error" action={<Button size="small" onClick={reset}>Tentar novamente</Button>}>
+              {jobStep(job?.step || terminal?.step) || "Falha na tarefa"}
             </Alert>
           )}
         </Box>
@@ -623,15 +685,15 @@ export default function ToolRunner({
           >
             <CheckCircleOutlinedIcon sx={{ color: "success.main" }} />
             <Typography variant="subtitle1" sx={{ flex: 1, fontWeight: 700, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {title} — ready
+              {title} , pronto
             </Typography>
-            <Tooltip title="Minimize to edge">
-              <IconButton size="small" onClick={() => setRailCollapsed(true)} aria-label="Minimize result">
+            <Tooltip title={"Minimizar para a borda"}>
+              <IconButton size="small" onClick={() => setRailCollapsed(true)} aria-label={"Minimizar resultado"}>
                 <ChevronRightIcon fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Close">
-              <IconButton size="small" onClick={() => setResultOpen(false)} aria-label="Close result">
+            <Tooltip title={"Fechar"}>
+              <IconButton size="small" onClick={() => setResultOpen(false)} aria-label={"Fechar resultado"}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -648,8 +710,8 @@ export default function ToolRunner({
 
           {/* Footer actions */}
           <Stack direction="row" spacing={1} sx={{ p: 2, borderTop: 1, borderColor: "divider", flexShrink: 0 }}>
-            <Button fullWidth variant="outlined" onClick={reset}>Run again</Button>
-            <Button
+            <Button fullWidth variant="outlined" onClick={reset}>Executar novamente</Button>
+            {downloadable && <Button
               fullWidth
               variant="contained"
               startIcon={<DownloadOutlinedIcon />}
@@ -658,7 +720,7 @@ export default function ToolRunner({
               rel="noopener"
             >
               {downloadLabel}
-            </Button>
+            </Button>}
           </Stack>
         </Paper>
       </Slide>
@@ -666,10 +728,10 @@ export default function ToolRunner({
       {/* Collapsed edge tab — persistent handle on the right edge. Vertical
           "Result ready" label; click to expand the rail back open. */}
       {resultOpen && jobSuccess && railCollapsed && (
-        <Tooltip title="Show generated result" placement="left">
+        <Tooltip title={"Mostrar resultado gerado"} placement="left">
           <ButtonBase
             onClick={() => setRailCollapsed(false)}
-            aria-label="Show generated result"
+            aria-label={"Mostrar resultado gerado"}
             sx={(t) => ({
               position: "fixed",
               right: 0,
@@ -701,7 +763,7 @@ export default function ToolRunner({
                 letterSpacing: "0.04em",
               }}
             >
-              Result ready
+              Resultado pronto
             </Typography>
           </ButtonBase>
         </Tooltip>

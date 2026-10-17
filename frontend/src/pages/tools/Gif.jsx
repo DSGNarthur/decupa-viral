@@ -11,7 +11,7 @@ import useDocumentTitle from "../../hooks/useDocumentTitle"
 // fps, width, and optional trim window.
 
 export default function ToolGif() {
-  useDocumentTitle("Video → GIF")
+  useDocumentTitle("Vídeo → GIF")
   const [fps, setFps] = useState(15)
   const [width, setWidth] = useState(540)
   const [startSeconds, setStartSeconds] = useState(0)
@@ -19,12 +19,12 @@ export default function ToolGif() {
 
   return (
     <ToolRunner
-      title="Video → GIF"
-      description="Convert any video clip into an animated GIF with optimal palette"
+      title={"Vídeo → GIF"}
+      description={"Converta qualquer clipe de vídeo em um GIF animado com paleta otimizada"}
       icon={<GifOutlinedIcon fontSize="large" />}
       endpoint="/api/tools/gif"
-      processLabel="Make GIF"
-      downloadLabel="Download GIF"
+      processLabel={"Criar GIF"}
+      downloadLabel={"Baixar GIF"}
       fieldBuilder={() => ({
         fps, width,
         start_seconds: startSeconds,
@@ -34,7 +34,7 @@ export default function ToolGif() {
       <Stack spacing={2}>
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 0.5 }}>
-            Frames per second — {fps}
+            Quadros por segundo , {fps}
           </Typography>
           <Slider
             value={fps}
@@ -47,13 +47,13 @@ export default function ToolGif() {
             size="small"
           />
           <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            Higher fps = smoother motion + much bigger files. 15 is the sweet spot for most clips.
+            FPS mais alto = movimento mais suave + arquivos muito maiores. 15 é o ponto ideal para a maioria dos clipes.
           </Typography>
         </Box>
 
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 0.5 }}>
-            Width — {width}px
+            Largura , {width}px
           </Typography>
           <Slider
             value={width}
@@ -66,23 +66,23 @@ export default function ToolGif() {
             size="small"
           />
           <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            Height scales automatically to preserve aspect ratio.
+            A altura é dimensionada automaticamente para preservar a proporção.
           </Typography>
         </Box>
 
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 0.5 }}>
-            Trim (optional — 0 means whole video, max 60s)
+            Corte (opcional , 0 significa vídeo inteiro, máx. 60s)
           </Typography>
           <Stack direction="row" spacing={2}>
             <TextField
-              label="Start (sec)" type="number" size="small" sx={{ width: 130 }}
+              label={"Início (seg)"} type="number" size="small" sx={{ width: 130 }}
               value={startSeconds}
               onChange={(e) => setStartSeconds(Math.max(0, parseFloat(e.target.value) || 0))}
               slotProps={{ htmlInput: { min: 0, step: 0.1 } }}
             />
             <TextField
-              label="Duration (sec)" type="number" size="small" sx={{ width: 150 }}
+              label={"Duração (seg)"} type="number" size="small" sx={{ width: 150 }}
               value={durationSeconds}
               onChange={(e) => setDurationSeconds(Math.max(0, Math.min(60, parseFloat(e.target.value) || 0)))}
               slotProps={{ htmlInput: { min: 0, max: 60, step: 0.5 } }}

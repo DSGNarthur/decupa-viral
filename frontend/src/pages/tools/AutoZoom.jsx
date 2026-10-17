@@ -9,10 +9,10 @@ import useDocumentTitle from "../../hooks/useDocumentTitle"
 // helper does the work. Works standalone; pairs well right after Captions.
 
 const INTENSITY = [
-  { v: 1.08, label: "Subtle" },
-  { v: 1.15, label: "Default" },
-  { v: 1.25, label: "Punchy" },
-  { v: 1.4, label: "Max" },
+  { v: 1.08, label: "Sutil" },
+  { v: 1.15, label: "Padrão" },
+  { v: 1.25, label: "Impactante" },
+  { v: 1.4, label: "Máximo" },
 ]
 
 export default function ToolAutoZoom() {
@@ -22,17 +22,17 @@ export default function ToolAutoZoom() {
 
   return (
     <ToolRunner
-      title="Auto-Zoom"
-      description="Add subtle zoom punch-ins on spoken words for extra energy"
+      title={"Auto-Zoom"}
+      description={"Adicione zoom sutil nas palavras faladas para dar mais energia"}
       icon={<ZoomInMapOutlinedIcon fontSize="large" />}
       endpoint="/api/tools/auto-zoom"
-      processLabel="Add zoom pulses"
+      processLabel={"Adicionar pulsos de zoom"}
       fieldBuilder={() => ({ zoom_factor: zoom, words_per_group: wordsPerGroup })}
     >
       <Stack spacing={2.5}>
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 0.5 }}>
-            Zoom intensity — <strong>{Math.round((zoom - 1) * 100)}%</strong>
+            Intensidade do zoom , <strong>{Math.round((zoom - 1) * 100)}%</strong>
           </Typography>
           <Slider
             value={zoom}
@@ -44,13 +44,13 @@ export default function ToolAutoZoom() {
             size="small"
           />
           <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            How far each pulse zooms in. 15% is the sweet spot — keep it subtle so it reads as energy, not motion sickness.
+            O quanto cada pulso amplia. 15% é o ponto ideal , mantenha sutil para transmitir energia, não enjoo de movimento.
           </Typography>
         </Box>
 
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 0.5 }}>
-            Words per pulse — <strong>{wordsPerGroup}</strong>
+            Palavras por pulso , <strong>{wordsPerGroup}</strong>
           </Typography>
           <Slider
             value={wordsPerGroup}
@@ -61,14 +61,14 @@ export default function ToolAutoZoom() {
             size="small"
           />
           <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            Pulse once per N spoken words. Match this to your caption grouping for a synced feel.
+            Pulse uma vez a cada N palavras faladas. Combine isso com o agrupamento das suas legendas para um efeito sincronizado.
           </Typography>
         </Box>
 
         <Alert severity="info" sx={{ fontSize: "0.82rem" }}>
-          Needs clear speech (word timings drive the pulses). A clip with no
-          detectable speech is returned unchanged. Run this{" "}
-          <strong>after</strong> Add Captions for a synced caption + zoom combo.
+          Precisa de fala clara (as marcações de tempo das palavras guiam os pulsos). Um clipe sem
+          fala detectável é retornado sem alterações. Execute isto{" "}
+          <strong>depois</strong> Adicione Legendas para uma combinação sincronizada de legenda + zoom.
         </Alert>
       </Stack>
     </ToolRunner>

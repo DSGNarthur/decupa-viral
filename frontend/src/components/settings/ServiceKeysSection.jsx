@@ -20,7 +20,7 @@ const SERVICES = [
   {
     id: "youtube",
     label: "YouTube Data API",
-    description: "Powers YouTube scouting, channel reader, and comment analysis",
+    description: "Alimenta a busca no YouTube, o leitor de canais e a análise de comentários",
     icon: <YouTubeIcon sx={{ color: "#FF0000", fontSize: 28 }} />,
     settingsKey: "youtube_api_key",      // POST /api/settings field
     setFlag: "youtube_api_key_set",       // GET response flag (masked)
@@ -53,7 +53,7 @@ function ServiceKeyRow({ service, settings, updateSettings }) {
   const handleSave = async () => {
     const value = apiKey.trim()
     if (!value) {
-      showSnackbar("Paste your API key first", "warning")
+      showSnackbar("Cole a sua chave de API primeiro", "warning")
       return
     }
     setSaving(true)
@@ -61,7 +61,7 @@ function ServiceKeyRow({ service, settings, updateSettings }) {
       await updateSettings({ [service.settingsKey]: value })
       setApiKey("")
       setEditing(false)
-      showSnackbar(`${service.label} key saved`, "success")
+      showSnackbar(("Chave " + String(service.label) + " salva"), "success")
     } catch (e) {
       // updateSettings already shows a snackbar on error
     } finally {
@@ -76,7 +76,7 @@ function ServiceKeyRow({ service, settings, updateSettings }) {
       await updateSettings({ [service.settingsKey]: "" })
       setApiKey("")
       setEditing(true)
-      showSnackbar(`${service.label} key removed — falling back to .env (if configured)`, "info")
+      showSnackbar(("Chave " + String(service.label) + " removida , voltando para .env (se configurado)"), "info")
     } catch (e) {
       // handled in updateSettings
     } finally {
@@ -107,7 +107,7 @@ function ServiceKeyRow({ service, settings, updateSettings }) {
                 color="success"
                 variant="outlined"
                 icon={<CheckCircleIcon fontSize="small" />}
-                label="key set"
+                label={"chave definida"}
                 sx={{ fontWeight: 500 }}
               />
             )}
@@ -127,7 +127,7 @@ function ServiceKeyRow({ service, settings, updateSettings }) {
             onClick={() => { setEditing(true); setApiKey("") }}
             disabled={saving}
           >
-            Update
+            Atualizar
           </Button>
           <Button
             variant="outlined"
@@ -137,7 +137,7 @@ function ServiceKeyRow({ service, settings, updateSettings }) {
             onClick={() => setConfirmRemove(true)}
             disabled={saving}
           >
-            Remove
+            Remover
           </Button>
         </Stack>
       ) : (
@@ -153,7 +153,7 @@ function ServiceKeyRow({ service, settings, updateSettings }) {
               <>
                 {service.docsHint}{" "}
                 <Link href={service.docsHref} target="_blank" rel="noreferrer">
-                  open docs
+                  abrir documentação
                 </Link>
               </>
             }
@@ -177,7 +177,7 @@ function ServiceKeyRow({ service, settings, updateSettings }) {
               onClick={handleSave}
               disabled={saving || !apiKey.trim()}
             >
-              {saving ? "Saving…" : "Save"}
+              {saving ? "Salvando…" : "Salvar"}
             </Button>
             {keyIsSet && (
               <Button
@@ -186,7 +186,7 @@ function ServiceKeyRow({ service, settings, updateSettings }) {
                 onClick={() => { setEditing(false); setApiKey("") }}
                 disabled={saving}
               >
-                Cancel
+                Cancelar
               </Button>
             )}
           </Stack>
@@ -194,18 +194,18 @@ function ServiceKeyRow({ service, settings, updateSettings }) {
       )}
 
       <Dialog open={confirmRemove} onClose={() => setConfirmRemove(false)} maxWidth="xs" fullWidth>
-        <DialogTitle>Remove {service.label} key?</DialogTitle>
+        <DialogTitle>Remover {service.label} chave?</DialogTitle>
         <DialogContent>
           <Typography variant="body2">
-            This deletes the encrypted key from your local database. ViralMint will fall back to
-            the corresponding key in your <code>.env</code> file (if set). Features that depend on
-            this service will stop working until you add a new key or restore the .env one.
+            Isso exclui a chave criptografada do seu banco de dados local. O Decupa Viral voltará a usar
+            a chave correspondente no seu arquivo <code>.env</code> (se definida). Os recursos que dependem
+            deste serviço pararão de funcionar até você adicionar uma nova chave ou restaurar a do .env.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmRemove(false)}>Cancel</Button>
+          <Button onClick={() => setConfirmRemove(false)}>Cancelar</Button>
           <Button color="error" variant="contained" onClick={handleRemove}>
-            Remove key
+            Remover chave
           </Button>
         </DialogActions>
       </Dialog>
@@ -217,8 +217,8 @@ export default function ServiceKeysSection({ settings, updateSettings }) {
   return (
     <Stack spacing={0}>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Per-service API keys, encrypted (AES-256) before storage. They take priority over the
-        keys in your <code>.env</code> file at runtime.
+        Chaves de API por serviço, criptografadas (AES-256) antes do armazenamento. Elas têm prioridade sobre as
+        chaves no seu <code>.env</code> em tempo de execução.
       </Typography>
       {SERVICES.map((service) => (
         <ServiceKeyRow

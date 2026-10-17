@@ -110,10 +110,14 @@ class TestRealFfmpeg:
     def test_ass_filter_accepts_the_quoted_form(self, work: Path, folder: str):
         if not _ffmpeg_has_filter("ass"):
             pytest.skip("ffmpeg built without libass")
-        ass = work / folder / "s.ass"
+        # POSIX can create a directory named C:, Windows treats it as a drive.
+        # Always keep fixtures inside the pytest workspace on Windows.
+        import os
+        local_folder = folder.split("/", 1)[1] if os.name == "nt" else folder
+        ass = work / local_folder / "s.ass"
         ass.parent.mkdir(parents=True)
         ass.write_text(ASS)
-        r = _run(work, "-vf", f"ass={ff_filter_path(folder + '/s.ass')}")
+        r = _run(work, "-vf", f"ass={ff_filter_path(str(ass))}")
         assert r.returncode == 0, r.stderr
 
     def test_the_shipped_single_backslash_form_reproduces_the_customer_error(self, work: Path):
@@ -130,11 +134,15 @@ class TestRealFfmpeg:
     def test_drawtext_textfile_accepts_the_quoted_form(self, work: Path):
         if not _ffmpeg_has_filter("drawtext"):
             pytest.skip("ffmpeg built without drawtext")
-        txt = work / "C:" / "it's=odd" / "t.txt"
+        txt = work / "it's=odd" / "t.txt"
         txt.parent.mkdir(parents=True)
         txt.write_text("hello")
-        quoted = ff_filter_path("C:/it's=odd/t.txt")
-        r = _run(work, "-vf", f"drawtext=textfile={quoted}:fontcolor=white")
+        quoted = ff_filter_path(str(txt))
+        # Windows FFmpeg may have no fontconfig installation. Supply an
+        # installed font so this exercises path parsing rather than font lookup.
+        windows_font = Path("C:/Windows/Fonts/arial.ttf")
+        font = f":fontfile={ff_filter_path(str(windows_font))}" if windows_font.exists() else ""
+        r = _run(work, "-vf", f"drawtext=textfile={quoted}{font}:fontcolor=white")
         assert r.returncode == 0, r.stderr
 
 

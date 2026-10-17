@@ -22,7 +22,7 @@ import useDocumentTitle from "../../hooks/useDocumentTitle"
  * job_complete and render the analysis card directly.
  */
 export default function ToolHookAnalysis() {
-  useDocumentTitle("Hook Detector")
+  useDocumentTitle("Detector de Gancho")
   const theme = useTheme()
   const showSnackbar = useAppStore((s) => s.showSnackbar)
   const [result, setResult] = useState(null)
@@ -35,13 +35,18 @@ export default function ToolHookAnalysis() {
       const res = await http.get(`/api/jobs/${jobId}`)
       const out = res.data?.output_json
       if (!out) {
-        showSnackbar("Hook analysis returned no result", "warning")
+        showSnackbar("A análise do gancho não retornou resultado", "warning")
         return
       }
       const parsed = typeof out === "string" ? JSON.parse(out) : out
-      setResult(parsed)
+      setResult({
+        ...parsed,
+        strengths: parsed.strengths || [],
+        weaknesses: parsed.weaknesses || parsed.issues || [],
+        alternatives: parsed.alternatives || parsed.suggested_hooks || [],
+      })
     } catch (e) {
-      showSnackbar(`Couldn't load hook result: ${e.message}`, "error")
+      showSnackbar(("Não foi possível carregar o resultado do gancho: " + String(e.message) + ""), "error")
     }
   }
 
@@ -58,7 +63,7 @@ export default function ToolHookAnalysis() {
       // Use the browser's Web Speech API for client-side TTS — no roundtrip,
       // no cost. Falls back to a snackbar if the browser doesn't support it.
       if (!("speechSynthesis" in window)) {
-        showSnackbar("Your browser doesn't support speech synthesis. Copy the text instead.", "info")
+        showSnackbar("Seu navegador não oferece suporte à síntese de fala. Copie o texto.", "info")
         return
       }
       stopPreview()
@@ -77,9 +82,9 @@ export default function ToolHookAnalysis() {
   const copyAlternative = async (text) => {
     try {
       await navigator.clipboard.writeText(text)
-      showSnackbar("Copied to clipboard", "success")
+      showSnackbar("Copiado para a área de transferência", "success")
     } catch {
-      showSnackbar("Couldn't copy — select the text manually", "warning")
+      showSnackbar("Não foi possível copiar , selecione o texto manualmente", "warning")
     }
   }
 
@@ -89,11 +94,12 @@ export default function ToolHookAnalysis() {
 
   return (
     <ToolRunner
-      title="Hook Detector"
-      description="Score the first 10 seconds of any video and get stronger opening alternatives"
+      title={"Detector de Gancho"}
+      description={"Avalie os primeiros 10 segundos de qualquer vídeo e receba alternativas de abertura mais fortes"}
       icon={<LightbulbOutlinedIcon fontSize="large" />}
       endpoint="/api/tools/hook-analysis"
-      processLabel="Analyze hook"
+      downloadable={false}
+      processLabel={"Analisar gancho"}
       onJobComplete={fetchResult}
       resultPreview={() => result ? (
         <Stack spacing={2}>
@@ -113,13 +119,13 @@ export default function ToolHookAnalysis() {
               </Box>
               <Box sx={{ flex: 1 }}>
                 <Typography variant="caption" sx={{ color: "text.secondary", letterSpacing: 0.5, textTransform: "uppercase", fontWeight: 600 }}>
-                  Hook Score / 10
+                  Pontuação do gancho / 10
                 </Typography>
                 <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.25 }}>
-                  {result.score >= 8 ? "Strong opener — keep it" :
-                    result.score >= 6 ? "Decent — see weaknesses for upgrades" :
-                    result.score >= 4 ? "Average — alternatives below should help" :
-                    "Weak — consider a complete rewrite using the alternatives"}
+                  {result.score >= 8 ? "Abertura forte , mantenha assim" :
+                    result.score >= 6 ? "Razoável , veja os pontos fracos para melhorias" :
+                    result.score >= 4 ? "Mediana , as alternativas abaixo devem ajudar" :
+                    "Fraca , considere uma reescrita completa usando as alternativas"}
                 </Typography>
               </Box>
             </Stack>
@@ -129,7 +135,7 @@ export default function ToolHookAnalysis() {
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
             <GlassPanel sx={{ p: 2, flex: 1, borderRadius: 2, borderColor: alpha(theme.palette.success.main, 0.4) }}>
               <Typography variant="caption" sx={{ fontWeight: 700, color: "success.main", display: "block", mb: 1, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                Strengths
+                Pontos fortes
               </Typography>
               <Stack spacing={0.75}>
                 {(result.strengths || []).map((s, i) => (
@@ -139,13 +145,13 @@ export default function ToolHookAnalysis() {
                   </Typography>
                 ))}
                 {(!result.strengths || result.strengths.length === 0) && (
-                  <Typography variant="caption" sx={{ color: "text.disabled" }}>None identified</Typography>
+                  <Typography variant="caption" sx={{ color: "text.disabled" }}>Nenhum identificado</Typography>
                 )}
               </Stack>
             </GlassPanel>
             <GlassPanel sx={{ p: 2, flex: 1, borderRadius: 2, borderColor: alpha(theme.palette.error.main, 0.4) }}>
               <Typography variant="caption" sx={{ fontWeight: 700, color: "error.main", display: "block", mb: 1, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                Weaknesses
+                Pontos fracos
               </Typography>
               <Stack spacing={0.75}>
                 {(result.weaknesses || []).map((s, i) => (
@@ -155,7 +161,7 @@ export default function ToolHookAnalysis() {
                   </Typography>
                 ))}
                 {(!result.weaknesses || result.weaknesses.length === 0) && (
-                  <Typography variant="caption" sx={{ color: "text.disabled" }}>None identified</Typography>
+                  <Typography variant="caption" sx={{ color: "text.disabled" }}>Nenhum identificado</Typography>
                 )}
               </Stack>
             </GlassPanel>
@@ -164,7 +170,7 @@ export default function ToolHookAnalysis() {
           {/* Alternatives */}
           <GlassPanel sx={{ p: 2, borderRadius: 2 }}>
             <Typography variant="caption" sx={{ fontWeight: 700, color: "primary.main", display: "block", mb: 1.5, textTransform: "uppercase", letterSpacing: 0.5 }}>
-              Stronger hook alternatives
+              Alternativas de gancho mais fortes
             </Typography>
             <Stack spacing={1}>
               {(result.alternatives || []).map((alt, i) => (
@@ -180,7 +186,7 @@ export default function ToolHookAnalysis() {
                       {i + 1}. "{alt}"
                     </Typography>
                   </Box>
-                  <Tooltip title={previewVoice === i ? "Stop" : "Preview with browser TTS"} arrow>
+                  <Tooltip title={previewVoice === i ? "Parar" : "Visualizar com TTS do navegador"} arrow>
                     <IconButton
                       size="small"
                       onClick={() => previewAlternative(i, alt)}
@@ -193,7 +199,7 @@ export default function ToolHookAnalysis() {
                           : <VolumeUpOutlinedIcon sx={{ fontSize: 18 }} />}
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="Copy to clipboard" arrow>
+                  <Tooltip title={"Copiar para a área de transferência"} arrow>
                     <IconButton
                       size="small"
                       onClick={() => copyAlternative(alt)}
@@ -211,7 +217,7 @@ export default function ToolHookAnalysis() {
           {result.transcript && (
             <GlassPanel sx={{ p: 2, borderRadius: 2, bgcolor: alpha(theme.palette.text.primary, 0.02) }}>
               <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600, display: "block", mb: 0.5, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                Original opening (first {result.duration_analyzed?.toFixed(1) || "10"}s)
+                Abertura original (primeiros {result.duration_analyzed?.toFixed(1) || "10"}s)
               </Typography>
               <Typography variant="body2" sx={{ color: "text.secondary", fontStyle: "italic" }}>
                 "{result.transcript}"
@@ -222,10 +228,10 @@ export default function ToolHookAnalysis() {
       ) : null}
     >
       <Typography variant="body2" sx={{ color: "text.secondary" }}>
-        Upload a video. ViralMint trims the first 10 seconds, transcribes
-        the audio, and asks AI to score the opening hook plus suggest 3
-        stronger alternatives. Best for short-form content where the first
-        3 seconds decide whether viewers stay.
+        Envie um vídeo. O Decupa Viral corta os primeiros 10 segundos, transcreve
+        o áudio e pede à IA para avaliar o gancho de abertura e sugerir 3
+        alternativas mais fortes. Ideal para conteúdo curto em que os primeiros
+        3 segundos decidem se os espectadores ficam.
       </Typography>
     </ToolRunner>
   )

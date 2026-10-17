@@ -6,7 +6,7 @@ const JOB_COLORS = {
 }
 
 const JOB_LABELS = {
-  scout: "Scouting", download: "Downloading", generate: "Generating", upload: "Uploading",
+  scout: "Prospectando", download: "Baixando", generate: "Gerando", upload: "Enviando",
 }
 
 // "tool:merge_clips" → "Merge clips". The raw job type read as a debug string
@@ -43,7 +43,7 @@ export default function JobProgressCard({ jobId, jobType, message }) {
           fontWeight: 600, fontSize: "0.75rem",
           color: isSuccess ? "success.main" : isFailed ? "error.main" : "text.secondary",
         }}>
-          {isSuccess ? `${label} complete` : isFailed ? `${label} failed` : `${label}...`}
+          {isSuccess ? ("" + String(label) + " concluído") : isFailed ? ("" + String(label) + " falhou") : ("" + String(label) + "...")}
         </Typography>
         {isRunning && percent > 0 && (
           <Typography variant="caption" sx={{ fontSize: "0.65rem", color: "text.disabled" }}>

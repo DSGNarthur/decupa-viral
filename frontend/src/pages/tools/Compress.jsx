@@ -13,19 +13,19 @@ import useDocumentTitle from "../../hooks/useDocumentTitle"
 // The backend is the authority (it validates the Literal); these carry the
 // human wording and the target height used for the "already smaller" hint.
 const RESOLUTIONS = [
-  { value: "original", label: "Original — keep source size", height: 0 },
-  { value: "1280x720", label: "HD — 720p", height: 720 },
-  { value: "854x480", label: "SD — 480p", height: 480 },
-  { value: "640x360", label: "Low — 360p", height: 360 },
-  { value: "426x240", label: "Tiny — 240p", height: 240 },
+  { value: "original", label: "Original , mantém o tamanho da fonte", height: 0 },
+  { value: "1280x720", label: "HD , 720p", height: 720 },
+  { value: "854x480", label: "SD , 480p", height: 480 },
+  { value: "640x360", label: "Baixa , 360p", height: 360 },
+  { value: "426x240", label: "Mínima , 240p", height: 240 },
 ]
 
 const LEVELS = [
-  { value: "maximum", label: "Maximum — smallest file" },
-  { value: "high", label: "High — good balance" },
-  { value: "medium", label: "Medium — better quality" },
-  { value: "low", label: "Low — high quality" },
-  { value: "minimal", label: "Minimal — best quality" },
+  { value: "maximum", label: "Máxima , menor arquivo" },
+  { value: "high", label: "Alta , bom equilíbrio" },
+  { value: "medium", label: "Média , melhor qualidade" },
+  { value: "low", label: "Baixa , alta qualidade" },
+  { value: "minimal", label: "Mínima , melhor qualidade" },
 ]
 
 // What the two dials will actually do to THIS file. Reads the real source
@@ -42,7 +42,7 @@ function OutcomePreview({ resolution, level }) {
   if (!known) {
     return (
       <Typography variant="caption" sx={{ color: "text.secondary" }}>
-        Add a video to see what these settings will do to it.
+        Adicione um vídeo para ver o que estas configurações farão com ele.
       </Typography>
     )
   }
@@ -54,55 +54,55 @@ function OutcomePreview({ resolution, level }) {
   return (
     <Stack spacing={0.5}>
       <Typography variant="caption" sx={{ color: "text.secondary" }}>
-        <strong>Source</strong> {srcW} × {srcH} → <strong>output</strong> {outW} × {outH}
+        <strong>Fonte</strong> {srcW} × {srcH} → <strong>saída</strong> {outW} × {outH}
       </Typography>
       {wouldUpscale && (
         <Typography variant="caption" sx={{ color: "warning.main" }}>
-          This video is already smaller than {target.label.split("—")[1]?.trim() || resolution}.
-          It'll keep its size — scaling up would only make the file bigger.
+          Este vídeo já é menor que {target.label.split("—")[1]?.trim() || resolution}.
+          Ele manterá seu tamanho , aumentar a escala só deixaria o arquivo maior.
         </Typography>
       )}
       <Typography variant="caption" sx={{ color: "text.secondary" }}>
         {level === "maximum"
-          ? "Maximum squeezes hardest — expect visible softening on detailed footage."
+          ? "A compressão máxima aperta mais forte , espere suavização visível em imagens detalhadas."
           : level === "minimal"
-            ? "Minimal barely touches quality, so the saving is modest."
-            : "Quality holds up well at this level for most footage."}
+            ? "A compressão mínima quase não afeta a qualidade, então a economia é modesta."
+            : "A qualidade se mantém bem neste nível para a maioria das imagens."}
       </Typography>
     </Stack>
   )
 }
 
 export default function ToolCompress() {
-  useDocumentTitle("Compress Video")
+  useDocumentTitle("Comprimir Vídeo")
   const [resolution, setResolution] = useState("original")
   const [level, setLevel] = useState("high")
 
   return (
     <ToolRunner
-      title="Compress Video"
-      description="Shrink a video for email, chat apps, or an upload limit — without re-cutting it."
+      title={"Comprimir Vídeo"}
+      description={"Reduza um vídeo para email, apps de mensagem ou um limite de upload, sem recortá-lo novamente."}
       icon={<CompressOutlinedIcon fontSize="large" />}
       endpoint="/api/tools/compress"
-      processLabel="Compress"
-      downloadLabel="Download compressed"
+      processLabel={"Comprimir"}
+      downloadLabel={"Baixar comprimido"}
       fieldBuilder={() => ({ resolution, level })}
       costNote={
         <Typography variant="caption" sx={{ color: "text.secondary" }}>
-          Runs locally with FFmpeg — the file never leaves your machine.
-          Resolution and strength are independent: drop the resolution when the
-          video will be watched small, raise the strength when it just needs to
-          fit under a limit. Footage that's already been compressed once won't
-          shrink much further.
+          Roda localmente com FFmpeg , o arquivo nunca sai da sua máquina.
+          Resolução e intensidade são independentes: reduza a resolução quando o
+          vídeo for assistido em tamanho pequeno, aumente a intensidade quando ele só precisar
+          caber dentro de um limite. Imagens que já foram comprimidas uma vez não
+          reduzirão muito mais.
         </Typography>
       }
     >
       <Stack spacing={2}>
         <FormControl size="small" fullWidth>
-          <InputLabel>Resolution</InputLabel>
+          <InputLabel>Resolução</InputLabel>
           <Select
             value={resolution}
-            label="Resolution"
+            label={"Resolução"}
             onChange={(e) => setResolution(e.target.value)}
           >
             {RESOLUTIONS.map((r) => (
@@ -112,10 +112,10 @@ export default function ToolCompress() {
         </FormControl>
 
         <FormControl size="small" fullWidth>
-          <InputLabel>Compression level</InputLabel>
+          <InputLabel>Nível de compressão</InputLabel>
           <Select
             value={level}
-            label="Compression level"
+            label={"Nível de compressão"}
             onChange={(e) => setLevel(e.target.value)}
           >
             {LEVELS.map((l) => (

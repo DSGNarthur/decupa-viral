@@ -17,6 +17,8 @@ const Messaging = lazy(() => import("./pages/Messaging"))
 const ClipStudio = lazy(() => import("./pages/ClipStudio"))
 const MotionGraphics = lazy(() => import("./pages/MotionGraphics"))
 const Tools = lazy(() => import("./pages/Tools"))
+const About = lazy(() => import("./pages/About"))
+const DeviceCheck = lazy(() => import('./pages/DeviceCheck'))
 
 // Tools — single-purpose utility pages. Each is a thin wrapper around the
 // shared ToolRunner; lazy-loaded so the bundle for the hub stays small.
@@ -90,7 +92,10 @@ export default function App() {
         <Suspense fallback={<LazyFallback />}>
           <Routes>
             <Route path="/" element={<Layout />}>
-              <Route index element={<Chat />} />
+              <Route index element={<Navigate to="/clips" replace />} />
+              <Route path="chat" element={<Chat />} />
+              <Route path="about" element={<About />} />
+              <Route path="diagnostico" element={<DeviceCheck />} />
               <Route path="dashboard" element={<Navigate to="/videos" />} />
               {/* `/videos` is the Library. The path is legacy and stays: it is
                   bookmarked, and every ?tab= link the old page published still

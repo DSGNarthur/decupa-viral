@@ -17,13 +17,13 @@ import WhatshotIcon from "@mui/icons-material/Whatshot"
 import WarningAmberIcon from "@mui/icons-material/WarningAmber"
 import http from "../../api/http"
 import useAppStore from "../../store/appStore"
-import { STATUS_COLOR } from "./constants"
+import { STATUS_COLOR, STATUS_LABEL } from "./constants"
 
 const EXPORT_FORMATS = [
   { aspect: "9:16", label: "9:16 Vertical", desc: "TikTok, Reels, Shorts" },
-  { aspect: "16:9", label: "16:9 Landscape", desc: "YouTube, Web" },
-  { aspect: "1:1",  label: "1:1 Square", desc: "Instagram, Facebook" },
-  { aspect: "4:5",  label: "4:5 Portrait", desc: "Instagram Feed" },
+  { aspect: "16:9", label: "16:9 Paisagem", desc: "YouTube, Web" },
+  { aspect: "1:1",  label: "1:1 Quadrado", desc: "Instagram, Facebook" },
+  { aspect: "4:5",  label: "4:5 Retrato", desc: "Feed do Instagram" },
 ]
 
 export default function GeneratedDetail({ video, onUpload, onDelete, onClose, onDetailUpdate }) {
@@ -37,10 +37,10 @@ export default function GeneratedDetail({ video, onUpload, onDelete, onClose, on
     setRegenThumb(true)
     try {
       const res = await http.post(`/api/videos/${video.id}/regenerate-thumbnail`)
-      showSnackbar("Thumbnail regenerated!", "success")
+      showSnackbar("Thumbnail regenerada!", "success")
       if (onDetailUpdate) onDetailUpdate({ ...video, thumbnail_path: res.data.thumbnail_path })
     } catch (e) {
-      showSnackbar(`Thumbnail regen failed: ${e.response?.data?.detail || e.message}`, "error")
+      showSnackbar(("Falha ao regenerar thumbnail: " + String(e.response?.data?.detail || e.message) + ""), "error")
     } finally {
       setRegenThumb(false)
     }
@@ -64,13 +64,13 @@ export default function GeneratedDetail({ video, onUpload, onDelete, onClose, on
     try {
       const payload = { ...draft }
       // Convert comma-separated tags string to array
-      payload.youtube_tags = payload.youtube_tags
+      payload.youtube_tags = payload.youtube_tags.split(',').map(tag => tag.trim()).filter(Boolean)
       const res = await http.patch(`/api/videos/${video.id}`, payload)
-      showSnackbar("Video metadata updated", "success")
+      showSnackbar("Metadados do vídeo atualizados", "success")
       setEditing(false)
       if (onDetailUpdate) onDetailUpdate({ ...video, ...res.data, youtube_tags: res.data.youtube_tags })
     } catch (e) {
-      showSnackbar(`Save failed: ${e.response?.data?.detail || e.message}`, "error")
+      showSnackbar(("Falha ao salvar: " + String(e.response?.data?.detail || e.message) + ""), "error")
     } finally {
       setSaving(false)
     }
@@ -87,7 +87,17 @@ export default function GeneratedDetail({ video, onUpload, onDelete, onClose, on
     setExportAnchor(null)
     if (targetAspect === video.aspect_ratio) {
       // Same aspect — just download the original
-      window.open(`/api/videos/${video.id}/stream`, "_blank")
+      if (import.meta.env.VITE_COMPANION_RUNTIME === 'true') {
+        try {
+          const { downloadFromPC } = await import('../../companion/downloads')
+          const name = `${video.title || 'decupa-video'}.mp4`
+          await downloadFromPC(new URL(`/api/videos/${video.id}/stream`, window.location.origin), name)
+        } catch (error) {
+          showSnackbar(error.message || 'Não foi possível baixar o vídeo', 'error')
+        }
+      } else {
+        window.open(`/api/videos/${video.id}/stream`, "_blank")
+      }
       return
     }
     setExporting(true)
@@ -104,9 +114,9 @@ export default function GeneratedDetail({ video, onUpload, onDelete, onClose, on
       a.download = `${(video.title || "video").replace(/[^a-zA-Z0-9]/g, "_")}_${targetAspect.replace(":", "x")}.mp4`
       a.click()
       URL.revokeObjectURL(url)
-      showSnackbar(`Exported as ${targetAspect}`, "success")
+      showSnackbar(("Exportado como " + String(targetAspect) + ""), "success")
     } catch (e) {
-      showSnackbar(`Export failed: ${e.response?.data?.detail || e.message}`, "error")
+      showSnackbar(("Falha na exportação: " + String(e.response?.data?.detail || e.message) + ""), "error")
     } finally {
       setExporting(false)
     }
@@ -127,33 +137,33 @@ export default function GeneratedDetail({ video, onUpload, onDelete, onClose, on
       <Stack direction="row" alignItems="center" justifyContent="space-between"
         sx={{ px: 2.5, py: 1.5, bgcolor: "action.hover" }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, flex: 1, minWidth: 0 }} noWrap>
-          {video.title || "Untitled"}
+          {video.title || "Sem título"}
         </Typography>
         <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
-          <Chip label={video.status} size="small" color={STATUS_COLOR[video.status] || "default"} />
+          <Chip label={STATUS_LABEL[video.status] || 'Desconhecido'} size="small" color={STATUS_COLOR[video.status] || "default"} />
           {editing ? (
             <>
               <Button variant="contained" size="small" startIcon={saving ? <CircularProgress size={16} /> : <SaveIcon />}
                 onClick={handleSave} disabled={saving}>
-                Save
+                Salvar
               </Button>
               <Button variant="outlined" size="small" onClick={handleCancel} disabled={saving}>
-                Cancel
+                Cancelar
               </Button>
             </>
           ) : (
             <>
               <Button variant="outlined" size="small" startIcon={<EditIcon />}
                 onClick={startEditing}>
-                Edit
+                Editar
               </Button>
               <Button variant="outlined" size="small"
                 startIcon={regenThumb ? <CircularProgress size={16} /> : <PhotoCameraIcon />}
                 disabled={regenThumb || !video.video_path}
                 onClick={handleRegenThumbnail}>
-                {regenThumb ? "Generating..." : "Regen Thumbnail"}
+                {regenThumb ? "Gerando..." : "Regenerar miniatura"}
               </Button>
-              {video.status === "ready" && (
+              {video.status === "ready" && import.meta.env.VITE_BROWSER_RUNTIME !== 'true' && (
                 <>
                   <Button variant="contained" size="small" color="error" startIcon={<UploadIcon />}
                     onClick={() => onUpload(video.id, ["youtube"])}>
@@ -170,7 +180,7 @@ export default function GeneratedDetail({ video, onUpload, onDelete, onClose, on
                   startIcon={exporting ? <CircularProgress size={16} /> : <AspectRatioIcon />}
                   onClick={e => setExportAnchor(e.currentTarget)}
                   disabled={exporting}>
-                  {exporting ? "Converting..." : "Export"}
+                  {exporting ? "Convertendo..." : "Exportar"}
                 </Button>
               )}
               <Menu anchorEl={exportAnchor} open={Boolean(exportAnchor)}
@@ -190,7 +200,7 @@ export default function GeneratedDetail({ video, onUpload, onDelete, onClose, on
               </Menu>
               <Button variant="outlined" size="small" color="inherit" startIcon={<DeleteIcon />}
                 onClick={() => onDelete(video.id)}>
-                Delete
+                Excluir
               </Button>
             </>
           )}
@@ -216,20 +226,20 @@ export default function GeneratedDetail({ video, onUpload, onDelete, onClose, on
               />
             ) : (
               <Box sx={{ height: 200, borderRadius: 2, bgcolor: "action.hover", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Typography sx={{ color: "text.disabled" }}>Video not yet generated</Typography>
+                <Typography sx={{ color: "text.disabled" }}>Vídeo ainda não gerado</Typography>
               </Box>
             )}
 
             {/* Meta chips */}
             <Stack direction="row" spacing={1} sx={{ mt: 1.5 }} flexWrap="wrap" useFlexGap>
               <Chip
-                label={video.source_type === "clip_extraction" ? "Clip" : "Stock"}
+                label={video.source_type === "clip_extraction" ? "Clipe" : "Banco de imagens"}
                 size="small" variant={video.source_type === "clip_extraction" ? "filled" : "outlined"}
                 color={video.source_type === "clip_extraction" ? "secondary" : "default"}
                 icon={video.source_type === "clip_extraction" ? <ContentCutIcon /> : undefined} />
               <Chip label={video.aspect_ratio} size="small" variant="outlined" />
               {video.duration_seconds && (
-                <Chip icon={<AccessTimeIcon />} label={`${Math.floor(video.duration_seconds / 60)}m${video.duration_seconds % 60}s`}
+                <Chip icon={<AccessTimeIcon />} label={("" + String(Math.floor(video.duration_seconds / 60)) + "m" + String(video.duration_seconds % 60) + "s")}
                   size="small" variant="outlined" />
               )}
               {video.clip_virality_score != null && (
@@ -239,17 +249,17 @@ export default function GeneratedDetail({ video, onUpload, onDelete, onClose, on
                   color={video.clip_virality_score >= 8 ? "success" : video.clip_virality_score >= 6 ? "warning" : "default"} />
               )}
               {video.caption_status === "failed" && (
-                <Chip icon={<WarningAmberIcon />} label="Captions failed" size="small" color="warning" variant="filled" />
+                <Chip icon={<WarningAmberIcon />} label={"Falha nas legendas"} size="small" color="warning" variant="filled" />
               )}
               {video.metadata_status === "fallback" && (
-                <Chip icon={<WarningAmberIcon />} label="AI metadata failed" size="small" color="warning" variant="outlined" />
+                <Chip icon={<WarningAmberIcon />} label={"Falha nos metadados de IA"} size="small" color="warning" variant="outlined" />
               )}
               {video.estimated_cost_usd > 0 && (
-                <Chip label={`$${video.estimated_cost_usd.toFixed(2)}`} size="small" variant="outlined" />
+                <Chip label={("$" + String(video.estimated_cost_usd.toFixed(2)) + "")} size="small" variant="outlined" />
               )}
               {video.created_at && (
                 <Typography variant="caption" sx={{ color: "text.secondary", alignSelf: "center" }}>
-                  {new Date(video.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  {new Date(video.created_at).toLocaleString([], { month: "curto", day: "numérico", hour: "2 dígitos", minute: "2 dígitos" })}
                 </Typography>
               )}
             </Stack>
@@ -260,10 +270,10 @@ export default function GeneratedDetail({ video, onUpload, onDelete, onClose, on
                 <Stack spacing={0.75}>
                   {video.clip_start_seconds != null && video.clip_end_seconds != null && (
                     <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                      Source: {Math.floor(video.clip_start_seconds / 60)}:{String(Math.floor(video.clip_start_seconds % 60)).padStart(2, "0")}
+                      Origem: {Math.floor(video.clip_start_seconds / 60)}:{String(Math.floor(video.clip_start_seconds % 60)).padStart(2, "0")}
                       {" — "}
                       {Math.floor(video.clip_end_seconds / 60)}:{String(Math.floor(video.clip_end_seconds % 60)).padStart(2, "0")}
-                      {" in original video"}
+                      {" no vídeo original"}
                     </Typography>
                   )}
                   {video.clip_virality_reason && (
@@ -280,31 +290,31 @@ export default function GeneratedDetail({ video, onUpload, onDelete, onClose, on
           <Grid size={{ xs: 12, md: 8 }}>
             {editing ? (
               <Stack spacing={2}>
-                <TextField label="Title" size="small" fullWidth
+                <TextField label={"Título"} size="small" fullWidth
                   value={draft.title} onChange={e => setField("title", e.target.value)} />
-                <TextField label="Script" size="small" fullWidth multiline minRows={4} maxRows={12}
+                <TextField label={"Roteiro"} size="small" fullWidth multiline minRows={4} maxRows={12}
                   value={draft.script} onChange={e => setField("script", e.target.value)} />
                 <Divider />
                 <Typography variant="overline" sx={{ color: "text.secondary" }}>YouTube</Typography>
-                <TextField label="YouTube Title" size="small" fullWidth
+                <TextField label={"Título do YouTube"} size="small" fullWidth
                   value={draft.youtube_title} onChange={e => setField("youtube_title", e.target.value)} />
-                <TextField label="YouTube Description" size="small" fullWidth multiline minRows={2} maxRows={6}
+                <TextField label={"Descrição do YouTube"} size="small" fullWidth multiline minRows={2} maxRows={6}
                   value={draft.youtube_description} onChange={e => setField("youtube_description", e.target.value)} />
-                <TextField label="YouTube Tags (comma-separated)" size="small" fullWidth
+                <TextField label={"Tags do YouTube (separadas por vírgula)"} size="small" fullWidth
                   value={draft.youtube_tags} onChange={e => setField("youtube_tags", e.target.value)}
-                  helperText="Separate tags with commas" />
+                  helperText={"Separe as tags por vírgulas"} />
                 <Divider />
                 <Typography variant="overline" sx={{ color: "text.secondary" }}>TikTok</Typography>
-                <TextField label="TikTok Title" size="small" fullWidth
+                <TextField label={"Título do TikTok"} size="small" fullWidth
                   value={draft.tiktok_title} onChange={e => setField("tiktok_title", e.target.value)} />
-                <TextField label="TikTok Description" size="small" fullWidth multiline minRows={2} maxRows={4}
+                <TextField label={"Descrição do TikTok"} size="small" fullWidth multiline minRows={2} maxRows={4}
                   value={draft.tiktok_description} onChange={e => setField("tiktok_description", e.target.value)} />
               </Stack>
             ) : (
               <>
                 {video.script && (
                   <Box sx={{ mb: 2 }}>
-                    <Typography variant="overline" sx={{ color: "text.secondary" }}>Script</Typography>
+                    <Typography variant="overline" sx={{ color: "text.secondary" }}>Roteiro</Typography>
                     <Paper variant="outlined" sx={{ p: 1.5, maxHeight: 320, overflowY: "auto", fontSize: "0.82rem", color: "text.secondary", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
                       {video.script}
                     </Paper>
@@ -342,8 +352,8 @@ export default function GeneratedDetail({ video, onUpload, onDelete, onClose, on
 
                 {!video.script && !video.youtube_title && !video.tiktok_title && (
                   <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", minHeight: 200, color: "text.disabled" }}>
-                    <Typography variant="body2" sx={{ mb: 1 }}>No script or metadata yet</Typography>
-                    <Typography variant="caption">This video is still being generated</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}>Ainda sem roteiro ou metadados</Typography>
+                    <Typography variant="caption">Este vídeo ainda está sendo gerado</Typography>
                   </Box>
                 )}
               </>

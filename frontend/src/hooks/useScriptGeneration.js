@@ -25,7 +25,7 @@ export default function useScriptGeneration() {
         })
       } else {
         if (!scriptInstructions.trim()) {
-          showSnackbar("Enter a topic or instructions for the AI to generate a script", "warning")
+          showSnackbar("Insira um tema ou instruções para a IA gerar um roteiro", "warning")
           setScriptLoading(false)
           return
         }
@@ -37,7 +37,7 @@ export default function useScriptGeneration() {
       setScript(res.data.script || "")
       setScriptGenerated(true)
     } catch (err) {
-      showSnackbar(err.response?.data?.detail || "Script generation failed", "error")
+      showSnackbar(err.response?.data?.detail || "Falha na geração do roteiro", "error")
     } finally {
       setScriptLoading(false)
     }
@@ -45,16 +45,16 @@ export default function useScriptGeneration() {
 
   const handlePolishScript = async () => {
     if (!script.trim()) {
-      showSnackbar("Write a script first before polishing", "warning")
+      showSnackbar("Escreva um roteiro primeiro antes de aprimorar", "warning")
       return
     }
     setScriptLoading(true)
     try {
       const res = await http.post("/api/downloaded/polish-script", { script: script.trim() })
       setScript(res.data.script || script)
-      showSnackbar("Script polished successfully", "success")
+      showSnackbar("Roteiro aprimorado com sucesso", "success")
     } catch (err) {
-      showSnackbar(err.response?.data?.detail || "Script polishing failed", "error")
+      showSnackbar(err.response?.data?.detail || "Falha ao aprimorar o roteiro", "error")
     } finally {
       setScriptLoading(false)
     }
@@ -62,7 +62,7 @@ export default function useScriptGeneration() {
 
   const splitIntoScenes = async (mode, aspectRatio = "9:16", sourceId = null) => {
     if (!script.trim()) {
-      showSnackbar("Write a script first before splitting into scenes", "warning")
+      showSnackbar("Escreva um roteiro primeiro antes de dividir em cenas", "warning")
       return null
     }
     setScriptLoading(true)
@@ -75,7 +75,7 @@ export default function useScriptGeneration() {
       })
       return res.data.scenes || []
     } catch (err) {
-      showSnackbar(err.response?.data?.detail || "Scene splitting failed", "error")
+      showSnackbar(err.response?.data?.detail || "Falha ao dividir em cenas", "error")
       return null
     } finally {
       setScriptLoading(false)

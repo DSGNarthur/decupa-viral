@@ -231,7 +231,7 @@ export default function useWebSocket() {
           role: "system",
           content: `Job failed: ${msg.error || "Unknown error"}`,
         })
-        showSnackbar(msg.error || "A job failed — check chat for details", "error")
+        showSnackbar(msg.error || "Uma tarefa falhou , verifique o chat para detalhes", "error")
       }),
 
       ws.on("channel_analysis", (msg) => {

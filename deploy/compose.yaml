@@ -1,0 +1,17 @@
+services:
+  decupa-viralmint:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:16889:16889"
+    volumes:
+      - decupa-viralmint-data:/data
+    env_file:
+      - backend.env
+    cpus: 2
+    mem_limit: 4g
+    stop_grace_period: 30s
+volumes:
+  decupa-viralmint-data:

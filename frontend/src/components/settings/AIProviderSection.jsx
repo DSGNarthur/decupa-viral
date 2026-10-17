@@ -13,28 +13,32 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircleOutline"
 import http from "../../api/http"
 import useAppStore from "../../store/appStore"
 
+const BROWSER = import.meta.env.VITE_BROWSER_RUNTIME === 'true'
 const PROVIDER_LABEL = {
   anthropic: "Anthropic (Claude)",
   openai: "OpenAI (GPT)",
   openrouter: "OpenRouter (Claude / GPT / Gemini / Llama)",
-  openai_compatible: "OpenAI-compatible (Ollama, LM Studio, vLLM, …)",
+  openai_compatible: BROWSER ? 'DeepSeek ou API compatível' : "Compatível com OpenAI (Ollama, LM Studio, vLLM, …)",
 }
 
 // Any server that speaks OpenAI's /chat/completions, at a URL the user gives.
 const COMPATIBLE = "openai_compatible"
+const requiresKey = value => {
+  try { return !['localhost', '127.0.0.1', '[::1]'].includes(new URL(value).hostname) } catch { return true }
+}
 
 const KEY_PLACEHOLDER = {
   anthropic: "sk-ant-...",
   openai: "sk-...",
   openrouter: "sk-or-...",
-  openai_compatible: "Optional — local servers usually need none",
+  openai_compatible: "Opcional , servidores locais geralmente não precisam de nenhuma",
 }
 
 const KEY_HINT = {
-  anthropic: "Get yours at console.anthropic.com → API Keys",
-  openai: "Get yours at platform.openai.com → API Keys",
-  openrouter: "One key, every model — get yours at openrouter.ai/keys",
-  openai_compatible: "Only if your server asks for one (DeepSeek, Groq, a gateway…)",
+  anthropic: "Obtenha a sua em console.anthropic.com → API Keys",
+  openai: "Obtenha a sua em platform.openai.com → API Keys",
+  openrouter: "Uma chave, todos os modelos , obtenha a sua em openrouter.ai/keys",
+  openai_compatible: "Apenas se o seu servidor exigir uma (DeepSeek, Groq, um gateway…)",
 }
 
 export default function AIProviderSection({ settings, updateSettings }) {
@@ -47,8 +51,9 @@ export default function AIProviderSection({ settings, updateSettings }) {
   const [showKey, setShowKey] = useState(false)
   const [registry, setRegistry] = useState({})
   const [saving, setSaving] = useState(false)
+  const [testing, setTesting] = useState(false)
   const isConfigured = (s) =>
-    !!s?.ai_api_key_set || (s?.ai_provider === COMPATIBLE && !!s?.ai_base_url)
+    !!s?.ai_api_key_set || (s?.ai_provider === COMPATIBLE && !!s?.ai_base_url && !!s?.ai_model && !requiresKey(s.ai_base_url))
   const [editing, setEditing] = useState(!isConfigured(settings))
   const [confirmRemove, setConfirmRemove] = useState(false)
 
@@ -75,16 +80,27 @@ export default function AIProviderSection({ settings, updateSettings }) {
   const defaultModel = registry[provider]?.default_model || ""
   const effectiveModel = model || defaultModel
   const compatible = provider === COMPATIBLE
+  const keyRequired = BROWSER || !compatible || requiresKey(baseUrl)
+  const testConnection = async () => {
+    setTesting(true)
+    try { await http.post('/api/settings/test-ai'); showSnackbar('A IA respondeu ao teste de conexão.', 'success') }
+    catch (error) { showSnackbar(error.response?.data?.detail || 'Não foi possível testar a IA.', 'error') }
+    finally { setTesting(false) }
+  }
 
   const handleSave = async () => {
     const hasNewKey = apiKey.trim().length > 0
     if (compatible) {
       if (!baseUrl.trim() || !model.trim()) {
-        showSnackbar("Enter the server's base URL and a model name", "warning")
+        showSnackbar("Insira a URL base do servidor e um nome de modelo", "warning")
+        return
+      }
+      if (keyRequired && !hasNewKey && !settings?.ai_api_key_set) {
+        showSnackbar('Insira a chave da API do provedor antes de salvar.', 'warning')
         return
       }
     } else if (!hasNewKey && !settings?.ai_api_key_set) {
-      showSnackbar("Paste your API key first", "warning")
+      showSnackbar("Cole a sua chave de API primeiro", "warning")
       return
     }
     setSaving(true)
@@ -103,7 +119,7 @@ export default function AIProviderSection({ settings, updateSettings }) {
       await updateSettings(updates)
       setApiKey("")
       setEditing(false)
-      showSnackbar(hasNewKey ? "API key saved" : compatible ? "Server saved" : "Provider updated", "success")
+      showSnackbar(hasNewKey ? "Chave de API salva" : compatible ? "Servidor salvo" : "Provedor atualizado", "success")
     } catch (e) {
       // updateSettings already shows a snackbar on error
     } finally {
@@ -122,7 +138,7 @@ export default function AIProviderSection({ settings, updateSettings }) {
       )
       setApiKey("")
       setEditing(true)
-      showSnackbar("Provider removed — falling back to .env (if configured)", "info")
+      showSnackbar(BROWSER ? 'Chave removida deste navegador.' : "Provedor removido, voltando para .env (se configurado)", "info")
     } catch (e) {
       // handled in updateSettings
     } finally {
@@ -143,7 +159,7 @@ export default function AIProviderSection({ settings, updateSettings }) {
         >
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {settings.ai_provider === COMPATIBLE ? "Your own AI server configured" : "Personal API key configured"}
+              {BROWSER ? 'Provedor de IA configurado neste navegador' : settings.ai_provider === COMPATIBLE ? "Seu próprio servidor de IA configurado" : "Chave de API pessoal configurada"}
             </Typography>
             <Chip
               size="small"
@@ -155,7 +171,7 @@ export default function AIProviderSection({ settings, updateSettings }) {
             {settings.ai_model && (
               <Chip
                 size="small"
-                label={`model: ${settings.ai_model}`}
+                label={("Modelo: " + String(settings.ai_model) + "")}
                 variant="outlined"
               />
             )}
@@ -169,7 +185,7 @@ export default function AIProviderSection({ settings, updateSettings }) {
             )}
           </Stack>
           <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mt: 0.75 }}>
-            Stored encrypted on your machine. Sent only to the provider when chatting / generating.
+            {BROWSER ? 'Chave cifrada neste navegador. Ao usar IA, ela é enviada por HTTPS à API desta plataforma na Vercel, que encaminha a chamada ao provedor escolhido.' : 'Armazenada criptografada na sua máquina. Enviada ao provedor ao conversar ou gerar.'}
           </Typography>
         </Alert>
         <Stack direction="row" spacing={1.5}>
@@ -179,7 +195,7 @@ export default function AIProviderSection({ settings, updateSettings }) {
             onClick={() => { setEditing(true); setApiKey("") }}
             disabled={saving}
           >
-            Update
+            Atualizar
           </Button>
           <Button
             variant="outlined"
@@ -188,24 +204,27 @@ export default function AIProviderSection({ settings, updateSettings }) {
             onClick={() => setConfirmRemove(true)}
             disabled={saving}
           >
-            Remove
+            Remover
           </Button>
+          {import.meta.env.VITE_BROWSER_RUNTIME === 'true' && <Button variant="outlined" onClick={testConnection} disabled={testing}>
+            {testing ? 'Testando…' : 'Testar conexão'}
+          </Button>}
         </Stack>
 
         <Dialog open={confirmRemove} onClose={() => setConfirmRemove(false)} maxWidth="xs" fullWidth>
-          <DialogTitle>{settings.ai_provider === COMPATIBLE ? "Remove this server?" : "Remove API key?"}</DialogTitle>
+          <DialogTitle>{settings.ai_provider === COMPATIBLE ? "Remover este servidor?" : "Remover chave de API?"}</DialogTitle>
           <DialogContent>
             <Typography variant="body2">
-              This deletes the {settings.ai_provider === COMPATIBLE ? "server URL and any" : "encrypted"} key
-              from your local database. ViralMint will fall back to the provider configured in
-              your <code>.env</code> file (if any). If neither is configured, AI features will stop
-              working until you set one up again.
+              {BROWSER ? 'Isso remove a chave deste navegador. Os recursos de IA precisam de uma chave configurada para funcionar.' : <>Isso exclui a {settings.ai_provider === COMPATIBLE ? "URL do servidor e qualquer" : "criptografada"} chave
+              do seu banco de dados local. O Decupa Viral voltará para o provedor configurado no
+              seu <code>.env</code> arquivo (se houver). Se nenhum estiver configurado, os recursos de IA pararão
+              de funcionar até que você configure um novamente.</>}
             </Typography>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setConfirmRemove(false)}>Cancel</Button>
+            <Button onClick={() => setConfirmRemove(false)}>Cancelar</Button>
             <Button color="error" variant="contained" onClick={handleRemove}>
-              {settings.ai_provider === COMPATIBLE ? "Remove server" : "Remove key"}
+              {settings.ai_provider === COMPATIBLE ? "Remover servidor" : "Remover chave"}
             </Button>
           </DialogActions>
         </Dialog>
@@ -217,36 +236,36 @@ export default function AIProviderSection({ settings, updateSettings }) {
   return (
     <Stack spacing={2}>
       <Typography variant="body2" color="text.secondary">
-        Bring your own Anthropic, OpenAI, or OpenRouter API key — or point ViralMint at any
-        OpenAI-compatible server (Ollama, LM Studio, vLLM, DeepSeek, Groq…). Keys are encrypted
-        (AES-256) before storage and never leave your machine except when calling the provider
-        directly. OpenRouter is a unified gateway — one key, access to Claude / GPT / Gemini / Llama.
+        {BROWSER ? 'Use sua chave do DeepSeek ou outra API compatível. A chave fica cifrada neste navegador e passa pela API desta plataforma na Vercel ao chamar o provedor. A chave salva no aplicativo do PC não é transferida para este site.' : <>Traga sua própria chave de API da Anthropic, OpenAI ou OpenRouter , ou aponte o Decupa Viral para qualquer
+        servidor compatível com OpenAI (Ollama, LM Studio, vLLM, DeepSeek, Groq…). As chaves são criptografadas
+        (AES-256) antes do armazenamento e nunca saem da sua máquina, exceto ao chamar o provedor
+        diretamente. OpenRouter é um gateway unificado , uma chave, acesso a Claude / GPT / Gemini / Llama.</>}
       </Typography>
 
       <FormControl size="small" fullWidth>
-        <InputLabel>Provider</InputLabel>
+        <InputLabel>Provedor</InputLabel>
         <Select
           value={provider}
-          label="Provider"
+          label={"Provedor"}
           onChange={(e) => { setProvider(e.target.value); setModel("") }}
           disabled={saving}
         >
-          <MenuItem value="anthropic">Anthropic (Claude)</MenuItem>
-          <MenuItem value="openai">OpenAI (GPT)</MenuItem>
-          <MenuItem value="openrouter">OpenRouter (Claude / GPT / Gemini / Llama)</MenuItem>
+          {!BROWSER && <MenuItem value="anthropic">Anthropic (Claude)</MenuItem>}
+          {!BROWSER && <MenuItem value="openai">OpenAI (GPT)</MenuItem>}
+          {!BROWSER && <MenuItem value="openrouter">OpenRouter (Claude / GPT / Gemini / Llama)</MenuItem>}
           <MenuItem value={COMPATIBLE}>{PROVIDER_LABEL[COMPATIBLE]}</MenuItem>
         </Select>
       </FormControl>
 
       {compatible && (
         <TextField
-          label="Base URL"
+          label={"URL base"}
           size="small"
           fullWidth
           value={baseUrl}
           onChange={(e) => setBaseUrl(e.target.value)}
-          placeholder="http://localhost:11434/v1"
-          helperText="The server's OpenAI-compatible endpoint, usually ending in /v1 (Ollama: http://localhost:11434/v1, LM Studio: http://localhost:1234/v1)"
+          placeholder={BROWSER ? 'https://api.deepseek.com' : 'http://localhost:11434/v1'}
+          helperText={BROWSER ? 'Provedores aceitos: DeepSeek, OpenAI, OpenRouter, Groq e Together. Use HTTPS.' : "O endpoint compatível com OpenAI do servidor, geralmente terminando em /v1 (Ollama: http://localhost:11434/v1, LM Studio: http://localhost:1234/v1)"}
           disabled={saving}
           autoComplete="off"
         />
@@ -254,22 +273,22 @@ export default function AIProviderSection({ settings, updateSettings }) {
 
       {compatible ? (
         <TextField
-          label="Model"
+          label={"Modelo"}
           size="small"
           fullWidth
           value={model}
           onChange={(e) => setModel(e.target.value)}
-          placeholder="e.g. qwen3:14b, llama3.3, deepseek-chat"
-          helperText="Exactly as your server names it. Smaller local models may struggle with the structured (JSON) replies some features need."
+          placeholder={BROWSER ? 'deepseek-flash' : "ex.: qwen3:14b, llama3.3, deepseek-chat"}
+          helperText={BROWSER ? 'Informe o identificador do modelo aceito pela sua API.' : "Exatamente como o seu servidor o nomeia. Modelos locais menores podem ter dificuldade com as respostas estruturadas (JSON) que alguns recursos exigem."}
           disabled={saving}
           autoComplete="off"
         />
       ) : (
       <FormControl size="small" fullWidth>
-        <InputLabel>Model</InputLabel>
+        <InputLabel>Modelo</InputLabel>
         <Select
           value={effectiveModel}
-          label="Model"
+          label={"Modelo"}
           onChange={(e) => setModel(e.target.value)}
           disabled={saving || availableModels.length === 0}
         >
@@ -278,7 +297,7 @@ export default function AIProviderSection({ settings, updateSettings }) {
               {m}
               {m === defaultModel && (
                 <Typography component="span" variant="caption" sx={{ ml: 1, color: "text.secondary" }}>
-                  (default)
+                  (padrão)
                 </Typography>
               )}
             </MenuItem>
@@ -288,14 +307,14 @@ export default function AIProviderSection({ settings, updateSettings }) {
       )}
 
       <TextField
-        label={compatible ? "API key (optional)" : "API key"}
+        label={keyRequired ? "Chave da API" : "Chave da API (opcional)"}
         type={showKey ? "text" : "password"}
         size="small"
         fullWidth
         value={apiKey}
         onChange={(e) => setApiKey(e.target.value)}
-        placeholder={keyIsSet ? "(leave empty to keep existing key)" : KEY_PLACEHOLDER[provider]}
-        helperText={KEY_HINT[provider]}
+        placeholder={keyIsSet ? "(deixe vazio para manter a chave existente)" : BROWSER ? 'Cole sua chave da API' : KEY_PLACEHOLDER[provider]}
+        helperText={BROWSER ? 'Insira a chave aqui. Não envie sua chave na conversa.' : KEY_HINT[provider]}
         disabled={saving}
         autoComplete="off"
         InputProps={{
@@ -316,7 +335,7 @@ export default function AIProviderSection({ settings, updateSettings }) {
           onClick={handleSave}
           disabled={saving || (compatible ? !baseUrl.trim() || !model.trim() : !apiKey.trim() && !keyIsSet)}
         >
-          {saving ? "Saving…" : "Save"}
+          {saving ? "Salvando…" : "Salvar"}
         </Button>
         {isConfigured(settings) && (
           <Button
@@ -324,7 +343,7 @@ export default function AIProviderSection({ settings, updateSettings }) {
             onClick={() => { setEditing(false); setApiKey("") }}
             disabled={saving}
           >
-            Cancel
+            Cancelar
           </Button>
         )}
       </Stack>

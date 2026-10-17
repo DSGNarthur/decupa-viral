@@ -55,7 +55,7 @@ export default function MotionComposePanel({ aspect, setAspect, onComposed, onNe
           pollRef.current = null
           if (data.status === "success") {
             setComposed(true)
-            showSnackbar("Composition ready — the studio is reloading onto it.", "success")
+            showSnackbar("Composição pronta , o estúdio está recarregando nela.", "success")
             onComposed?.()
           }
           return
@@ -91,9 +91,9 @@ export default function MotionComposePanel({ aspect, setAspect, onComposed, onNe
     try {
       const { data } = await http.post("/api/generate/motion/studio/assets", form)
       setStaged((s) => [...s, data])
-      showSnackbar(`${file.name} staged — it will be built into the next composition.`, "success")
+      showSnackbar(("" + String(file.name) + " preparado , será incluído na próxima composição."), "success")
     } catch (err) {
-      showSnackbar(err?.response?.data?.detail || "Could not stage that file", "error")
+      showSnackbar(err?.response?.data?.detail || "Não foi possível preparar esse arquivo", "error")
     }
   }
 
@@ -107,22 +107,22 @@ export default function MotionComposePanel({ aspect, setAspect, onComposed, onNe
       <Stack direction="row" alignItems="center" spacing={1}
         sx={{ px: 2, py: 1.25, borderBottom: "1px solid", borderColor: "divider" }}>
         <AutoAwesomeIcon sx={{ fontSize: 18, color: "primary.main" }} />
-        <Typography variant="subtitle2" sx={{ fontWeight: 700, flexGrow: 1 }}>AI Compose</Typography>
-        <IconButton size="small" onClick={onClose} aria-label="Close AI Compose">
+        <Typography variant="subtitle2" sx={{ fontWeight: 700, flexGrow: 1 }}>Composição com IA</Typography>
+        <IconButton size="small" onClick={onClose} aria-label={"Fechar Composição com IA"}>
           <CloseIcon sx={{ fontSize: 18 }} />
         </IconButton>
       </Stack>
 
       <Box sx={{ flex: 1, minHeight: 0, overflow: "auto", p: 2 }}>
         <Typography variant="caption" sx={{ display: "block", color: "text.secondary", mb: 1.5 }}>
-          Describe the video. Your configured AI model writes the composition and the
-          studio opens it — then change anything by hand.
+          Descreva o vídeo. Seu modelo de IA configurado escreve a composição e o
+          estúdio a abre , depois altere qualquer coisa manualmente.
         </Typography>
 
         <TextField
           fullWidth multiline minRows={3} size="small" value={topic}
           onChange={(e) => setTopic(e.target.value)} disabled={running}
-          placeholder="e.g. a punchy hook about why most side projects stall"
+          placeholder={"ex.: um gancho impactante sobre por que a maioria dos projetos paralelos trava"}
           sx={{ mb: 1.5 }}
         />
 
@@ -139,7 +139,7 @@ export default function MotionComposePanel({ aspect, setAspect, onComposed, onNe
           </Stack>
         )}
 
-        <Typography variant="caption" sx={{ color: "text.secondary" }}>Format</Typography>
+        <Typography variant="caption" sx={{ color: "text.secondary" }}>Formato</Typography>
         <ToggleButtonGroup exclusive size="small" value={aspect} disabled={running}
           onChange={(_, v) => v && setAspect(v)} sx={{ display: "flex", mb: 1.5, mt: 0.5 }}>
           {ASPECTS.map((a) => (
@@ -147,7 +147,7 @@ export default function MotionComposePanel({ aspect, setAspect, onComposed, onNe
           ))}
         </ToggleButtonGroup>
 
-        <Typography variant="caption" sx={{ color: "text.secondary" }}>Length</Typography>
+        <Typography variant="caption" sx={{ color: "text.secondary" }}>Duração</Typography>
         <ToggleButtonGroup exclusive size="small" value={duration} disabled={running}
           onChange={(_, v) => v && setDuration(v)} sx={{ display: "flex", mb: 1.5, mt: 0.5 }}>
           {DURATIONS.map((d) => (
@@ -156,16 +156,16 @@ export default function MotionComposePanel({ aspect, setAspect, onComposed, onNe
         </ToggleButtonGroup>
 
         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-          <Typography variant="caption" sx={{ color: "text.secondary" }}>Accent</Typography>
-          <input type="color" value={accent} disabled={running} aria-label="Accent colour"
+          <Typography variant="caption" sx={{ color: "text.secondary" }}>Sotaque</Typography>
+          <input type="color" value={accent} disabled={running} aria-label={"Cor de destaque"}
             onChange={(e) => setAccent(e.target.value)}
             style={{ width: 38, height: 26, border: 0, background: "none", cursor: "pointer" }} />
           <Box sx={{ flexGrow: 1 }} />
-          <Tooltip title="Attach an image, video or audio file to build in">
+          <Tooltip title={"Anexe uma imagem, vídeo ou arquivo de áudio para usar como base"}>
             <span>
               <Button size="small" startIcon={<AttachFileIcon sx={{ fontSize: 16 }} />}
                 disabled={running} onClick={() => fileRef.current?.click()}>
-                Attach
+                Anexar
               </Button>
             </span>
           </Tooltip>
@@ -176,20 +176,20 @@ export default function MotionComposePanel({ aspect, setAspect, onComposed, onNe
         {staged.length > 0 && (
           <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
             {staged.map((a) => (
-              <Chip key={a.file} size="small" variant="outlined" label={`${a.file} · ${a.type}`} />
+              <Chip key={a.file} size="small" variant="outlined" label={("" + String(a.file) + " · " + String(a.type) + "")} />
             ))}
           </Stack>
         )}
 
         <Button fullWidth variant="contained" startIcon={<AutoAwesomeIcon />}
           disabled={running || !topic.trim()} onClick={() => compose(null)}>
-          {running ? "Composing…" : "Compose"}
+          {running ? "Compondo…" : "Compor"}
         </Button>
 
         {running && (
           <Box sx={{ mt: 2 }}>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              {job.step || "Working…"}
+              {job.step || "Processando…"}
             </Typography>
             <LinearProgress variant={job.pct ? "determinate" : "indeterminate"}
               value={job.pct || 0} sx={{ mt: 0.5, height: 6, borderRadius: 3 }} />
@@ -198,7 +198,7 @@ export default function MotionComposePanel({ aspect, setAspect, onComposed, onNe
 
         {job?.status === "failed" && (
           <Alert severity="error" sx={{ mt: 2, fontSize: "0.78rem", whiteSpace: "pre-wrap" }}>
-            {job.error || "Compose failed."}
+            {job.error || "Falha ao compor."}
           </Alert>
         )}
 
@@ -206,8 +206,8 @@ export default function MotionComposePanel({ aspect, setAspect, onComposed, onNe
           <>
             <Divider sx={{ my: 2.5 }} />
             <Typography variant="caption" sx={{ display: "block", color: "text.secondary", mb: 1 }}>
-              Refine it — this rewrites the composition that is live. The previous one
-              is kept under the studio’s Comps.
+              Refine , isto reescreve a composição que está ativa. A anterior
+              fica guardada em Comps do estúdio.
             </Typography>
             <RefineBox onSubmit={compose} disabled={running} />
           </>
@@ -228,9 +228,9 @@ function RefineBox({ onSubmit, disabled }) {
     <Stack spacing={1}>
       <TextField fullWidth multiline minRows={2} size="small" value={text} disabled={disabled}
         onChange={(e) => setText(e.target.value)}
-        placeholder="e.g. make the headline bigger and slow the exit" />
+        placeholder={"ex.: deixe o título maior e desacelere a saída"} />
       <Button variant="outlined" size="small" disabled={disabled || !text.trim()} onClick={send}>
-        Apply change
+        Aplicar alteração
       </Button>
     </Stack>
   )

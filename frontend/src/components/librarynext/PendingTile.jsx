@@ -46,7 +46,7 @@ export default function PendingTile({ job, dense = false, onCancel }) {
             fontSize: "0.72rem", fontWeight: 700, color: oc,
             fontVariantNumeric: "tabular-nums",
           }}>
-            {job.percent ? `${job.percent}%` : "Starting…"}
+            {job.percent ? ("" + String(job.percent) + "%") : "Iniciando…"}
           </Typography>
           <LinearProgress variant="determinate" value={job.percent || 0}
             sx={{
@@ -69,7 +69,7 @@ export default function PendingTile({ job, dense = false, onCancel }) {
               bgcolor: "rgba(0,0,0,0.58)",
               "&:hover": { bgcolor: "rgba(0,0,0,0.72)" },
             }}>
-            Cancel
+            Cancelar
           </Button>
         </Box>
       </Box>

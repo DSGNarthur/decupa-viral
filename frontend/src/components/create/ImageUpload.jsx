@@ -67,7 +67,7 @@ export default function ImageUpload({ label, value, onChange, onRemove }) {
           </IconButton>
         </Box>
         <Button size="small" onClick={onRemove} sx={{ mt: 0.5 }}>
-          Remove & re-upload
+          Remover e reenviar
         </Button>
       </Box>
     )
@@ -88,10 +88,10 @@ export default function ImageUpload({ label, value, onChange, onRemove }) {
             onKeyDown={e => e.key === "Enter" && handleUrlSubmit()}
           />
           <Button size="small" variant="contained" onClick={handleUrlSubmit} disabled={!urlInput.trim()}>
-            Add
+            Adicionar
           </Button>
           <Button size="small" variant="outlined" onClick={() => setUrlMode(false)}>
-            Cancel
+            Cancelar
           </Button>
         </Stack>
       ) : (
@@ -102,11 +102,11 @@ export default function ImageUpload({ label, value, onChange, onRemove }) {
             component="label"
             disabled={uploading}
           >
-            {uploading ? "Uploading..." : "Upload"}
+            {uploading ? "Enviando..." : "Enviar"}
             <input type="file" hidden accept="image/*" onChange={handleFile} />
           </Button>
           <Button size="small" variant="outlined" startIcon={<LinkIcon />} onClick={() => setUrlMode(true)}>
-            Paste URL
+            Colar URL
           </Button>
         </Stack>
       )}

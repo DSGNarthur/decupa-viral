@@ -20,7 +20,7 @@
 export const SMART_VIDEO_SAMPLES = [
   {
     id: "rice-hack",
-    label: "Rice hack",
+    label: "Hack do arroz",
     niche: "Cooking",
     bgQuery: "cooking food kitchen",
     hook: "You've been cooking rice WRONG",
@@ -32,7 +32,7 @@ export const SMART_VIDEO_SAMPLES = [
   },
   {
     id: "back-fix",
-    label: "5-min back fix",
+    label: "Correção de postura em 5 min",
     niche: "Fitness",
     bgQuery: "home workout fitness",
     hook: "Fix your back in 5 minutes",
@@ -44,7 +44,7 @@ export const SMART_VIDEO_SAMPLES = [
   },
   {
     id: "ai-email",
-    label: "AI email trick",
+    label: "Truque de e-mail com IA",
     niche: "Tech / AI",
     bgQuery: "technology laptop typing",
     hook: "This free AI writes your emails",
@@ -56,7 +56,7 @@ export const SMART_VIDEO_SAMPLES = [
   },
   {
     id: "rome-fell",
-    label: "Why Rome fell",
+    label: "Por que Roma caiu",
     niche: "History",
     bgQuery: "ancient rome ruins",
     hook: "Why Rome REALLY fell",
@@ -68,7 +68,7 @@ export const SMART_VIDEO_SAMPLES = [
   },
   {
     id: "save-1000",
-    label: "Saved $1,000",
+    label: "Economizei $1.000",
     niche: "Finance",
     bgQuery: "money cash saving",
     hook: "I saved $1,000 in 30 days",
@@ -80,7 +80,7 @@ export const SMART_VIDEO_SAMPLES = [
   },
   {
     id: "cheap-trip",
-    label: "Cheapest trip",
+    label: "Viagem mais barata",
     niche: "Travel",
     bgQuery: "tropical beach travel",
     hook: "A week abroad under $500",
@@ -104,7 +104,7 @@ export const SMART_VIDEO_SAMPLES = [
   },
   {
     id: "black-hole",
-    label: "Inside a black hole",
+    label: "Dentro de um buraco negro",
     niche: "Space",
     bgQuery: "galaxy space stars",
     hook: "What's INSIDE a black hole?",
@@ -116,7 +116,7 @@ export const SMART_VIDEO_SAMPLES = [
   },
   {
     id: "five-second-rule",
-    label: "Beat procrastination",
+    label: "Vença a procrastinação",
     niche: "Psychology",
     bgQuery: "person walking morning sunrise",
     hook: "The 5-second rule that works",
@@ -128,7 +128,7 @@ export const SMART_VIDEO_SAMPLES = [
   },
   {
     id: "cheap-skincare",
-    label: "$8 skincare",
+    label: "Skincare de $8",
     niche: "Skincare",
     bgQuery: "skincare beauty routine",
     hook: "The $8 product derms love",

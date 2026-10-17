@@ -20,7 +20,7 @@ const QUICK_SPEEDS = [
 ]
 
 export default function ToolSpeed() {
-  useDocumentTitle("Speed up / Slow down")
+  useDocumentTitle("Acelerar / Desacelerar")
   const [speed, setSpeed] = useState(1.5)
   const [keepPitch, setKeepPitch] = useState(true)
 
@@ -30,19 +30,19 @@ export default function ToolSpeed() {
 
   return (
     <ToolRunner
-      title="Speed up / Slow down"
-      description="Adjust video playback speed from 0.25× to 4× with optional pitch preservation"
+      title={"Acelerar / Desacelerar"}
+      description={"Ajuste a velocidade de reprodução do vídeo de 0,25× a 4× com preservação opcional do tom"}
       icon={<SpeedOutlinedIcon fontSize="large" />}
       endpoint="/api/tools/speed"
-      processLabel="Apply speed"
+      processLabel={"Aplicar velocidade"}
       canSubmit={!isNoOp}
-      disabledReason="Pick a speed other than 1×"
+      disabledReason={"Escolha uma velocidade diferente de 1×"}
       fieldBuilder={() => ({ speed, keep_pitch: keepPitch })}
     >
       <Stack spacing={2.5}>
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 1 }}>
-            Speed multiplier — <strong>{speed.toFixed(2)}×</strong>
+            Multiplicador de velocidade , <strong>{speed.toFixed(2)}×</strong>
           </Typography>
           <Slider
             value={speed}
@@ -60,14 +60,14 @@ export default function ToolSpeed() {
           />
           {isNoOp && (
             <Typography variant="caption" sx={{ color: "warning.main", display: "block", mt: 0.5 }}>
-              1× is a no-op — pick any other value.
+              1× não faz nada , escolha qualquer outro valor.
             </Typography>
           )}
         </Box>
 
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 0.75 }}>
-            Quick pick
+            Escolha rápida
           </Typography>
           <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
             {QUICK_SPEEDS.map(({ v, label }) => (
@@ -89,12 +89,12 @@ export default function ToolSpeed() {
           label={
             <Box>
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                Keep audio pitch
+                Manter o tom do áudio
               </Typography>
               <Typography variant="caption" sx={{ color: "text.secondary" }}>
                 {keepPitch
-                  ? "Voices stay natural even at higher speeds (recommended)"
-                  : "Audio plays at the new speed — chipmunk effect at >1×, slowed-down deep voice at <1×"}
+                  ? "As vozes permanecem naturais mesmo em velocidades mais altas (recomendado)"
+                  : "O áudio toca na nova velocidade , efeito de voz aguda em >1×, voz grave e arrastada em <1×"}
               </Typography>
             </Box>
           }

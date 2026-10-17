@@ -130,7 +130,7 @@ function FramePane({
             alignItems: "center", justifyContent: "center",
             fontSize: "0.65rem", color: "text.disabled", textAlign: "center", px: 1,
           }}>
-            No range selected
+            Nenhum intervalo selecionado
           </Typography>
         )}
       </Box>
@@ -143,25 +143,25 @@ function FramePane({
         }}>
           {stampOf(time)}
         </Typography>
-        <Tooltip title="Back one frame">
+        <Tooltip title={"Voltar um quadro"}>
           <span>
-            <IconButton size="small" disabled={disabled} aria-label={`${label} back one frame`}
+            <IconButton size="small" disabled={disabled} aria-label={("" + String(label) + " voltar um quadro")}
               onClick={() => onNudge(-FRAME_STEP)} sx={{ p: 0.15 }}>
               <ChevronLeftIcon sx={{ fontSize: 15 }} />
             </IconButton>
           </span>
         </Tooltip>
-        <Tooltip title={`Snap ${label} to the playhead`}>
+        <Tooltip title={("Encaixar " + String(label) + " no cursor de reprodução")}>
           <span>
-            <IconButton size="small" disabled={disabled} aria-label={`Snap ${label} to the playhead`}
+            <IconButton size="small" disabled={disabled} aria-label={("Encaixar " + String(label) + " no cursor de reprodução")}
               onClick={onSetToPlayhead} sx={{ p: 0.15 }}>
               <MyLocationIcon sx={{ fontSize: 13 }} />
             </IconButton>
           </span>
         </Tooltip>
-        <Tooltip title="Forward one frame">
+        <Tooltip title={"Avançar um quadro"}>
           <span>
-            <IconButton size="small" disabled={disabled} aria-label={`${label} forward one frame`}
+            <IconButton size="small" disabled={disabled} aria-label={("" + String(label) + " avançar um quadro")}
               onClick={() => onNudge(FRAME_STEP)} sx={{ p: 0.15 }}>
               <ChevronRightIcon sx={{ fontSize: 15 }} />
             </IconButton>
@@ -218,7 +218,7 @@ export default function InOutFrames({
       sx={{ width: "100%", height: "100%", minHeight: 0 }}
     >
       <MemoPane
-        {...common} label="IN" accent="primary.main"
+        {...common} label={"ENTRADA"} accent="primary.main"
         time={has ? range.start : null}
         onNudge={inNudge}
         onSetToPlayhead={inToPlayhead}
@@ -235,7 +235,7 @@ export default function InOutFrames({
         {children}
       </Box>
       <MemoPane
-        {...common} label="OUT" accent="secondary.main"
+        {...common} label={"SAÍDA"} accent="secondary.main"
         time={has ? range.end : null}
         onNudge={outNudge}
         onSetToPlayhead={outToPlayhead}

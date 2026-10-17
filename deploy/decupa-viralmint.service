@@ -1,0 +1,30 @@
+[Unit]
+Description=Decupa with ViralMint processing engine
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=decupa-viralmint
+Group=decupa-viralmint
+WorkingDirectory=/opt/decupa-viralmint/current
+EnvironmentFile=/etc/decupa-viralmint/backend.env
+Environment=VIRALMINT_DATA_DIR=/var/lib/decupa-viralmint
+Environment=VIRALMINT_FRONTEND_DIST=/opt/decupa-viralmint/current/frontend/dist
+Environment=HF_HOME=/var/lib/decupa-viralmint/whisper-cache
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/decupa-viralmint/venv/bin/python -m uvicorn backend.main:app --host 127.0.0.1 --port 16889 --workers 1
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+CPUQuota=200%
+MemoryHigh=3G
+MemoryMax=4G
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/decupa-viralmint
+
+[Install]
+WantedBy=multi-user.target

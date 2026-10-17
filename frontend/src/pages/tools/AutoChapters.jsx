@@ -27,7 +27,7 @@ function formatTimestamp(seconds) {
 }
 
 function chaptersToText(chapters) {
-  return chapters.map((c) => `${formatTimestamp(c.start_seconds)} ${c.title || "Chapter"}`).join("\n")
+  return chapters.map((c) => `${formatTimestamp(c.start_seconds)} ${c.title || "Capítulo"}`).join("\n")
 }
 
 function ResultPreview({ jobId }) {
@@ -37,15 +37,15 @@ function ResultPreview({ jobId }) {
   const showSnackbar = useAppStore((s) => s.showSnackbar)
   const chapters = output?.chapters || []
   const copy = (s) => navigator.clipboard.writeText(s).then(
-    () => showSnackbar?.("Copied", "success"),
-    () => showSnackbar?.("Could not copy", "warning"),
+    () => showSnackbar?.("Copiado", "success"),
+    () => showSnackbar?.("Não foi possível copiar", "warning"),
   )
   if (chapters.length === 0) {
     return (
       <Alert severity="info" sx={{ fontSize: "0.85rem" }}>
         {loading
-          ? "Loading result…"
-          : <>Result ready — click <strong>Download</strong> below to get the text file.</>}
+          ? "Carregando resultado…"
+          : <>Resultado pronto , clique em <strong>Baixar</strong> abaixo para obter o arquivo de texto.</>}
       </Alert>
     )
   }
@@ -54,9 +54,9 @@ function ResultPreview({ jobId }) {
     <GlassPanel sx={{ p: 1.5, borderRadius: 2 }}>
       <Stack direction="row" alignItems="center" sx={{ mb: 1 }}>
         <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, fontSize: "0.65rem", flex: 1 }}>
-          {chapters.length} chapters — paste into your YouTube description
+          {chapters.length} capítulos , cole na descrição do seu YouTube
         </Typography>
-        <Tooltip title="Copy all chapters">
+        <Tooltip title={"Copiar todos os capítulos"}>
           <IconButton size="small" onClick={() => copy(plainText)}>
             <ContentCopyIcon sx={{ fontSize: "1rem" }} />
           </IconButton>
@@ -73,30 +73,30 @@ function ResultPreview({ jobId }) {
 }
 
 export default function ToolAutoChapters() {
-  useDocumentTitle("Auto Chapters")
+  useDocumentTitle("Capítulos Automáticos")
   const [targetCount, setTargetCount] = useState(0)
 
   return (
     <ToolRunner
-      title="Auto Chapters"
-      description="AI-generated YouTube chapter markers from your long-form video"
+      title={"Capítulos Automáticos"}
+      description={"Marcadores de capítulo do YouTube gerados por IA a partir do seu vídeo longo"}
       icon={<FormatListNumberedIcon fontSize="large" />}
       endpoint="/api/tools/auto-chapters"
-      processLabel="Generate Chapters"
-      downloadLabel="Download .txt"
+      processLabel={"Gerar Capítulos"}
+      downloadLabel={"Baixar .txt"}
       fieldBuilder={() => ({ target_count: targetCount })}
       resultPreview={(jobId) => <ResultPreview jobId={jobId} />}
     >
       <Stack spacing={2}>
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 0.5 }}>
-            Target chapter count — {targetCount === 0 ? "Auto" : targetCount}
+            Quantidade alvo de capítulos , {targetCount === 0 ? "Automático" : targetCount}
           </Typography>
           <Slider
             value={targetCount}
             min={0} max={20} step={1}
             marks={[
-              { value: 0, label: "Auto" },
+              { value: 0, label: "Automático" },
               { value: 5, label: "5" },
               { value: 10, label: "10" },
               { value: 20, label: "20" },
@@ -107,14 +107,14 @@ export default function ToolAutoChapters() {
             size="small"
           />
           <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            <strong>Auto</strong> picks ~1 chapter per 2.5 minutes (typically 5-12 chapters for a 15-30min video).
-            Best for long-form podcast episodes, lectures, and tutorials.
+            <strong>Automático</strong> seleciona ~1 capítulo a cada 2,5 minutos (normalmente 5-12 capítulos para um vídeo de 15-30min).
+            Ideal para episódios longos de podcast, aulas e tutoriais.
           </Typography>
         </Box>
 
         <Alert severity="info" sx={{ fontSize: "0.82rem" }}>
-          The first chapter is forced to <strong>00:00</strong> — required by YouTube to detect the rest as chapters.
-          Output is plain text in <code>MM:SS Title</code> format, ready to paste into a video description.
+          O primeiro capítulo é forçado para <strong>00:00</strong> , exigido pelo YouTube para detectar o restante como capítulos.
+          A saída é texto simples no formato <code>MM:SS Título</code> , pronto para colar na descrição do vídeo.
         </Alert>
       </Stack>
     </ToolRunner>

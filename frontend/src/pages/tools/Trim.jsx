@@ -20,7 +20,7 @@ function parseTime(s) {
 }
 
 export default function ToolTrim() {
-  useDocumentTitle("Trim / Cut")
+  useDocumentTitle("Aparar / Cortar")
   const [start, setStart] = useState("0:00")
   const [end, setEnd] = useState("")
 
@@ -33,46 +33,46 @@ export default function ToolTrim() {
 
   return (
     <ToolRunner
-      title="Trim / Cut"
-      description="Keep just the part you want — set a start and end, drop the rest"
+      title={"Aparar / Cortar"}
+      description={"Mantenha apenas a parte que você quer , defina um início e um fim, descarte o resto"}
       icon={<ContentCutIcon fontSize="large" />}
       endpoint="/api/tools/trim"
-      processLabel="Trim"
+      processLabel={"Cortar"}
       canSubmit={rangeOk}
       disabledReason={
-        !endOk ? "Set an end time" : tooShort ? "Range must be at least 0.5s" : "Set a start before the end"
+        !endOk ? "Defina um tempo de fim" : tooShort ? "O intervalo deve ter pelo menos 0.5s" : "Defina um início antes do fim"
       }
       fieldBuilder={() => ({ start_seconds: startSec, end_seconds: endSec })}
     >
       <Stack spacing={2.5}>
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 1 }}>
-            Keep from → to
+            Manter de → até
           </Typography>
           <Stack direction="row" spacing={2}>
             <TextField
-              label="Start" size="small" sx={{ width: 150 }}
+              label={"Início"} size="small" sx={{ width: 150 }}
               placeholder="0:00"
               value={start}
               onChange={(e) => setStart(e.target.value)}
               error={start !== "" && !startOk}
-              helperText="seconds or M:SS"
+              helperText={"segundos ou M:SS"}
             />
             <TextField
-              label="End" size="small" sx={{ width: 150 }}
+              label={"Fim"} size="small" sx={{ width: 150 }}
               placeholder="0:30"
               value={end}
               onChange={(e) => setEnd(e.target.value)}
               error={end !== "" && (!endOk || tooShort)}
-              helperText={tooShort ? "≥ 0.5s range" : "seconds or M:SS"}
+              helperText={tooShort ? "Intervalo ≥ 0.5s" : "segundos ou M:SS"}
             />
           </Stack>
         </Box>
 
         <Alert severity="info" sx={{ fontSize: "0.82rem" }}>
-          Frame-accurate (the clip is re-encoded, not keyframe-snapped). Source
-          aspect ratio and audio are preserved. End is clamped to the real
-          video length, so you can overshoot safely.
+          Precisão de quadro (o clipe é recodificado, não ajustado por quadro-chave). A proporção
+          de tela e o áudio da fonte são preservados. O fim é limitado à duração
+          real do vídeo, então você pode ultrapassar com segurança.
         </Alert>
       </Stack>
     </ToolRunner>

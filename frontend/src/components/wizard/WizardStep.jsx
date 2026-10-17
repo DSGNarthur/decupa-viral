@@ -21,17 +21,17 @@ export default function WizardStep({ step, onComplete }) {
       {step.action === "open_url" && (
         <Stack spacing={1.5}>
           <Link href={step.url} target="_blank" rel="noopener noreferrer" sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            Open in browser <OpenInNewIcon fontSize="small" />
+            Abrir no navegador <OpenInNewIcon fontSize="small" />
           </Link>
           <Button variant="contained" onClick={() => onComplete(step.id, true)} sx={{ alignSelf: "flex-start" }}>
-            Continue
+            Continuar
           </Button>
         </Stack>
       )}
 
       {step.action === "wait_confirm" && (
         <Button variant="contained" onClick={() => onComplete(step.id, true)}>
-          {step.confirm_label || "Continue"}
+          {step.confirm_label || "Continuar"}
         </Button>
       )}
 
@@ -47,14 +47,14 @@ export default function WizardStep({ step, onComplete }) {
             sx={{ "& .MuiOutlinedInput-root": { bgcolor: "background.default" } }}
           />
           <Button variant="contained" onClick={handleSubmit} disabled={!inputValue.trim()}>
-            Save
+            Salvar
           </Button>
         </Box>
       )}
 
       {step.action === "oauth_button" && (
         <Button variant="contained" component="a" href={step.endpoint} target="_blank" rel="noopener noreferrer">
-          {step.button_label || "Connect"}
+          {step.button_label || "Conectar"}
         </Button>
       )}
 
@@ -81,7 +81,7 @@ export default function WizardStep({ step, onComplete }) {
             </Link>
           ))}
           <Button variant="contained" onClick={() => onComplete(step.id, true)} sx={{ alignSelf: "flex-start", mt: 1 }}>
-            I have my API key
+            Já tenho minha chave de API
           </Button>
         </Stack>
       )}

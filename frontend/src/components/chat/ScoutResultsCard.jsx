@@ -55,7 +55,7 @@ export default function ScoutResultsCard({ results, platform, jobId }) {
     setDownloading(true)
     try {
       const { data } = await http.post("/api/scout/download", { scout_result_ids: [...selectedIds] })
-      showSnackbar(`Downloading ${data.count} videos...`, "success")
+      showSnackbar(("Baixando " + String(data.count) + " vídeos..."), "success")
       setSelectedIds(new Set())
     } catch (err) {
       showSnackbar(err.response?.data?.detail || err.message, "error")
@@ -79,7 +79,7 @@ export default function ScoutResultsCard({ results, platform, jobId }) {
         <Stack direction="row" spacing={1} alignItems="center">
           <Chip label={platform?.toUpperCase() || "SCOUT"} size="small" variant="outlined" sx={{ fontSize: "0.7rem" }} />
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            {results.length} result{results.length !== 1 ? "s" : ""} found
+            {results.length} resultado{results.length !== 1 ? "s" : ""} encontrado
           </Typography>
         </Stack>
         <Stack direction="row" spacing={0.5}>
@@ -90,7 +90,7 @@ export default function ScoutResultsCard({ results, platform, jobId }) {
           <Button size="small" variant="text"
             onClick={() => setSelectedIds(prev => prev.size === sorted.length ? new Set() : new Set(sorted.map(r => r.id)))}
             sx={{ minWidth: 0, color: "text.secondary" }}>
-            {selectedIds.size === sorted.length ? "None" : "All"}
+            {selectedIds.size === sorted.length ? "Nenhum" : "Todos"}
           </Button>
         </Stack>
       </Stack>
@@ -138,7 +138,7 @@ export default function ScoutResultsCard({ results, platform, jobId }) {
                       sx={{ objectFit: "cover" }} />
                   ) : (
                     <Box sx={{ height: 110, bgcolor: "action.hover", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Typography variant="caption" sx={{ color: "text.disabled" }}>No thumbnail</Typography>
+                      <Typography variant="caption" sx={{ color: "text.disabled" }}>Sem miniatura</Typography>
                     </Box>
                   )}
                   <CardContent sx={{ p: 1, "&:last-child": { pb: 1 } }}>
@@ -167,7 +167,7 @@ export default function ScoutResultsCard({ results, platform, jobId }) {
                     </Typography>
                     <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.65rem" }}>
                       <VisibilityIcon sx={{ fontSize: 11, verticalAlign: "middle", mr: 0.3 }} />{formatViews(r.views)}
-                      {r.upload_date && ` \u00B7 Uploaded: ${new Date(r.upload_date).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}`}
+                      {r.upload_date && (" · Enviado: " + String(new Date(r.upload_date).toLocaleDateString([], { month: "curto", day: "numérico", year: "numérico" })) + "")}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -182,18 +182,18 @@ export default function ScoutResultsCard({ results, platform, jobId }) {
         {selectedIds.size > 0 && (
           <Button size="small" variant="contained" startIcon={<DownloadIcon />}
             onClick={handleDownload} disabled={downloading}>
-            {downloading ? "Starting..." : `Download & Analyze (${selectedIds.size})`}
+            {downloading ? "Iniciando..." : ("Baixar e Analisar (" + String(selectedIds.size) + ")")}
           </Button>
         )}
         {!expanded && sorted.length > 8 && (
           <Button size="small" variant="text" sx={{ color: "text.secondary" }} onClick={() => setExpanded(true)}>
-            Show all {sorted.length}
+            Mostrar todos os {sorted.length}
           </Button>
         )}
         <Box sx={{ flex: 1 }} />
         <Button size="small" variant="text" startIcon={<LaunchIcon />}
           onClick={() => navigate("/videos")} sx={{ color: "text.secondary" }}>
-          Library
+          Biblioteca
         </Button>
       </Stack>
     </Box>

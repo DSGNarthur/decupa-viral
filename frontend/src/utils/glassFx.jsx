@@ -238,7 +238,7 @@ export const GlassAlert = forwardRef(function GlassAlert(
         <IconButton
           size="small"
           onClick={onClose}
-          aria-label="Close"
+          aria-label={"Fechar"}
           sx={{ ml: 0.25, color: "text.secondary", "&:hover": { color: "text.primary" } }}
         >
           <CloseIcon sx={{ fontSize: 18 }} />

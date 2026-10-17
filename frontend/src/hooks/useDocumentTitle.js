@@ -11,7 +11,7 @@ export default function useDocumentTitle(name) {
   useEffect(() => {
     if (!name) return
     const prev = document.title
-    document.title = `${name} · ViralMint`
+    document.title = `${name} · Decupa Viral`
     return () => {
       document.title = prev
     }

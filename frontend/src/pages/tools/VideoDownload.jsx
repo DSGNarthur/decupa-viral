@@ -28,7 +28,7 @@ import { GlassPanel } from "../../utils/glassFx"
 const MAX_URLS = 20
 
 const QUALITIES = [
-  { id: "best", label: "Best" },
+  { id: "best", label: "Melhor" },
   { id: "2160p", label: "4K" },
   { id: "1440p", label: "1440p" },
   { id: "1080p", label: "1080p" },
@@ -37,9 +37,9 @@ const QUALITIES = [
 ]
 
 const SUB_LANGS = [
-  ["en", "English"], ["es", "Spanish"], ["zh", "Chinese"], ["ja", "Japanese"],
-  ["ko", "Korean"], ["fr", "French"], ["de", "German"], ["pt", "Portuguese"],
-  ["ru", "Russian"], ["ar", "Arabic"], ["hi", "Hindi"],
+  ["en", "Inglês"], ["es", "Espanhol"], ["zh", "Chinês"], ["ja", "Japonês"],
+  ["ko", "Coreano"], ["fr", "Francês"], ["de", "Alemão"], ["pt", "Português"],
+  ["ru", "Russo"], ["ar", "Árabe"], ["hi", "Hindi"],
 ]
 
 /** Split the textarea into URLs. Forgiving about commas, spaces and blank
@@ -54,7 +54,7 @@ function parseUrls(raw) {
 const isHttpUrl = (u) => /^https?:\/\/\S+$/i.test(u)
 
 export default function VideoDownload() {
-  useDocumentTitle("Video Download")
+  useDocumentTitle("Download de Vídeo")
   const navigate = useNavigate()
   const showSnackbar = useAppStore((s) => s.showSnackbar)
   const startJob = useAppStore((s) => s.startJob)
@@ -138,10 +138,10 @@ export default function VideoDownload() {
       // If it dropped everything we asked for, say so rather than letting the
       // user assume the toggles did something.
       if (Object.keys(options).length && !Object.keys(data.options || {}).length) {
-        showSnackbar("Downloading with default settings — the options weren't accepted.", "warning")
+        showSnackbar("Baixando com as configurações padrão , as opções não foram aceitas.", "warning")
       }
     } catch (e) {
-      showSnackbar(e?.response?.data?.detail || "Couldn't start the download", "error")
+      showSnackbar(e?.response?.data?.detail || "Não foi possível iniciar o download", "error")
       setSubmitting(false)
       return
     }
@@ -199,8 +199,8 @@ export default function VideoDownload() {
     <Box>
       <PageHero
         icon={<DownloadForOfflineOutlinedIcon />}
-        title="Video Download"
-        subtitle="Paste a link — download from YouTube, TikTok, Bilibili, X and 1,800+ more sites. Runs locally, no watermark."
+        title={"Download de Vídeo"}
+        subtitle={"Cole um link , baixe do YouTube, TikTok, Bilibili, X e mais de 1.800 sites. Roda localmente, sem marca d'água."}
         backTo="/tools"
       />
 
@@ -210,7 +210,7 @@ export default function VideoDownload() {
             {/* ── Input ─────────────────────────────────────────────── */}
             <Box>
               <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Video links
+                Links de vídeo
               </Typography>
               <TextField
                 fullWidth
@@ -225,16 +225,16 @@ export default function VideoDownload() {
               <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: "wrap", rowGap: 1 }}>
                 {valid.length > 0 && (
                   <Chip size="small" color="primary" variant="outlined"
-                        label={`${valid.length} link${valid.length > 1 ? "s" : ""}`} />
+                        label={("" + String(valid.length) + " link" + String(valid.length > 1 ? "s" : "") + "")} />
                 )}
                 {invalid.length > 0 && (
                   <Chip size="small" color="warning" variant="outlined"
                         icon={<WarningAmberIcon />}
-                        label={`${invalid.length} not a valid http(s) link — will be skipped`} />
+                        label={("" + String(invalid.length) + " não é um link http(s) válido , será ignorado")} />
                 )}
                 {overCap && (
                   <Chip size="small" color="warning" variant="outlined"
-                        label={`Only the first ${MAX_URLS} will download`} />
+                        label={("Apenas o primeiro " + String(MAX_URLS) + " será baixado")} />
                 )}
               </Stack>
             </Box>
@@ -243,7 +243,7 @@ export default function VideoDownload() {
 
             {/* ── Quality ───────────────────────────────────────────── */}
             <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>Quality</Typography>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>Qualidade</Typography>
               <ToggleButtonGroup
                 exclusive
                 size="small"
@@ -269,8 +269,8 @@ export default function VideoDownload() {
                 ))}
               </ToggleButtonGroup>
               <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
-                If the source has nothing at that size you'll get the closest available — the
-                download won't fail. The result shows what actually came down.
+                Se a fonte não tiver nada nesse tamanho, você receberá o mais próximo disponível , o
+                download não vai falhar. O resultado mostra o que realmente foi baixado.
               </Typography>
             </Box>
 
@@ -281,19 +281,19 @@ export default function VideoDownload() {
                   so a screen reader (and anything driving the page by
                   accessible name) sees three unlabelled comboboxes. */}
               <FormControl size="small" sx={{ minWidth: 150 }} disabled={busy}>
-                <InputLabel id="vd-subs-label">Subtitles</InputLabel>
-                <Select labelId="vd-subs-label" label="Subtitles" value={subtitles}
+                <InputLabel id="vd-subs-label">Legendas</InputLabel>
+                <Select labelId="vd-subs-label" label={"Legendas"} value={subtitles}
                         onChange={(e) => setSubtitles(e.target.value)}>
-                  <MenuItem value="off">None</MenuItem>
-                  <MenuItem value="embed">Embed in video</MenuItem>
-                  <MenuItem value="file">Separate .srt file</MenuItem>
+                  <MenuItem value="off">Nenhum</MenuItem>
+                  <MenuItem value="embed">Incorporar no vídeo</MenuItem>
+                  <MenuItem value="file">Arquivo .srt separado</MenuItem>
                 </Select>
               </FormControl>
 
               <FormControl size="small" sx={{ minWidth: 140 }}
                            disabled={busy || subtitles === "off"}>
-                <InputLabel id="vd-lang-label">Language</InputLabel>
-                <Select labelId="vd-lang-label" label="Language" value={subLang}
+                <InputLabel id="vd-lang-label">Idioma</InputLabel>
+                <Select labelId="vd-lang-label" label={"Idioma"} value={subLang}
                         onChange={(e) => setSubLang(e.target.value)}>
                   {SUB_LANGS.map(([code, name]) => (
                     <MenuItem key={code} value={code}>{name}</MenuItem>
@@ -302,8 +302,8 @@ export default function VideoDownload() {
               </FormControl>
 
               <FormControl size="small" sx={{ minWidth: 120 }} disabled={busy}>
-                <InputLabel id="vd-format-label">Format</InputLabel>
-                <Select labelId="vd-format-label" label="Format" value={container}
+                <InputLabel id="vd-format-label">Formato</InputLabel>
+                <Select labelId="vd-format-label" label={"Formato"} value={container}
                         onChange={(e) => setContainer(e.target.value)}>
                   <MenuItem value="mp4">MP4</MenuItem>
                   <MenuItem value="mkv">MKV</MenuItem>
@@ -313,7 +313,7 @@ export default function VideoDownload() {
 
             {subtitles === "embed" && container === "mp4" && (
               <Alert severity="info" sx={{ py: 0.5 }}>
-                MP4 only reliably carries one subtitle track. Switch to MKV if you want several.
+                O MP4 só carrega uma faixa de legenda de forma confiável. Mude para MKV se quiser várias.
               </Alert>
             )}
 
@@ -321,13 +321,13 @@ export default function VideoDownload() {
               <FormControlLabel
                 control={<Checkbox size="small" checked={thumbnail} disabled={busy}
                                    onChange={(e) => setThumbnail(e.target.checked)} />}
-                label={<Typography variant="body2">Embed cover art</Typography>}
+                label={<Typography variant="body2">Incorporar capa</Typography>}
               />
-              <Tooltip title="Adds title/artist tags and chapter markers to the file">
+              <Tooltip title={"Adiciona tags de título/artista e marcadores de capítulo ao arquivo"}>
                 <FormControlLabel
                   control={<Checkbox size="small" checked={metadata} disabled={busy}
                                      onChange={(e) => setMetadata(e.target.checked)} />}
-                  label={<Typography variant="body2">Metadata + chapters</Typography>}
+                  label={<Typography variant="body2">Metadados + capítulos</Typography>}
                 />
               </Tooltip>
             </Stack>
@@ -344,10 +344,10 @@ export default function VideoDownload() {
                 startIcon={<DownloadForOfflineOutlinedIcon />}
               >
                 {busy
-                  ? "Downloading…"
+                  ? "Baixando…"
                   : submitCount > 1
-                    ? `Download ${submitCount} videos`
-                    : "Download"}
+                    ? ("Baixar " + String(submitCount) + " vídeos")
+                    : "Baixar"}
               </Button>
             </Stack>
 
@@ -358,7 +358,7 @@ export default function VideoDownload() {
                   value={job?.percent || 0}
                 />
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
-                  {job?.step || "Starting…"}
+                  {job?.step || "Iniciando…"}
                 </Typography>
               </Box>
             )}
@@ -369,11 +369,11 @@ export default function VideoDownload() {
                 icon={<CheckCircleOutlinedIcon />}
                 action={
                   <Button size="small" onClick={() => navigate("/videos")}>
-                    Open Library
+                    Abrir Biblioteca
                   </Button>
                 }
               >
-                {finalStep || terminal?.step || "Download complete."}
+                {finalStep || terminal?.step || "Download concluído."}
               </Alert>
             )}
 
@@ -390,7 +390,7 @@ export default function VideoDownload() {
                       {v.title || v.id}
                     </Typography>
                     {v.height != null && (
-                      <Chip size="small" variant="outlined" label={`${v.height}p`} />
+                      <Chip size="small" variant="outlined" label={("" + String(v.height) + "p")} />
                     )}
                     {v.ext && (
                       <Chip size="small" variant="outlined" label={v.ext.toUpperCase()} />
@@ -402,12 +402,12 @@ export default function VideoDownload() {
                     )}
                     {v.extras_dropped && (
                       <Typography variant="caption" color="warning.main">
-                        embed extras (cover art / metadata) couldn't be added to this file
+                        extras incorporados (capa / metadados) não puderam ser adicionados a este arquivo
                       </Typography>
                     )}
                     {(v.subtitle_files || []).length > 0 && (
                       <Typography variant="caption" color="text.secondary">
-                        subtitles saved next to the video: {v.subtitle_files.join(", ")}
+                        legendas salvas ao lado do vídeo: {v.subtitle_files.join(", ")}
                       </Typography>
                     )}
                   </Stack>
@@ -416,7 +416,7 @@ export default function VideoDownload() {
             )}
             {failed && (
               <Alert severity="error">
-                {terminal?.step || "The download failed."}
+                {terminal?.step || "O download falhou."}
               </Alert>
             )}
           </Stack>
@@ -425,7 +425,7 @@ export default function VideoDownload() {
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mt: 2 }}>
           <Button size="small" variant="outlined" startIcon={<VideoLibraryOutlinedIcon />}
                   onClick={() => navigate("/videos")}>
-            Library
+            Biblioteca
           </Button>
         </Stack>
       </Box>

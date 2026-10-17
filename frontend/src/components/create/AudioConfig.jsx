@@ -140,9 +140,9 @@ export default function AudioConfig({
       setCaptionStyle(data.id)
       setAiPrompt("")
       setShowAiInput(false)
-      showSnackbar(`Caption style "${data.name}" created!`, "success")
+      showSnackbar(("Estilo de legenda \"" + String(data.name) + "\" criado!"), "success")
     } catch (e) {
-      showSnackbar(e.response?.data?.detail || "AI generation failed", "error")
+      showSnackbar(e.response?.data?.detail || "Falha na geração com IA", "error")
     } finally {
       setAiLoading(false)
     }
@@ -153,19 +153,19 @@ export default function AudioConfig({
       await http.delete(`/api/captions/styles/${styleId}`)
       setCustomStyles(prev => prev.filter(s => s.id !== styleId))
       if (captionStyle === styleId) setCaptionStyle("viral")
-      showSnackbar("Caption style deleted", "info")
+      showSnackbar("Estilo de legenda excluído", "info")
     } catch (e) {
-      showSnackbar("Failed to delete style", "error")
+      showSnackbar("Falha ao excluir estilo", "error")
     }
   }
 
   return (
     <>
       <Divider sx={{ my: 1.5 }} />
-      <Typography variant="caption" sx={{ fontWeight: 600, color: "text.secondary" }}>Voice</Typography>
+      <Typography variant="caption" sx={{ fontWeight: 600, color: "text.secondary" }}>Voz</Typography>
       <FormControl fullWidth size="small" sx={{ mt: 0.5 }}>
-        <InputLabel>Voice Provider</InputLabel>
-        <Select value={ttsProvider} onChange={e => setTtsProvider(e.target.value)} label="Voice Provider">
+        <InputLabel>Provedor de voz</InputLabel>
+        <Select value={ttsProvider} onChange={e => setTtsProvider(e.target.value)} label={"Provedor de voz"}>
           {TTS_PROVIDERS.map(p => (
             <MenuItem key={p.value} value={p.value}>
               {p.label}
@@ -177,9 +177,9 @@ export default function AudioConfig({
 
       <Divider sx={{ my: 1.5 }} />
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="caption" sx={{ fontWeight: 600, color: "text.secondary" }}>Captions</Typography>
+        <Typography variant="caption" sx={{ fontWeight: 600, color: "text.secondary" }}>Legendas</Typography>
         <Stack direction="row" spacing={0.5}>
-          <Tooltip title="Generate with AI" arrow>
+          <Tooltip title={"Gerar com IA"} arrow>
             <IconButton size="small" onClick={() => setShowAiInput(!showAiInput)}
               sx={{ color: showAiInput ? "primary.main" : "text.secondary" }}>
               <AutoAwesomeIcon sx={{ fontSize: 16 }} />
@@ -187,7 +187,7 @@ export default function AudioConfig({
           </Tooltip>
         </Stack>
       </Stack>
-      <FormControlLabel label="Animated captions" sx={{ mt: 0.25 }}
+      <FormControlLabel label={"Legendas animadas"} sx={{ mt: 0.25 }}
         control={<Checkbox size="small" checked={captionEnabled} onChange={e => setCaptionEnabled(e.target.checked)} />} />
 
       {/* AI generate input */}
@@ -195,7 +195,7 @@ export default function AudioConfig({
         <Stack direction="row" spacing={1} sx={{ mt: 0.5, mb: 1 }}>
           <TextField
             size="small" fullWidth
-            placeholder="Describe a style... (e.g. 'neon pink TikTok dance style')"
+            placeholder={"Descreva um estilo... (ex.: 'estilo neon rosa de dança do TikTok')"}
             value={aiPrompt}
             onChange={(e) => setAiPrompt(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleAiGenerate() }}
@@ -208,7 +208,7 @@ export default function AudioConfig({
             disabled={aiLoading || !aiPrompt.trim()}
             sx={{ minWidth: 80, fontSize: "0.75rem" }}
           >
-            {aiLoading ? <CircularProgress size={16} /> : "Create"}
+            {aiLoading ? <CircularProgress size={16} /> : "Criar"}
           </Button>
         </Stack>
       </Collapse>
@@ -247,13 +247,13 @@ export default function AudioConfig({
       </Collapse>
 
       <Divider sx={{ my: 1.5 }} />
-      <Typography variant="caption" sx={{ fontWeight: 600, color: "text.secondary" }}>Music</Typography>
-      <FormControlLabel label="Background music"
+      <Typography variant="caption" sx={{ fontWeight: 600, color: "text.secondary" }}>Música</Typography>
+      <FormControlLabel label={"Música de fundo"}
         control={<Checkbox size="small" checked={musicEnabled} onChange={e => setMusicEnabled(e.target.checked)} />} />
       {musicEnabled && (
         <FormControl fullWidth size="small">
-          <InputLabel>Genre</InputLabel>
-          <Select value={musicGenre} onChange={e => setMusicGenre(e.target.value)} label="Genre">
+          <InputLabel>Gênero</InputLabel>
+          <Select value={musicGenre} onChange={e => setMusicGenre(e.target.value)} label={"Gênero"}>
             {MUSIC_GENRES.map(g => <MenuItem key={g.value} value={g.value}>{g.label}</MenuItem>)}
           </Select>
         </FormControl>

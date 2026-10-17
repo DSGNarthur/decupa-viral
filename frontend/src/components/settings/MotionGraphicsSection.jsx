@@ -67,7 +67,7 @@ export default function MotionGraphicsSection() {
           pollRef.current = setTimeout(tick, 2000)
         } else {
           pollRef.current = null
-          showSnackbar("Lost contact with the server while installing — reload to check status.", "warning")
+          showSnackbar("Perdemos contato com o servidor durante a instalação , recarregue para verificar o status.", "warning")
         }
         return
       }
@@ -77,9 +77,9 @@ export default function MotionGraphicsSection() {
       } else {
         pollRef.current = null
         if (data.installed && !data.error) {
-          showSnackbar("Motion Graphics ready — you can now render motion video locally.", "success")
+          showSnackbar("Motion Graphics pronto , agora você pode renderizar vídeos em motion localmente.", "success")
         } else if (data.error) {
-          showSnackbar(`Motion Graphics install failed: ${data.error}`, "error")
+          showSnackbar(("Falha na instalação do Motion Graphics: " + String(data.error) + ""), "error")
         }
       }
     }
@@ -107,16 +107,16 @@ export default function MotionGraphicsSection() {
       if (res.data?.ok) {
         showSnackbar(
           updating
-            ? "Updating Motion Graphics… this reuses the installed Node runtime."
-            : `Installing Motion Graphics… a one-time ~${status?.approx_download_mb ?? 350} MB download.`,
+            ? "Atualizando o Motion Graphics… isto reutiliza o runtime Node instalado."
+            : ("Instalando o Motion Graphics… um download único de ~" + String(status?.approx_download_mb ?? 350) + " MB."),
           "info")
         await fetchStatus()
         startPoll()
       } else {
-        showSnackbar(res.data?.error || "Could not start install", "error")
+        showSnackbar(res.data?.error || "Não foi possível iniciar a instalação", "error")
       }
     } catch (e) {
-      showSnackbar(`Install failed: ${e.message}`, "error")
+      showSnackbar(("Falha na instalação: " + String(e.message) + ""), "error")
     } finally {
       setBusy(false)
     }
@@ -129,9 +129,9 @@ export default function MotionGraphicsSection() {
       await http.post("/api/settings/motion-graphics/uninstall")
       setTestResult(null)
       await fetchStatus()
-      showSnackbar("Motion Graphics removed.", "success")
+      showSnackbar("Motion Graphics removido.", "success")
     } catch (e) {
-      showSnackbar(`Uninstall failed: ${e.message}`, "error")
+      showSnackbar(("Falha na desinstalação: " + String(e.message) + ""), "error")
     } finally {
       setBusy(false)
     }
@@ -155,7 +155,7 @@ export default function MotionGraphicsSection() {
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ py: 1 }}>
         <CircularProgress size={16} />
         <Typography variant="caption" sx={{ color: "text.secondary" }}>
-          Loading Motion Graphics status…
+          Carregando o status do Motion Graphics…
         </Typography>
       </Stack>
     )
@@ -185,41 +185,41 @@ export default function MotionGraphicsSection() {
 
         {installed && (
           <>
-            <Chip size="small" color="success" variant="outlined" icon={<CheckCircleIcon sx={{ fontSize: 14 }} />} label="Installed" />
+            <Chip size="small" color="success" variant="outlined" icon={<CheckCircleIcon sx={{ fontSize: 14 }} />} label={"Instalado"} />
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              {status.disk_size_mb || status.approx_download_mb} MB on disk
-              {status.engine_cache_mb ? ` · +${status.engine_cache_mb} MB engine cache` : ""}
+              {status.disk_size_mb || status.approx_download_mb} MB no disco
+              {status.engine_cache_mb ? (" · +" + String(status.engine_cache_mb) + " MB de cache do mecanismo") : ""}
             </Typography>
           </>
         )}
-        {showInstall && <Chip size="small" variant="outlined" label="Optional" />}
-        {showUpdate && <Chip size="small" color="warning" variant="outlined" label="Update available" />}
-        {installing && <Chip size="small" color="info" variant="outlined" label="Installing…" />}
-        {!platform_supported && <Chip size="small" color="default" variant="outlined" label="Unsupported platform" />}
+        {showInstall && <Chip size="small" variant="outlined" label={"Opcional"} />}
+        {showUpdate && <Chip size="small" color="warning" variant="outlined" label={"Atualização disponível"} />}
+        {installing && <Chip size="small" color="info" variant="outlined" label={"Instalando…"} />}
+        {!platform_supported && <Chip size="small" color="default" variant="outlined" label={"Plataforma não suportada"} />}
 
         <Box sx={{ flexGrow: 1 }} />
 
         {showInstall && (
           <Button size="small" variant="contained" startIcon={<DownloadIcon sx={{ fontSize: 16 }} />}
             disabled={busy} onClick={install}>
-            {busy ? "Starting…" : "Install"}
+            {busy ? "Iniciando…" : "Instalar"}
           </Button>
         )}
         {showUpdate && (
           <Button size="small" variant="contained" color="warning" startIcon={<DownloadIcon sx={{ fontSize: 16 }} />}
             disabled={busy} onClick={install}>
-            {busy ? "Updating…" : "Update"}
+            {busy ? "Atualizando…" : "Atualizar"}
           </Button>
         )}
         {installed && (
           <>
             <Button size="small" variant="outlined" startIcon={<PlayArrowIcon sx={{ fontSize: 16 }} />}
               disabled={testing || busy} onClick={runTest}>
-              {testing ? "Rendering…" : "Test render"}
+              {testing ? "Renderizando…" : "Renderizar teste"}
             </Button>
             <Button size="small" variant="outlined" color="error" startIcon={<DeleteIcon sx={{ fontSize: 16 }} />}
               disabled={busy} onClick={() => setUninstallConfirm(true)}>
-              Remove
+              Remover
             </Button>
           </>
         )}
@@ -227,34 +227,34 @@ export default function MotionGraphicsSection() {
 
       {showInstall && (
         <Typography variant="caption" sx={{ display: "block", color: "text.secondary", fontSize: "0.76rem", lineHeight: 1.5, mb: 1 }}>
-          Render motion-graphics video — kinetic typography, stat cards, lower-thirds — entirely
-          on your machine. Deterministic, repeatable, and free to render as many times as you
-          like, because no AI model is involved. One-time ~{status.approx_download_mb} MB
-          download (a portable Node runtime plus the HyperFrames engine), all of it inside your
-          data folder and all of it removed again if you uninstall.
+          Renderize vídeos de motion graphics , tipografia cinética, cartões de estatísticas, lower-thirds , inteiramente
+          na sua máquina. Determinístico, repetível e gratuito para renderizar quantas vezes você
+          quiser, porque nenhum modelo de IA está envolvido. Download único de ~{status.approx_download_mb} MB
+          (um runtime Node portátil mais o mecanismo HyperFrames), tudo dentro da sua
+          pasta de dados e tudo removido novamente se você desinstalar.
         </Typography>
       )}
 
       {showUpdate && (
         <Typography variant="caption" sx={{ display: "block", color: "text.secondary", fontSize: "0.76rem", lineHeight: 1.5, mb: 1 }}>
-          A newer Motion Graphics engine ships with this version
-          {status.installed_version ? ` (${status.installed_version} → ${status.hyperframes_version})` : ""}.
-          Updating is quick — it reuses the installed Node runtime and the cached packages, so
-          it is not a full re-download.
+          Um mecanismo de Motion Graphics mais novo vem com esta versão
+          {status.installed_version ? (" (" + String(status.installed_version) + " → " + String(status.hyperframes_version) + ")") : ""}.
+          A atualização é rápida , ela reutiliza o runtime Node instalado e os pacotes em cache, então
+          não é um novo download completo.
         </Typography>
       )}
 
       {!platform_supported && (
         <Alert severity="info" sx={{ fontSize: "0.78rem", py: 0.25 }}>
-          Motion Graphics needs a portable Node build for your platform, and there isn't one
-          published for this CPU architecture.
+          O Motion Graphics precisa de uma build portátil do Node para a sua plataforma, e não há uma
+          publicada para esta arquitetura de CPU.
         </Alert>
       )}
 
       {installing && (
         <Box sx={{ mt: 0.5 }}>
           <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            {status.current_step || "Installing…"}
+            {status.current_step || "Instalando…"}
           </Typography>
           <LinearProgress
             variant={status.progress_pct ? "determinate" : "indeterminate"}
@@ -271,31 +271,31 @@ export default function MotionGraphicsSection() {
       {testResult && (
         <Alert severity={testResult.ok ? "success" : "error"} sx={{ mt: 1, fontSize: "0.78rem", py: 0.25 }}>
           {testResult.ok
-            ? `Render OK — ${testResult.output_size_kb} KB in ${testResult.latency_ms} ms.`
-            : `Render failed: ${testResult.detail || testResult.error}`}
+            ? ("Renderização OK , " + String(testResult.output_size_kb) + " KB em " + String(testResult.latency_ms) + " ms.")
+            : ("Falha na renderização: " + String(testResult.detail || testResult.error) + "")}
         </Alert>
       )}
 
       <Dialog open={uninstallConfirm} onClose={() => setUninstallConfirm(false)}>
-        <DialogTitle>Remove Motion Graphics?</DialogTitle>
+        <DialogTitle>Remover Motion Graphics?</DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ fontSize: "0.88rem" }}>
-            This deletes the portable Node runtime and the HyperFrames engine
-            (~{status.disk_size_mb || status.approx_download_mb} MB). Motion videos you have
-            already rendered stay in your library, and you can reinstall at any time.
+            Isso exclui o runtime Node portátil e o mecanismo HyperFrames
+            (~{status.disk_size_mb || status.approx_download_mb} MB). Os vídeos de motion que você já
+            renderizou permanecem na sua biblioteca, e você pode reinstalar a qualquer momento.
             {status.engine_cache_mb ? (
               <>
-                {" "}The engine also keeps a headless Chrome
-                (~{status.engine_cache_mb} MB) in <code>{status.engine_cache_path}</code>.
-                That folder is shared with any other HyperFrames install on this machine, so
-                it is left alone — delete it yourself if you want the space back.
+                {" "}O mecanismo também mantém um Chrome headless
+                (~{status.engine_cache_mb} MB) em <code>{status.engine_cache_path}</code>.
+                Essa pasta é compartilhada com qualquer outra instalação do HyperFrames nesta máquina, então
+                ela é deixada em paz , exclua-a você mesmo se quiser recuperar o espaço.
               </>
             ) : null}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setUninstallConfirm(false)} disabled={busy}>Cancel</Button>
-          <Button onClick={uninstall} color="error" variant="contained" disabled={busy}>Remove</Button>
+          <Button onClick={() => setUninstallConfirm(false)} disabled={busy}>Cancelar</Button>
+          <Button onClick={uninstall} color="error" variant="contained" disabled={busy}>Remover</Button>
         </DialogActions>
       </Dialog>
     </Box>

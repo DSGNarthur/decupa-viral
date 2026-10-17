@@ -17,7 +17,7 @@ export default function useSettings() {
       setSettings(data)
     } catch (err) {
       console.error("Failed to fetch settings:", err)
-      setError("Failed to load settings")
+      setError("Falha ao carregar as configurações")
     } finally {
       setLoading(false)
     }
@@ -30,7 +30,7 @@ export default function useSettings() {
       return data
     } catch (err) {
       console.error("Failed to update settings:", err)
-      showSnackbar("Failed to save setting", "error")
+      showSnackbar("Falha ao salvar configuração", "error")
       throw err
     }
   }

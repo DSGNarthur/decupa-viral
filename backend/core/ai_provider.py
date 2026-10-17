@@ -227,11 +227,18 @@ class AIClient:
             full_messages.append({"role": "system", "content": system})
         full_messages.extend(messages)
 
+        # DeepSeek enables thinking by default. This app budgets tokens for
+        # the final JSON/text, so disable its separate reasoning pass rather
+        # than returning an empty answer after that pass exhausts the budget.
+        compatible_options = {}
+        if urlparse(self.base_url or "").hostname == "api.deepseek.com":
+            compatible_options["extra_body"] = {"thinking": {"type": "disabled"}}
         stream = await client.chat.completions.create(
             model=self.model,
             messages=full_messages,
             stream=True,
             max_tokens=max_tokens,
+            **compatible_options,
         )
         async for chunk in stream:
             # Some servers emit keepalive / usage chunks with no choices.

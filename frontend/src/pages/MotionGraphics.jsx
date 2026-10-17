@@ -8,6 +8,7 @@ import {
 import MovieFilterIcon from "@mui/icons-material/MovieFilterOutlined"
 import VideoLibraryIcon from "@mui/icons-material/VideoLibraryOutlined"
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesomeOutlined"
+import OpenInNewIcon from "@mui/icons-material/OpenInNewOutlined"
 import PageHero from "../components/PageHero"
 import MotionInstallGate from "../components/MotionInstallGate"
 import MotionComposePanel from "../components/motion/MotionComposePanel"
@@ -29,7 +30,8 @@ import useDocumentTitle from "../hooks/useDocumentTitle"
  * store on every visit.
  */
 export default function MotionGraphics() {
-  useDocumentTitle("Motion Graphics")
+  const companion = import.meta.env.VITE_COMPANION_RUNTIME === 'true'
+  useDocumentTitle("Animações")
   const theme = useTheme()
   const navigate = useNavigate()
   const showSnackbar = useAppStore((s) => s.showSnackbar)
@@ -60,7 +62,7 @@ export default function MotionGraphics() {
       setMotionInstalled(true)
       // Follow the app's own hostname rather than hardcoding localhost, so the
       // studio stays reachable when the app is opened over the network.
-      setStudioUrl(`${window.location.protocol}//${window.location.hostname}:${r.data.port}/`)
+      setStudioUrl(companion ? `http://127.0.0.1:${r.data.port}/` : `${window.location.protocol}//${window.location.hostname}:${r.data.port}/`)
       setStarting(false)
       setReloadKey((k) => k + 1)
     }).catch((e) => {
@@ -81,7 +83,7 @@ export default function MotionGraphics() {
         const { data } = await http.post("/api/generate/motion/studio/sync-renders")
         if (data?.imported > 0) {
           showSnackbar(
-            `${data.imported} video${data.imported > 1 ? "s" : ""} added to your Library`,
+            ("" + String(data.imported) + " vídeo" + String(data.imported > 1 ? "s" : "") + " adicionado à sua Biblioteca"),
             "success")
         }
       } catch { /* the next tick retries; a toast here would be noise */ }
@@ -105,19 +107,19 @@ export default function MotionGraphics() {
   const hero = (
     <PageHero
       icon={<MovieFilterIcon sx={{ fontSize: 22 }} />}
-      title="Motion Graphics"
-      subtitle="Design animated compositions — kinetic type, stat cards, lower thirds — and render them locally"
+      title={"Animações"}
+      subtitle={"Crie tipografia animada, cartões de estatísticas e faixas de identificação. Renderização no seu PC."}
       dense
       actions={
         installed ? (
           <>
             <Button size="small" variant="outlined" startIcon={<VideoLibraryIcon />}
               onClick={() => navigate("/videos")}>
-              Library
+              Biblioteca
             </Button>
             <Button size="small" variant={panelOpen ? "outlined" : "contained"}
               startIcon={<AutoAwesomeIcon />} onClick={() => setPanelOpen((v) => !v)}>
-              AI Compose
+              Composição com IA
             </Button>
           </>
         ) : null
@@ -148,19 +150,38 @@ export default function MotionGraphics() {
         <Stack alignItems="center" justifyContent="center" spacing={1.5}
           sx={{ height: "100%", color: "text.secondary" }}>
           <CircularProgress />
-          <Typography variant="body2">Starting the studio…</Typography>
+          <Typography variant="body2">Iniciando o estúdio…</Typography>
         </Stack>
       )}
       {startError && !starting && (
         <Stack alignItems="center" justifyContent="center" spacing={1}
           sx={{ height: "100%", color: "text.secondary" }}>
-          <Typography variant="body2">Couldn’t start the studio: {startError}</Typography>
-          <Button size="small" onClick={() => window.location.reload()}>Retry</Button>
+          <Typography variant="body2">Não foi possível iniciar o estúdio: {startError}</Typography>
+          <Button size="small" onClick={() => window.location.reload()}>Tentar novamente</Button>
         </Stack>
       )}
-      {studioUrl && (
-        <iframe key={reloadKey} src={studioUrl} title="Motion Studio"
+      {studioUrl && !companion && (
+        <iframe key={reloadKey} src={studioUrl} title={"Estúdio de animações"} allow="local-network; loopback-network"
           style={{ width: "100%", height: "100%", border: 0, display: "block" }} />
+      )}
+      {studioUrl && companion && (
+        <Stack spacing={2} alignItems="center" justifyContent="center"
+          sx={{ height: '100%', px: 3, textAlign: 'center' }}>
+          <MovieFilterIcon sx={{ fontSize: 44, color: 'primary.main' }} />
+          <Typography variant="h5">Estúdio de animações no PC</Typography>
+          <Typography sx={{ color: 'text.secondary', maxWidth: 560 }}>
+            Abra o editor nativo em outra aba para usar a linha do tempo, importar
+            arquivos, editar a composição e exportar. Ele usa a mesma biblioteca
+            e o mesmo projeto desta plataforma.
+          </Typography>
+          <Button component="a" href="http://localhost:16889/motion" target="_blank"
+            rel="noopener" variant="contained" startIcon={<OpenInNewIcon />}>
+            Abrir editor no PC
+          </Button>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            As composições criadas com IA nesta página ficam disponíveis no editor.
+          </Typography>
+        </Stack>
       )}
 
       {/* AI Compose — a drawer that stays MOUNTED so an in-flight compose (and

@@ -30,7 +30,7 @@ export default function DownloadedListCard({ videos }) {
   const handleGenerate = async (id) => {
     try {
       const { data } = await http.post(`/api/downloaded/${id}/generate`)
-      showSnackbar("Video generation started!", "success")
+      showSnackbar("Geração de vídeo iniciada!", "success")
     } catch (err) {
       showSnackbar(err.response?.data?.detail || err.message, "error")
     }
@@ -41,14 +41,14 @@ export default function DownloadedListCard({ videos }) {
       <Box sx={{ px: 2, py: 1.25, bgcolor: "action.hover", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Stack direction="row" alignItems="center" spacing={1}>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: "0.85rem" }}>
-            Downloaded Videos
+            Vídeos baixados
           </Typography>
-          <Chip label={`${videos.length}`} size="small" color="primary" variant="outlined"
+          <Chip label={("" + String(videos.length) + "")} size="small" color="primary" variant="outlined"
             sx={{ fontSize: "0.65rem", height: 20 }} />
         </Stack>
         <Button size="small" variant="text" onClick={() => navigate("/videos")}
           endIcon={<OpenInNewIcon sx={{ fontSize: 14 }} />}>
-          View all
+          Ver todos
         </Button>
       </Box>
 
@@ -97,19 +97,19 @@ export default function DownloadedListCard({ videos }) {
                   </Typography>
                 )}
                 {v.has_insights && (
-                  <Chip icon={<LightbulbIcon sx={{ fontSize: 10 }} />} label="analyzed" size="small" color="success" variant="outlined"
+                  <Chip icon={<LightbulbIcon sx={{ fontSize: 10 }} />} label={"analisado"} size="small" color="success" variant="outlined"
                     sx={{ fontSize: "0.55rem", height: 16, "& .MuiChip-icon": { ml: 0.3 } }} />
                 )}
               </Stack>
               {v.suggested_angle && (
                 <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.65rem", fontStyle: "italic", mt: 0.25, display: "block" }}>
-                  Angle: {v.suggested_angle}
+                  Ângulo: {v.suggested_angle}
                 </Typography>
               )}
             </Box>
 
             {/* Generate button */}
-            <Tooltip title="Generate video from this" arrow>
+            <Tooltip title={"Gerar vídeo a partir deste"} arrow>
               <IconButton size="small" onClick={() => handleGenerate(v.id)}
                 sx={{ color: "primary.main", "&:hover": { bgcolor: "action.hover" } }}>
                 <MovieCreationIcon sx={{ fontSize: "1.1rem" }} />

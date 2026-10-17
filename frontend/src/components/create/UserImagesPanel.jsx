@@ -69,8 +69,8 @@ export default function UserImagesPanel({ images, setImages, onError }) {
   return (
     <Box>
       <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 1 }}>
-        Your photos fill the first scenes, starting with the hook. The rest of
-        the video still uses stock footage.
+        Suas fotos preenchem as primeiras cenas, começando pelo hook. O restante
+        do vídeo ainda usa footage de banco.
       </Typography>
 
       {images.length > 0 && (
@@ -80,7 +80,7 @@ export default function UserImagesPanel({ images, setImages, onError }) {
               <Box
                 component="img"
                 src={url}
-                alt={`Scene ${idx + 1}`}
+                alt={("Cena " + String(idx + 1) + "")}
                 sx={{
                   width: 62, height: 62, objectFit: "cover",
                   borderRadius: 1.5, border: 1, borderColor: "divider",
@@ -99,10 +99,10 @@ export default function UserImagesPanel({ images, setImages, onError }) {
               >
                 {idx + 1}
               </Box>
-              <Tooltip title={`Remove image ${idx + 1}`}>
+              <Tooltip title={("Remover imagem " + String(idx + 1) + "")}>
                 <IconButton
                   size="small"
-                  aria-label={`Remove image ${idx + 1}`}
+                  aria-label={("Remover imagem " + String(idx + 1) + "")}
                   onClick={() => removeAt(idx)}
                   sx={{
                     position: "absolute", top: -6, right: -6,
@@ -129,12 +129,12 @@ export default function UserImagesPanel({ images, setImages, onError }) {
         sx={{ textTransform: "none" }}
       >
         {uploading
-          ? "Uploading…"
+          ? "Enviando…"
           : remaining <= 0
-            ? `All ${MAX_USER_IMAGES} scenes covered`
+            ? ("Todas as " + String(MAX_USER_IMAGES) + " cenas cobertas")
             : images.length
-              ? `Add more (${remaining} left)`
-              : "Add your images"}
+              ? ("Adicionar mais (" + String(remaining) + " restantes)")
+              : "Adicione suas imagens"}
       </Button>
       <input
         ref={inputRef}

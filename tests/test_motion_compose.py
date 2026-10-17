@@ -187,6 +187,15 @@ async def _run(monkeypatch, ai, job_id="job1234"):
     monkeypatch.setattr("backend.agents.job_helper.job_cancelled",
                         lambda jid: _false())
     monkeypatch.setattr("backend.core.ai_provider.get_ai_client", lambda *a, **k: ai)
+    # This unit test stubs the model and job store. It must not depend on
+    # another test having initialized a real settings table first.
+    class _SettingsResult:
+        def scalar_one_or_none(self): return None
+    class _Session:
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def execute(self, *args): return _SettingsResult()
+    monkeypatch.setattr("backend.database.AsyncSessionLocal", _Session)
 
     class _WS:
         async def send(self, *a, **k): pass

@@ -88,9 +88,9 @@ export default function ChannelSummaryCard({ summary }) {
     setDownloading(true)
     try {
       await http.post("/api/downloaded/batch-download", { urls })
-      showSnackbar(`Downloading ${urls.length} videos... (Job started)`, "info")
+      showSnackbar(("Baixando " + String(urls.length) + " vídeos... (Tarefa iniciada)"), "info")
     } catch (e) {
-      showSnackbar(`Download failed: ${e.response?.data?.detail || e.message}`, "error")
+      showSnackbar(("Falha no download: " + String(e.response?.data?.detail || e.message) + ""), "error")
     } finally {
       setDownloading(false)
     }
@@ -116,14 +116,14 @@ export default function ChannelSummaryCard({ summary }) {
               {subscriber_count > 0 && (
                 <Chip
                   icon={<PeopleIcon sx={{ fontSize: 14 }} />}
-                  label={`${formatCount(subscriber_count)} followers`}
+                  label={("" + String(formatCount(subscriber_count)) + " seguidores")}
                   size="small"
                   variant="outlined"
                 />
               )}
-              <Chip label={`${videos.length} videos listed`} size="small" variant="outlined" />
+              <Chip label={("" + String(videos.length) + " vídeos listados")} size="small" variant="outlined" />
               {summary.median_views > 0 && (
-                <Chip label={`Median: ${formatCount(summary.median_views)} views`} size="small" variant="outlined" color="info" />
+                <Chip label={("Mediana: " + String(formatCount(summary.median_views)) + " visualizações")} size="small" variant="outlined" color="info" />
               )}
             </Stack>
           </Box>
@@ -146,7 +146,7 @@ export default function ChannelSummaryCard({ summary }) {
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
               <InsightsIcon sx={{ fontSize: 18, color: "primary.main" }} />
               <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "primary.main", fontSize: "0.85rem" }}>
-                AI Strategic Analysis
+                Análise Estratégica com IA
               </Typography>
             </Stack>
             <Box sx={{
@@ -207,7 +207,7 @@ export default function ChannelSummaryCard({ summary }) {
         }}
       >
         <Typography variant="body2" sx={{ fontWeight: 600, fontSize: "0.85rem" }}>
-          Videos ({videos.length})
+          Vídeos ({videos.length})
         </Typography>
         {videosExpanded ? <ExpandLessIcon sx={{ fontSize: 20 }} /> : <ExpandMoreIcon sx={{ fontSize: 20 }} />}
       </Box>
@@ -222,7 +222,7 @@ export default function ChannelSummaryCard({ summary }) {
             onChange={handleSelectAll}
           />
           <Typography variant="caption" color="text.secondary">
-            {hasSelection ? `${selected.size} selected` : "Select videos to download"}
+            {hasSelection ? ("" + String(selected.size) + " selecionados") : "Selecione vídeos para baixar"}
           </Typography>
         </Box>
 
@@ -254,7 +254,7 @@ export default function ChannelSummaryCard({ summary }) {
               </Typography>
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography variant="body2" noWrap fontWeight={500}>
-                  {v.title || "Untitled"}
+                  {v.title || "Sem título"}
                 </Typography>
                 <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
                   {v.view_count != null && (
@@ -294,15 +294,15 @@ export default function ChannelSummaryCard({ summary }) {
             onClick={handleDownloadSelected}
             disabled={downloading}
           >
-            {downloading ? "Starting..." : `Download ${selected.size} Selected & Analyze`}
+            {downloading ? "Iniciando..." : ("Baixar " + String(selected.size) + " selecionados e analisar")}
           </Button>
         ) : (
           <>
             <Button size="small" variant="outlined" startIcon={<DownloadIcon />} onClick={() => handleDownloadTop(3)}>
-              Download Top 3
+              Baixar Top 3
             </Button>
             <Button size="small" variant="contained" startIcon={<DownloadIcon />} onClick={() => handleDownloadTop(5)}>
-              Download Top 5 & Analyze
+              Baixar Top 5 e analisar
             </Button>
           </>
         )}

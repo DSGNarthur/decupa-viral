@@ -52,7 +52,7 @@ export default function SourceTree({ families, loners, onOpen, dimmedIds }) {
               transition: "transform .15s ease",
             }} />
             <Typography sx={{ fontSize: "0.78rem", fontWeight: 600 }}>
-              Nothing made from these yet
+              Nada feito a partir disso ainda
             </Typography>
             <Typography sx={{ fontSize: "0.74rem", color: "text.disabled", fontVariantNumeric: "tabular-nums" }}>
               {loners.length}
@@ -122,7 +122,7 @@ function Family({ root, nodes, onOpen, dimmedIds }) {
           flexShrink: 0, fontSize: "0.7rem", fontWeight: 700, color: alpha(oc, 0.9),
           fontVariantNumeric: "tabular-nums",
         }}>
-          {count} derived
+          {count} derivado
         </Typography>
       </Stack>
 
@@ -181,7 +181,7 @@ function ChildRow({ item, onOpen, dimmed }) {
       <OriginBadge origin={item.origin} />
       <Meta>{item.producer}</Meta>
       {item.duration_seconds != null && <><Dot /><Meta>{formatClock(item.duration_seconds)}</Meta></>}
-      {item.hook_score != null && <><Dot /><Meta>hook {item.hook_score}</Meta></>}
+      {item.hook_score != null && <><Dot /><Meta>gancho {item.hook_score}</Meta></>}
       <Box sx={{ flex: 1 }} />
       <Meta sx={{ color: "text.disabled" }}>{fmtDay(item.created_at)}</Meta>
     </Stack>

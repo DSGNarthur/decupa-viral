@@ -41,8 +41,8 @@ export default function JobHistoryTab({ jobs, jobTotal, onDelete, onBulkDelete, 
   if (recentJobs.length === 0) {
     return (
       <Box sx={{ textAlign: "center", py: 8, color: "text.secondary" }}>
-        <Typography variant="h6" sx={{ mb: 0.5 }}>No jobs yet</Typography>
-        <Typography variant="body2">Start scouting from the Chat page to see jobs here.</Typography>
+        <Typography variant="h6" sx={{ mb: 0.5 }}>Ainda sem tarefas</Typography>
+        <Typography variant="body2">Comece a buscar na página de Chat para ver tarefas aqui.</Typography>
       </Box>
     )
   }
@@ -60,11 +60,11 @@ export default function JobHistoryTab({ jobs, jobTotal, onDelete, onBulkDelete, 
           onClick={handleBulkDelete}
           sx={{ textTransform: "none", fontSize: "0.75rem", height: 28 }}
         >
-          Delete {selected.size} job{selected.size > 1 ? "s" : ""}
+          Excluir {selected.size} tarefa{selected.size > 1 ? "s" : ""}
         </Button>
       )}
       <Typography variant="caption" sx={{ color: "text.secondary" }}>
-        {selected.size > 0 ? `${selected.size} selected` : "Select all"}
+        {selected.size > 0 ? ("" + String(selected.size) + " selecionados") : "Selecionar tudo"}
       </Typography>
       <Checkbox
         size="small"
@@ -94,15 +94,15 @@ export default function JobHistoryTab({ jobs, jobTotal, onDelete, onBulkDelete, 
                 {j.error_message && <Typography variant="caption" sx={{ color: "error.main" }}>{j.error_message}</Typography>}
               </Box>
               <Typography variant="caption" sx={{ color: "text.disabled", whiteSpace: "nowrap" }}>
-                {j.created_at ? new Date(j.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : ""}
+                {j.created_at ? new Date(j.created_at).toLocaleString([], { month: "curto", day: "numérico", hour: "2 dígitos", minute: "2 dígitos" }) : ""}
               </Typography>
               {isActive && (
-                <IconButton size="small" onClick={() => onCancel(j.id)} title="Cancel job" sx={{ color: "text.disabled", "&:hover": { color: "warning.main" } }}>
+                <IconButton size="small" onClick={() => onCancel(j.id)} title={"Cancelar tarefa"} sx={{ color: "text.disabled", "&:hover": { color: "warning.main" } }}>
                   <CancelIcon sx={{ fontSize: 16 }} />
                 </IconButton>
               )}
               {isDeletable && (
-                <IconButton size="small" onClick={() => onDelete(j.id)} title="Delete job" sx={{ color: "text.disabled", "&:hover": { color: "error.main" } }}>
+                <IconButton size="small" onClick={() => onDelete(j.id)} title={"Excluir tarefa"} sx={{ color: "text.disabled", "&:hover": { color: "error.main" } }}>
                   <DeleteOutlineIcon sx={{ fontSize: 16 }} />
                 </IconButton>
               )}
