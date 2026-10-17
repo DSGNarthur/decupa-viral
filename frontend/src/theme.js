@@ -7,8 +7,8 @@ const shadows = {
   md: "0 4px 14px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.03)",
   lg: "0 12px 28px rgba(0,0,0,0.08), 0 4px 10px rgba(0,0,0,0.04)",
   xl: "0 20px 40px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.05)",
-  glow: "0 0 20px rgba(201,100,66,0.12)",
-  glowStrong: "0 0 28px rgba(201,100,66,0.22)",
+  glow: "0 0 20px rgba(128,128,128,0.12)",
+  glowStrong: "0 0 28px rgba(128,128,128,0.22)",
   up: "0 -2px 8px rgba(0,0,0,0.04)",
 }
 
@@ -17,29 +17,29 @@ const darkShadows = {
   md: "0 4px 14px rgba(0,0,0,0.25), 0 2px 6px rgba(0,0,0,0.15)",
   lg: "0 12px 28px rgba(0,0,0,0.35), 0 4px 10px rgba(0,0,0,0.2)",
   xl: "0 20px 40px rgba(0,0,0,0.45), 0 8px 16px rgba(0,0,0,0.25)",
-  glow: "0 0 20px rgba(201,100,66,0.18)",
-  glowStrong: "0 0 28px rgba(201,100,66,0.28)",
+  glow: "0 0 20px rgba(128,128,128,0.18)",
+  glowStrong: "0 0 28px rgba(128,128,128,0.28)",
   up: "0 -2px 8px rgba(0,0,0,0.15)",
 }
 
 export default function createAppTheme(mode) {
   const isDark = mode === "dark"
   const s = isDark ? darkShadows : shadows
-  const P = "#c96442"
+  const P = isDark ? "#f4f4f5" : "#18181b"
 
   const theme = createTheme({
     palette: {
       mode,
-      primary: { main: P, contrastText: "#fff" },
+      primary: { main: P, contrastText: isDark ? "#18181b" : "#fff" },
       secondary: { main: isDark ? "#9ca3af" : "#6b7280" },
       background: {
-        default: isDark ? "#141210" : "#f5f0ea",
-        paper: isDark ? "#1e1c1a" : "#ffffff",
-        subtle: isDark ? "#1a1816" : "#faf6f2",
+        default: isDark ? "#101012" : "#fafafa",
+        paper: isDark ? "#1a1a1d" : "#ffffff",
+        subtle: isDark ? "#161619" : "#f4f4f5",
       },
       text: {
-        primary: isDark ? "#e8e4df" : "#2d2b28",
-        secondary: isDark ? "#9c9690" : "#6b6560",
+        primary: isDark ? "#f5f5f6" : "#18181b",
+        secondary: isDark ? "#a6a6af" : "#63636c",
       },
       success: { main: "#16a34a" },
       warning: { main: "#d97706" },
@@ -48,7 +48,7 @@ export default function createAppTheme(mode) {
       divider: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)",
       action: {
         hover: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
-        selected: "rgba(201,100,66,0.08)",
+        selected: "rgba(128,128,128,0.08)",
       },
     },
     typography: {
@@ -68,9 +68,11 @@ export default function createAppTheme(mode) {
       MuiCssBaseline: {
         styleOverrides: {
           body: {
-            backgroundColor: isDark ? "#141210" : "#f5f0ea",
+            backgroundColor: isDark ? "#101012" : "#fafafa",
             colorScheme: mode,
           },
+          "@keyframes decupa-panel-in": { from: { opacity: 0, transform: "translateY(10px)" }, to: { opacity: 1, transform: "translateY(0)" } },
+          "@media (prefers-reduced-motion: reduce)": { "*, *::before, *::after": { animation: "none !important", transition: "none !important", scrollBehavior: "auto !important" } },
           // Smoother scrollbars
           "*::-webkit-scrollbar": { width: 6 },
           "*::-webkit-scrollbar-track": { background: "transparent" },
@@ -125,7 +127,7 @@ export default function createAppTheme(mode) {
             "&:hover": { boxShadow: s.md },
           },
           containedPrimary: {
-            background: `linear-gradient(135deg, ${P}, #e88a5a)`,
+            background: P,
             // The gradient is a background-IMAGE, so MUI's disabled colour
             // never showed through: a disabled primary button looked enabled
             // on every page.
@@ -135,7 +137,7 @@ export default function createAppTheme(mode) {
               boxShadow: "none",
             },
             "&:hover": {
-              background: `linear-gradient(135deg, #b85838, #d47a4e)`,
+              background: isDark ? "#dedee2" : "#303036",
               boxShadow: `${s.md}, ${s.glow}`,
             },
           },
@@ -143,13 +145,13 @@ export default function createAppTheme(mode) {
             borderColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)",
             "&:hover": {
               borderColor: P,
-              backgroundColor: `rgba(201,100,66,0.04)`,
+              backgroundColor: `rgba(128,128,128,0.04)`,
             },
           },
           text: {
             padding: "4px 12px",
             "&:hover": {
-              backgroundColor: `rgba(201,100,66,0.06)`,
+              backgroundColor: `rgba(128,128,128,0.06)`,
             },
           },
         },
@@ -168,7 +170,7 @@ export default function createAppTheme(mode) {
       MuiDrawer: {
         styleOverrides: {
           paper: {
-            backgroundColor: isDark ? "rgba(20,18,16,0.88)" : "rgba(255,255,255,0.8)",
+            backgroundColor: isDark ? "rgba(16,16,18,0.88)" : "rgba(255,255,255,0.8)",
             backdropFilter: "blur(20px) saturate(1.4)",
             WebkitBackdropFilter: "blur(20px) saturate(1.4)",
             borderRight: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.06)"}`,
@@ -185,7 +187,7 @@ export default function createAppTheme(mode) {
             transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
             "&:hover": {
               boxShadow: `${s.lg}, ${s.glow}`,
-              borderColor: isDark ? "rgba(201,100,66,0.2)" : "rgba(201,100,66,0.15)",
+              borderColor: isDark ? "rgba(128,128,128,0.2)" : "rgba(128,128,128,0.15)",
               transform: "translateY(-2px)",
             },
           },
@@ -209,7 +211,7 @@ export default function createAppTheme(mode) {
             transition: "all 0.15s ease",
             "&:hover": {
               borderColor: P,
-              backgroundColor: "rgba(201,100,66,0.06)",
+              backgroundColor: "rgba(128,128,128,0.06)",
             },
           },
         },
@@ -228,7 +230,7 @@ export default function createAppTheme(mode) {
                 borderColor: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)",
               },
               "&.Mui-focused": {
-                backgroundColor: isDark ? "rgba(201,100,66,0.03)" : "rgba(201,100,66,0.02)",
+                backgroundColor: isDark ? "rgba(128,128,128,0.03)" : "rgba(128,128,128,0.02)",
               },
               "&.Mui-focused fieldset": {
                 borderColor: P,
@@ -277,8 +279,8 @@ export default function createAppTheme(mode) {
             borderRadius: 10,
             transition: "all 0.15s ease",
             "&.Mui-selected": {
-              backgroundColor: "rgba(201,100,66,0.08)",
-              "&:hover": { backgroundColor: "rgba(201,100,66,0.12)" },
+              backgroundColor: "rgba(128,128,128,0.08)",
+              "&:hover": { backgroundColor: "rgba(128,128,128,0.12)" },
             },
           },
         },
@@ -306,7 +308,7 @@ export default function createAppTheme(mode) {
             "&.Mui-selected": {
               color: P,
               fontWeight: 700,
-              backgroundColor: isDark ? "rgba(201,100,66,0.06)" : "rgba(201,100,66,0.04)",
+              backgroundColor: isDark ? "rgba(128,128,128,0.06)" : "rgba(128,128,128,0.04)",
             },
           },
         },
@@ -345,14 +347,14 @@ export default function createAppTheme(mode) {
       MuiTooltip: {
         styleOverrides: {
           tooltip: {
-            backgroundColor: isDark ? "#3a3735" : "#2d2b28",
+            backgroundColor: isDark ? "#3a3735" : "#18181b",
             borderRadius: 8,
             fontSize: "0.8rem",
             padding: "6px 12px",
             boxShadow: s.lg,
           },
           arrow: {
-            color: isDark ? "#3a3735" : "#2d2b28",
+            color: isDark ? "#3a3735" : "#18181b",
           },
         },
       },

@@ -349,6 +349,8 @@ def create_app() -> FastAPI:
     app.include_router(templates.router, prefix="/api")
     app.include_router(captions.router, prefix="/api")
     app.include_router(tools.router, prefix="/api")
+    from backend.api import editor
+    app.include_router(editor.router, prefix="/api")
     app.include_router(library.router, prefix="/api")
     app.include_router(messaging_router.router, prefix="/api")
     app.include_router(tts_preview.router, prefix="/api")

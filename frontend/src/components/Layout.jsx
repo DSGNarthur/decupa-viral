@@ -25,12 +25,15 @@ import MovieFilterIcon from "@mui/icons-material/MovieFilterOutlined"
 import BuildIcon from "@mui/icons-material/BuildOutlined"
 import SettingsIcon from "@mui/icons-material/SettingsOutlined"
 import TravelExploreIcon from "@mui/icons-material/TravelExploreOutlined"
+import LightModeIcon from '@mui/icons-material/LightModeOutlined'
+import DarkModeIcon from '@mui/icons-material/DarkModeOutlined'
 
 const DRAWER_WIDTH = 240
 const COLLAPSED_WIDTH = 64
 
 const navItems = [
   { to: "/clips",     icon: <ContentCutIcon />,       label: "Estúdio de cortes" },
+  { to: "/editor",    icon: <MovieFilterIcon />,      label: "Editor de cortes" },
   { to: "/tools/video-download", icon: <VideoLibraryIcon />, label: "Baixar vídeo" },
   { to: "/chat",      icon: <ChatIcon />,             label: "Conversas" },
   { to: "/scout",     icon: <TravelExploreIcon />,    label: "Pesquisa de vídeos" },
@@ -133,9 +136,9 @@ export default function Layout() {
           position: "relative",
           color: active ? "primary.main" : "text.secondary",
           "&.Mui-selected": {
-            bgcolor: "rgba(201,100,66,0.1)",
-            boxShadow: (theme) => `inset 0 0 0 1px rgba(201,100,66,0.12), ${theme.customShadows?.sm}`,
-            "&:hover": { bgcolor: "rgba(201,100,66,0.13)" },
+            bgcolor: "rgba(128,128,128,0.1)",
+            boxShadow: (theme) => `inset 0 0 0 1px rgba(128,128,128,0.12), ${theme.customShadows?.sm}`,
+            "&:hover": { bgcolor: "rgba(128,128,128,0.13)" },
           },
           "&:hover": {
             bgcolor: "action.hover",
@@ -180,28 +183,7 @@ export default function Layout() {
       {/* Logo + collapse toggle */}
       <Box sx={{ px: collapsed && !isNarrow ? 1 : 2.5, py: 2.5, display: "flex", alignItems: "center", justifyContent: collapsed && !isNarrow ? "center" : "space-between" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.2, overflow: "hidden" }}>
-          <Box
-            component="img"
-            src="/decupa-icon.svg"
-            alt={"Decupa Viral"}
-            sx={{ width: 32, height: 32, borderRadius: 1, flexShrink: 0 }}
-          />
-          {(!collapsed || isNarrow) && (
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 700,
-                letterSpacing: -0.5,
-                fontSize: "1.15rem",
-                background: "linear-gradient(135deg, #0D9F6E, #34D399)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Decupa Viral
-            </Typography>
-          )}
+          {collapsed && !isNarrow ? <ContentCutIcon sx={{ fontSize: 28 }} /> : <Box component="img" src="/decupa-logo.png" alt="Decupa" sx={{ width: 164, maxWidth: "100%", filter: theme.palette.mode === "dark" ? "invert(1)" : "none" }} />}
         </Box>
         {!isNarrow && !collapsed && (
           <IconButton size="small" onClick={() => setCollapsed(true)} sx={{
@@ -210,7 +192,7 @@ export default function Layout() {
             bgcolor: "action.hover",
             border: 1,
             borderColor: "divider",
-            "&:hover": { bgcolor: "primary.main", color: "#fff" },
+            "&:hover": { bgcolor: "primary.main", color: "primary.contrastText" },
             transition: "all 0.15s",
           }}>
             <ChevronLeftIcon sx={{ fontSize: 18 }} />
@@ -262,7 +244,7 @@ export default function Layout() {
                 borderRadius: 2, py: 0.75, justifyContent: "center",
                 border: 1, borderColor: "divider",
                 color: "primary.main",
-                "&:hover": { bgcolor: "primary.main", color: "#fff" },
+                "&:hover": { bgcolor: "primary.main", color: "primary.contrastText" },
                 transition: "all 0.15s",
               }}
             >
@@ -317,6 +299,11 @@ export default function Layout() {
           flexDirection: "column",
         }}
       >
+        <Box component="header" sx={{ minHeight: 52, px: { xs: 1.5, md: 3 }, display: 'flex', alignItems: 'center', gap: 1, borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper', flexShrink: 0 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>Meu espaço / {navItems.find(i => location.pathname.startsWith(i.to))?.label || 'Decupa'}</Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>Processamento no PC</Typography>
+          <Tooltip title={theme.palette.mode === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}><IconButton aria-label={theme.palette.mode === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'} onClick={() => { localStorage.setItem('decupa-theme', theme.palette.mode === 'dark' ? 'light' : 'dark'); window.dispatchEvent(new Event('decupa-theme-change')) }}>{theme.palette.mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}</IconButton></Tooltip>
+        </Box>
         {import.meta.env.VITE_BROWSER_RUNTIME !== 'true' && <Alert severity="info" sx={{ borderRadius: 0 }} action={import.meta.env.VITE_COMPANION_RUNTIME !== 'true' ? <Button color="inherit" size="small" onClick={openVercel}>Abrir na Vercel</Button> : undefined}>
           {import.meta.env.VITE_COMPANION_RUNTIME === 'true' ? 'Conectado ao processador deste PC. Os motores originais e os arquivos estão no computador. Mantenha o PC ligado.' : 'Processamento completo neste PC. Abra na Vercel para usar a mesma biblioteca e os mesmos motores neste computador.'}
         </Alert>}
@@ -335,9 +322,9 @@ export default function Layout() {
             <Typography
               sx={{
                 fontWeight: 700, fontSize: "0.95rem",
-                background: "linear-gradient(135deg, #0D9F6E, #34D399)",
+                color: "text.primary",
                 WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
+
               }}
             >
               Decupa Viral

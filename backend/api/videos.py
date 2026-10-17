@@ -352,6 +352,8 @@ async def regenerate_thumbnail(video_id: str, db: AsyncSession = Depends(get_db)
 @router.delete("/videos/{video_id}")
 async def delete_video(video_id: str, db: AsyncSession = Depends(get_db)):
     """Delete a generated video and its files."""
+    from backend.services.clip_editor import assert_not_pinned
+    await assert_not_pinned(db, clip_id=video_id)
     result = await db.execute(
         select(GeneratedVideo).where(GeneratedVideo.id == video_id)
     )

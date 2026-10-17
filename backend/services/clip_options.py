@@ -25,6 +25,7 @@ class ExtractOptions:
     remove_silence, force_vertical) are shared post-processing.
     """
     mode: str = "ai"
+    selection_strategy: str = "original"
     max_clips: int = 3
     caption_style: str = "viral"
     whisper_quality: str = "balanced"

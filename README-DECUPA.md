@@ -55,3 +55,6 @@ Esta cópia usa um único espaço de trabalho do ViralMint (`local`). Ela não i
 A página Sobre e código-fonte oferece o arquivo `source-code.zip` e a licença. Antes de cada compilação de uma versão modificada, execute `scripts/package_source.py` para atualizar o arquivo. O pacote deve acompanhar a versão publicada e inclui fontes, dependências e instruções de execução. Segredos, bancos e mídias não fazem parte dele.
 
 Recursos comerciais ausentes no repositório original não são incluídos nesta cópia. Integrações externas continuam dependendo das respectivas contas e credenciais.
+# Editor de cortes integrado
+
+As instruções da integração com Supoclip estão em [docs/INTEGRACAO-SUPOCLIP.md](docs/INTEGRACAO-SUPOCLIP.md). Incluem rascunhos, revisão de legendas, montagem, reenquadramento, temas e validação. O checkout ativo desta instalação está no C:, com o atalho `Decupa` na Área de Trabalho.

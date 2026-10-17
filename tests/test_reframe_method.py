@@ -151,6 +151,8 @@ FIT_SIGNATURE = "force_original_aspect_ratio=decrease"
 # decision that this path only ever NARROWS (16:9 → 9:16), where fitting is
 # the correct short-form look — never widens, where it shrinks the picture.
 ALLOWED = {
+    "services/clip_editor.py": "The editor explicitly offers keep-full-frame and combines different aspect ratios without silently cropping their content.",
+    "services/supoclip/tracking.py": "Scene-aware vertical framing keeps slides and shots without faces fully visible; portrait sources have a full-frame fallback.",
     "services/ffmpeg_service.py": (
         "convert_aspect_ratio's explicit letterbox/blur_fill branches (reached "
         "only when a caller names the method, or when pick_reframe_method "

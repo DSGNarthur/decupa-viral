@@ -1,0 +1,36 @@
+
+def filter_for_document(source, document):
+    """Map original face samples onto the actual edited order before framing."""
+    width,height=ffprobe_video_size(source)
+    crop_w,crop_h=compute_vertical_crop_dims(width,height)
+    if width/height <= 9/16:
+        return 'scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1',False
+    track,cuts=analyze_vertical_clip(source)
+    mapped,mapped_cuts=[],[]
+    cursor=0.0
+    for segment in document.segments:
+        selected=[(cursor+t-segment.start,cx,area) for t,cx,area in track if segment.start<=t<segment.end]
+        if not selected:
+            selected=[(cursor,None,0)]
+        mapped.extend(selected)
+        mapped_cuts.extend(cursor+c-segment.start for c in cuts if segment.start<c<segment.end)
+        if cursor: mapped_cuts.append(cursor)
+        cursor+=segment.end-segment.start
+    plan=build_layout_plan(mapped,mapped_cuts,cursor)
+    # Restart the spring at shot changes rather than pan across unrelated shots.
+    keys=[]
+    boundaries=sorted(set([0.0,*mapped_cuts,cursor]))
+    for start,end in zip(boundaries,boundaries[1:]):
+        shot=[(t-start,cx,area) for t,cx,area in mapped if start<=t<end]
+        local=build_crop_trajectory(shot,width,crop_w)
+        if local:
+            keys.extend((start+t,x) for t,x in local)
+    if not keys:
+        keys=[(0,(width-crop_w)//2)]
+    expression=build_smooth_pan_expression(keys)
+    crop=f"crop={crop_w}:{crop_h}:x='{expression}':y=0,scale=1080:1920:flags=lanczos,setsar=1"
+    fit=[(p['start'],p['end']) for p in plan if p['kind']=='fit']
+    if not fit:return crop,False
+    face=[(p['start'],p['end']) for p in plan if p['kind']=='face']
+    chain=build_vertical_compositor_filter(crop,face,fit)
+    return chain.replace('[0:v]','[video]').replace('[vout]','[framed]'),True

@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from 'react-router-dom'
 import {
   Box, Typography, Button, Chip, Stack, Paper, IconButton, Divider,
   Grid, CircularProgress, TextField, Menu, MenuItem, ListItemText, ListItemIcon,
@@ -29,6 +30,7 @@ const EXPORT_FORMATS = [
 export default function GeneratedDetail({ video, onUpload, onDelete, onClose, onDetailUpdate }) {
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const navigate = useNavigate()
   const [regenThumb, setRegenThumb] = useState(false)
   const [draft, setDraft] = useState({})
   const showSnackbar = useAppStore((s) => s.showSnackbar)
@@ -153,9 +155,12 @@ export default function GeneratedDetail({ video, onUpload, onDelete, onClose, on
             </>
           ) : (
             <>
-              <Button variant="outlined" size="small" startIcon={<EditIcon />}
+                <Button variant="contained" size="small" startIcon={<ContentCutIcon />} onClick={() => navigate(`/editor?clip=${video.id}`)}>
+                  Abrir editor de corte
+                </Button>
+                <Button variant="outlined" size="small" startIcon={<EditIcon />}
                 onClick={startEditing}>
-                Editar
+                  Editar informações
               </Button>
               <Button variant="outlined" size="small"
                 startIcon={regenThumb ? <CircularProgress size={16} /> : <PhotoCameraIcon />}

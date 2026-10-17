@@ -1,11 +1,11 @@
 {
-  "name": "Decupa Viral",
-  "short_name": "Decupa Viral",
+  "name": "Decupa",
+  "short_name": "Decupa",
   "description": "Editor e clipador de vídeos",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0D9F6E",
-  "theme_color": "#059669",
+  "background_color": "#ffffff",
+  "theme_color": "#171719",
   "icons": [
     {
       "src": "/decupa-icon.svg",

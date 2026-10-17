@@ -25,6 +25,11 @@ export default function About() {
           Ler a licença AGPL-3.0
         </Button>
       </Stack>
+      <Typography paragraph sx={{ mt: 3 }}>
+        O editor de cortes e o acompanhamento de rostos incluem módulos adaptados do Supoclip,
+        revisão c6107654, sob AGPL-3.0. Os avisos dos autores e a licença do modelo YuNet
+        acompanham o código correspondente. <Link href="https://github.com/FujiwaraChoki/supoclip" target="_blank" rel="noreferrer">Supoclip no GitHub</Link>.
+      </Typography>
       <Typography sx={{ mt: 3 }}>
         Projeto original: <Link href="https://github.com/openclaw-easy/ViralMint" target="_blank" rel="noreferrer">ViralMint no GitHub</Link>.
         O arquivo de código-fonte contém as instruções de execução e as alterações,

@@ -31,6 +31,7 @@ import VideocamIcon from "@mui/icons-material/Videocam"
 import FolderOpenIcon from "@mui/icons-material/FolderOpen"
 import AddIcon from "@mui/icons-material/Add"
 import http from "../api/http"
+import { useNavigate } from 'react-router-dom'
 import useAppStore from "../store/appStore"
 import ActiveJobsBanner from "../components/create/ActiveJobsBanner"
 import ExtractDialog from "../components/clip/ExtractDialog"
@@ -363,6 +364,7 @@ export default function ClipStudio() {
   const [loading, setLoading] = useState(true)
   const [selectedSourceId, setSelectedSourceId] = useState(null) // "all" or video id
   const [selectedClip, setSelectedClip] = useState(null)
+  const navigate = useNavigate()
   const [sourceFilter, setSourceFilter] = useState("")
   const [previewVideo, setPreviewVideo] = useState(null) // source video for the play popup
   const [searchQuery, setSearchQuery] = useState("")
@@ -568,6 +570,7 @@ export default function ClipStudio() {
         if (opts.user_query && opts.user_query.trim()) payload.user_query = opts.user_query.trim()
         if (opts.target_platform) payload.target_platform = opts.target_platform
         if (opts.genre) payload.genre = opts.genre
+        if (opts.selection_strategy === 'global') payload.selection_strategy = 'global'
       }
 
       await http.post(`/api/downloaded/${videoId}/extract-clips`, payload)
@@ -712,16 +715,16 @@ export default function ClipStudio() {
       <Box sx={{
         px: 3, py: 2, flexShrink: 0,
         borderBottom: 1, borderColor: "divider",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
+        display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2,
         background: (t) => t.palette.mode === "dark"
-          ? "linear-gradient(135deg, rgba(201,100,66,0.08) 0%, rgba(30,28,26,1) 100%)"
-          : "linear-gradient(135deg, rgba(201,100,66,0.06) 0%, rgba(255,255,255,1) 100%)",
+          ? "linear-gradient(135deg, rgba(128,128,128,0.08) 0%, rgba(26,26,29,1) 100%)"
+          : "linear-gradient(135deg, rgba(128,128,128,0.06) 0%, rgba(255,255,255,1) 100%)",
       }}>
         <Stack direction="row" spacing={1.5} alignItems="center">
           <ContentCutIcon sx={{ color: "primary.main", fontSize: 26 }} />
           <Box>
             <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: -0.3 }}>
-              Estúdio de Clipes
+              Estúdio de cortes
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
               {clipTotal ?? clips.length} clipe{(clipTotal ?? clips.length) !== 1 ? "s" : ""} de {sources.length} vídeo{sources.length !== 1 ? "s" : ""}{clipTotal > clips.length ? (" · mostrando os " + String(clips.length) + " mais recentes") : ""}
@@ -729,7 +732,7 @@ export default function ClipStudio() {
           </Box>
         </Stack>
 
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           {/* Search */}
           <TextField
             placeholder={"Buscar clipes..."}
@@ -747,9 +750,9 @@ export default function ClipStudio() {
           </Button>
           <Menu anchorEl={sortAnchor} open={Boolean(sortAnchor)} onClose={() => setSortAnchor(null)}>
             {[
-              { key: "viralização", label: "Mais Virais", icon: <WhatshotIcon fontSize="small" /> },
-              { key: "mais recentes", label: "Mais Recentes Primeiro", icon: <AccessTimeIcon fontSize="small" /> },
-              { key: "duração", label: "Mais Longo Primeiro", icon: <AspectRatioIcon fontSize="small" /> },
+              { key: "virality", label: "Mais bem avaliados", icon: <WhatshotIcon fontSize="small" /> },
+              { key: "newest", label: "Mais recentes primeiro", icon: <AccessTimeIcon fontSize="small" /> },
+              { key: "duration", label: "Mais longos primeiro", icon: <AspectRatioIcon fontSize="small" /> },
             ].map(s => (
               <MenuItem key={s.key} selected={sortBy === s.key}
                 onClick={() => { setSortBy(s.key); setSortAnchor(null) }}>
@@ -1032,8 +1035,11 @@ export default function ClipStudio() {
                   <Stack direction="row" spacing={1} sx={{ mb: 2 }} flexWrap="wrap" useFlexGap>
                     {!editing ? (
                       <>
+                        <Button size="small" variant="contained" startIcon={<MovieFilterOutlinedIcon />} onClick={() => navigate(`/editor?clip=${selectedClip.id}`)}>
+                          Abrir editor de corte
+                        </Button>
                         <Button size="small" variant="outlined" startIcon={<EditIcon />} onClick={startEditing}>
-                          Editar
+                          Editar informações
                         </Button>
                         <Button size="small" variant="outlined"
                           startIcon={regenThumb ? <CircularProgress size={14} /> : <PhotoCameraIcon />}

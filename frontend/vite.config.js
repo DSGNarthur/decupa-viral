@@ -6,7 +6,7 @@ const companionPublic = () => ({
   name: 'decupa-companion-public',
   generateBundle() {
     for (const name of ['pc-worker.js', 'source-code.zip', 'LICENSE.txt',
-      'manifest.json', 'decupa-icon.svg', 'favicon.ico', 'favicon-16x16.png',
+      'manifest.json', 'decupa-icon.svg', 'decupa-logo.png', 'favicon.ico', 'favicon-16x16.png',
       'favicon-32x32.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png']) {
       this.emitFile({ type: 'asset', fileName: name,
         source: readFileSync(new URL(`./public/${name}`, import.meta.url)) })

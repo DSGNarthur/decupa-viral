@@ -17,6 +17,7 @@ def main():
     parser.add_argument('--directory', required=True)
     parser.add_argument('--auth-directory', required=True)
     parser.add_argument('--production', action='store_true')
+    parser.add_argument('--stage', action='store_true', help='Prepare production without moving the public domain')
     parser.add_argument('--check-only', action='store_true')
     args = parser.parse_args()
     directory = Path(args.directory).resolve()
@@ -48,13 +49,16 @@ def main():
     if args.check_only:
         return
     cli = ['vercel.cmd', '--global-config', str(auth_directory), '--scope', EXPECTED_SCOPE]
-    subprocess.run(cli + ['link', '--yes', '--project', 'decupa-viral'], cwd=directory, check=True)
+    if not link.is_file():
+        raise SystemExit('Vínculo local ausente. Defina explicitamente o projeto autorizado antes de publicar.')
     linked = json.loads(link.read_text(encoding='utf-8'))
     if linked.get('orgId') != team['id'] or linked.get('projectId') != EXPECTED_PROJECT or linked.get('projectName', 'decupa-viral') != 'decupa-viral':
         raise SystemExit('O vínculo do projeto não corresponde ao destino autorizado. Deploy bloqueado.')
     command = cli + ['deploy', '--yes']
-    if args.production:
+    if args.production or args.stage:
         command.append('--prod')
+    if args.stage:
+        command.append('--skip-domain')
     subprocess.run(command, cwd=directory, check=True)
 
 

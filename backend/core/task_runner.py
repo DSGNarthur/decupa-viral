@@ -1335,6 +1335,7 @@ async def run_extract_clips(
                         if clip.get("score_breakdown") else None
                     ),
                     caption_status=clip.get("caption_status"),
+                    editor_source_json=clip.get("editor_source_json"),
                     metadata_status=clip.get("metadata_status"),
                     clip_selection=clip.get("selection"),
                     script=clip.get("transcript_text"),  # Store clip transcript as script

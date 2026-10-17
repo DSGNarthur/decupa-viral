@@ -9,5 +9,5 @@
     { "source": "/pc-worker.js", "headers": [{ "key": "Cache-Control", "value": "no-store" }, { "key": "Service-Worker-Allowed", "value": "/" }] },
     { "source": "/(.*)", "headers": [{ "key": "X-Content-Type-Options", "value": "nosniff" }, { "key": "Referrer-Policy", "value": "same-origin" }] }
   ],
-  "rewrites": [{ "source": "/((?!api/|assets/|engine/|media-worker\\.js|pc-worker\\.js|source-code\\.zip|LICENSE\\.txt|decupa-icon\\.svg|manifest\\.json).*)", "destination": "/index.html" }]
+  "rewrites": [{ "source": "/((?!api/|assets/|engine/|media-worker\\.js|pc-worker\\.js|source-code\\.zip|LICENSE\\.txt|decupa-logo\\.png|decupa-icon\\.svg|manifest\\.json).*)", "destination": "/index.html" }]
 }

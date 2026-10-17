@@ -27,14 +27,14 @@ import CloseIcon from "@mui/icons-material/Close"
 
 /** Cool-tone (cyan/blue) selection pulse — used by Smart Video, etc. */
 export const pulseGlow = keyframes`
-  0%, 100% { box-shadow: 0 0 0 1px rgba(99,179,237,0.6),  0 0 18px rgba(99,179,237,0.35), inset 0 0 14px rgba(99,179,237,0.10); }
-  50%      { box-shadow: 0 0 0 1px rgba(99,179,237,0.9),  0 0 32px rgba(99,179,237,0.55), inset 0 0 22px rgba(99,179,237,0.18); }
+  0%, 100% { box-shadow: 0 0 0 1px rgba(148,148,155,0.6),  0 0 18px rgba(148,148,155,0.35), inset 0 0 14px rgba(148,148,155,0.10); }
+  50%      { box-shadow: 0 0 0 1px rgba(148,148,155,0.9),  0 0 32px rgba(148,148,155,0.55), inset 0 0 22px rgba(148,148,155,0.18); }
 `
 
 /** Warm-brand (terracotta) selection pulse — used by sidebar active nav. */
 export const pulseGlowWarm = keyframes`
-  0%, 100% { box-shadow: 0 0 0 1px rgba(201,100,66,0.50), 0 0 14px rgba(201,100,66,0.28), inset 0 0 10px rgba(201,100,66,0.08); }
-  50%      { box-shadow: 0 0 0 1px rgba(201,100,66,0.85), 0 0 24px rgba(201,100,66,0.46), inset 0 0 18px rgba(201,100,66,0.14); }
+  0%, 100% { box-shadow: 0 0 0 1px rgba(148,148,155,0.50), 0 0 14px rgba(148,148,155,0.28), inset 0 0 10px rgba(148,148,155,0.08); }
+  50%      { box-shadow: 0 0 0 1px rgba(148,148,155,0.85), 0 0 24px rgba(148,148,155,0.46), inset 0 0 18px rgba(148,148,155,0.14); }
 `
 
 /** Diagonal sheen sweep for primary CTAs (Generate, Submit, etc.). */
@@ -75,7 +75,7 @@ export const glassPanelSx = (theme, opts = {}) => {
     // top of it. The inset white sheen below keeps the glass "lit edge".
     background: theme.palette.mode === "dark"
       ? "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))"
-      : "linear-gradient(135deg, rgba(255,251,245,0.82), rgba(250,243,234,0.5))",
+      : "linear-gradient(135deg, rgba(255,255,255,0.82), rgba(244,244,246,0.5))",
     ...(cheap ? {} : {
       backdropFilter: "blur(20px) saturate(180%)",
       WebkitBackdropFilter: "blur(20px) saturate(180%)",
@@ -86,7 +86,7 @@ export const glassPanelSx = (theme, opts = {}) => {
       : "rgba(255,255,255,0.7)",
     boxShadow: theme.palette.mode === "dark"
       ? "0 8px 32px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.06)"
-      : "0 8px 28px rgba(120,95,72,0.10), inset 0 1px 0 rgba(255,255,255,0.85)",
+      : "0 8px 28px rgba(90,90,95,0.10), inset 0 1px 0 rgba(255,255,255,0.85)",
   }
 }
 
@@ -113,11 +113,11 @@ export const glassCardSx = (theme, opts = {}) => {
       "&:hover": {
         transform: "translateY(-2px)",
         borderColor: theme.palette.mode === "dark"
-          ? "rgba(99,179,237,0.35)"
-          : "rgba(99,179,237,0.45)",
+          ? "rgba(148,148,155,0.35)"
+          : "rgba(148,148,155,0.45)",
         boxShadow: theme.palette.mode === "dark"
-          ? "0 12px 36px rgba(0,0,0,0.42), 0 0 28px rgba(99,179,237,0.20), inset 0 1px 0 rgba(255,255,255,0.08)"
-          : "0 12px 36px rgba(120,95,72,0.14), 0 0 28px rgba(99,179,237,0.18), inset 0 1px 0 rgba(255,255,255,0.9)",
+          ? "0 12px 36px rgba(0,0,0,0.42), 0 0 28px rgba(148,148,155,0.20), inset 0 1px 0 rgba(255,255,255,0.08)"
+          : "0 12px 36px rgba(90,90,95,0.14), 0 0 28px rgba(148,148,155,0.18), inset 0 1px 0 rgba(255,255,255,0.9)",
       },
     }),
     ...(selected && glassSelectedGlow),

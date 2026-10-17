@@ -15,3 +15,10 @@ Adaptação Decupa Viral para navegador em 16/10/2026: tradução da interface p
 Modo atual com PC em 16/10/2026: adicionados pareamento temporário com a interface da Vercel, autenticação HTTP/WebSocket, proxy de mídia por Service Worker e mensagens de conexão/desconexão. Os motores nativos voltam a executar no PC por autorização expressa do usuário, sem AWS. Preservado o código da tentativa anterior para navegador, que não é a modalidade publicada atual. Traduções adicionais na interface de cortes e nas mensagens de progresso. O backend permanece restrito ao loopback.
 
 Auditoria dos motores em 16/10/2026: corrigidos o contrato de análise de gancho, a recuperação de resultados de ferramentas, o JSON de variáveis salvo pelo HyperFrames, a inicialização durante manutenção do extrator e os callbacks de instalações em portas diferentes. Tradução do estúdio de animações e dos nomes da biblioteca. Correções de testes no Windows, exportação pela interface pareada e empacotamento dos arquivos públicos. Detalhes, alcance e configurações pendentes em `docs/AUDITORIA-DECUPA.md`.
+# Integração do editor, 17/10/2026
+
+Esta versão acrescenta o editor não destrutivo e a análise de rostos adaptados do Supoclip, com persistência em SQLite, referência à fonte limpa, reabertura de exportações, montagem de rascunhos, revisão de palavras e exportação cancelável pelo executor local. A seleção global de candidatos é opcional e usa o provedor configurado. Os títulos desse modo ficam sujeitos à revisão, sem inserção automática como gancho na imagem.
+
+A interface usa temas branco e preto, a logo Decupa, os ícones Material existentes e as animações preservadas com movimento reduzido acessível. Os novos avisos de atribuição estão em `THIRD_PARTY_NOTICES.md`. Os detalhes de operação e limites estão em `docs/INTEGRACAO-SUPOCLIP.md`.
+
+O alvo de implantação permanece a interface na Vercel do Arthur e o processamento no PC, sem AWS. O código correspondente exclui credenciais e dados pessoais.

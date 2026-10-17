@@ -131,7 +131,7 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
   // ClipStudio and shared with the bench.
   const [ai, setAi] = useState({
     min_duration: null, max_duration: null, max_clips: null,
-    user_query: "", target_platform: "", genre: "",
+    user_query: "", target_platform: "", genre: "", selection_strategy: "original",
   })
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const [transcriptOpen, setTranscriptOpen] = useState(false)
@@ -144,7 +144,7 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
   // per-clip settings deliberately DO persist: those are habits.
   useEffect(() => {
     setAi({ min_duration: null, max_duration: null, max_clips: null,
-            user_query: "", target_platform: "", genre: "" })
+            user_query: "", target_platform: "", genre: "", selection_strategy: "original" })
     setAdvancedOpen(false)
     setTranscriptOpen(false)
   }, [video?.id])
@@ -299,6 +299,12 @@ export default function ExtractDialog({ open, onClose, video, onExtract, setting
                   LinkedIn prefers actionable_tip / number_promise / contrarian;
                   YouTube Shorts sits in between. Empty (default) = vanilla
                   virality ranking, no bias. */}
+              <Box>
+                <TextField select fullWidth size="small" label="Motor de seleção" value={ai.selection_strategy} onChange={e => setAi(p => ({ ...p, selection_strategy: e.target.value }))} helperText="A comparação global usa chamadas adicionais de IA para comparar candidatos entre partes do vídeo.">
+                  <MenuItem value="original">Motor original do Decupa</MenuItem>
+                  <MenuItem value="global">Comparação global de candidatos</MenuItem>
+                </TextField>
+              </Box>
               <Box>
                 <Typography variant="caption" sx={{ fontWeight: 600, mb: 0.5, display: "block" }}>
                   Plataforma de destino <Chip label={"opcional"} size="small" variant="outlined" sx={{ ml: 0.5, height: 18, fontSize: "0.6rem" }} />

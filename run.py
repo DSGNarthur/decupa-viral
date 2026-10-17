@@ -31,7 +31,7 @@ def check_python_version():
     print(f"✅ Python {sys.version.split()[0]}")
 
 def check_env_file():
-    env_path = ROOT / ".env"
+    env_path = Path(os.environ.get('VIRALMINT_DATA_DIR', str(ROOT))) / ".env"
     if not env_path.exists():
         example = ROOT / ".env.example"
         if example.exists():
@@ -47,22 +47,14 @@ def ensure_storage_dirs():
     print("✅ Storage directories ready")
 
 def check_imagemagick():
-    if shutil.which("magick") or shutil.which("convert"):
-        print("✅ ImageMagick found")
-        return
-    system = platform.system()
-    instructions = {
-        "Darwin":  "brew install imagemagick",
-        "Linux":   "sudo apt install imagemagick",
-        "Windows": "Download from https://imagemagick.org/script/download.php\n"
-                   "           (choose ImageMagick-7.x-Q16-x64-static.exe)",
-    }
-    print(f"""
-❌ ImageMagick not found — required for video subtitle rendering.
-   Install it:
-     {instructions.get(system, 'See https://imagemagick.org/script/download.php')}
-   Then re-run: python run.py
-""")
+    """Legacy entry-point name; current captions are rendered with FFmpeg/libass."""
+    executable = shutil.which('ffmpeg')
+    if executable:
+        result = subprocess.run([executable, '-hide_banner', '-filters'], capture_output=True, text=True, timeout=15)
+        if result.returncode == 0 and ' ass ' in result.stdout:
+            print('Renderizador de legendas FFmpeg/libass disponível.')
+            return
+    print('Instale o FFmpeg com suporte a libass para renderizar as legendas.')
     sys.exit(1)
 
 def check_node():

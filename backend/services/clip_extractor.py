@@ -815,7 +815,12 @@ async def extract_viral_clips(
                 await ws_manager.send_progress(job_id, 15, "AI analyzing transcript for viral moments...", user_id)
 
             # Use chunk-based extraction for large requests
-            if effective_max > 8 and duration > 300:
+            if opts.selection_strategy == 'global':
+                from backend.services.global_clip_selector import select_global
+                clip_windows = await select_global(segments, video.title or 'Vídeo', duration,
+                    effective_max, user_settings, min_duration=min_duration, max_duration=max_duration,
+                    user_query=user_query, target_platform=target_platform, genre=genre)
+            elif effective_max > 8 and duration > 300:
                 clip_windows = await _chunked_clip_selection(
                     segments, video.title or "Untitled", duration,
                     effective_max, user_settings,
@@ -2312,7 +2317,16 @@ async def _process_clips_parallel(
         probed_duration = probe.get("duration") or 0.0
         probed_aspect = probe.get("aspect")
 
+        raw_editor_path = r.get('raw_clip_path')
+        ranges_file = raw_editor_path.with_suffix('.source-ranges.json') if isinstance(raw_editor_path, Path) else None
+        keep_ranges = None
+        if ranges_file and ranges_file.exists():
+            keep_ranges = json.loads(ranges_file.read_text(encoding='utf-8'))
+            ranges_file.unlink(missing_ok=True)
+        editor_segments = cleaned_segments_list[r['_index']] if cleaned_segments_list is not None else r['clip_segments']
         final_results.append({
+            "editor_source_json": json.dumps({"segments": editor_segments, "keep_ranges": keep_ranges,
+                "provenance": {"start": window['start'], "end": window['end'], "silence_map_preserved": keep_ranges is not None}}, ensure_ascii=False),
             "video_path": captioned_path,
             "thumbnail_path": thumb_path,
             "title": window.get("title", f"Clip {idx+1}"),
@@ -2619,6 +2633,8 @@ async def _remove_silence_and_fillers(
 
     # Step 5: Re-time segments to match the cleaned video
     adjusted_segments = _retime_segments_after_removal(segments, keep_ranges)
+    # Persist the exact frame-selection intervals for clean source recovery.
+    output_path.with_suffix('.source-ranges.json').write_text(json.dumps(keep_ranges), encoding='utf-8')
 
     # Cleanup original clip (the cleaned one replaces it)
     try:

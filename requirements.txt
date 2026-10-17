@@ -123,3 +123,5 @@ slack-sdk>=3.23.0
 pystray>=0.19.5
 pyobjc-framework-Cocoa>=10.0 ; sys_platform == "darwin"
 python-xlib>=0.33 ; sys_platform == "linux"
+# CPU face tracking for the integrated clip editor (bundled YuNet model).
+opencv-python-headless==4.13.0.92

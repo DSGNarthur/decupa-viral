@@ -227,6 +227,8 @@ def drop_bench_caches(video_id: str) -> int:
 async def delete_downloaded(video_id: str):
     """Delete a downloaded video — removes DB record and files from disk."""
     async with AsyncSessionLocal() as db:
+        from backend.services.clip_editor import assert_not_pinned
+        await assert_not_pinned(db, source_id=video_id)
         result = await db.execute(
             select(DownloadedVideo).where(DownloadedVideo.id == video_id)
         )
@@ -303,6 +305,9 @@ async def cleanup_stale():
         videos = result.scalars().all()
 
         for v in videos:
+            from backend.models.editor_draft import EditorDraft
+            if (await db.execute(select(EditorDraft.id).where(EditorDraft.source_downloaded_video_id == v.id).limit(1))).first():
+                continue
             video_exists = bool(v.video_path and Path(v.video_path).exists())
             # If the video file is gone, the record is stale
             # (audio-only imports check audio_path instead)
@@ -959,6 +964,7 @@ class ExtractClipsRequest(BaseModel):
     happens in the handler; this just types the wire + centralizes defaults.
     """
     mode: str = "ai"
+    selection_strategy: str = "original"
     max_clips: Optional[int] = None
     caption_style: str = "viral"
     whisper_quality: str = "balanced"
@@ -1115,6 +1121,7 @@ async def extract_clips(video_id: str, body: ExtractClipsRequest | None = None):
         genre=genre,
         time_ranges=time_ranges,
         allow_duration_fallback=req.allow_duration_fallback,
+        selection_strategy=req.selection_strategy if req.selection_strategy in ('original','global') else 'original',
     )
     dispatch(run_extract_clips(
         job_id=job.id,
