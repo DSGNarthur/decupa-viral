@@ -23,13 +23,14 @@ export async function downloadFromPC(url, preferredName = '') {
     navigator.serviceWorker.controller.postMessage({ type: 'pc-download', id,
       path: url.pathname + url.search, credentials: pcSession() }, [channel.port2])
   })
-  const link = document.createElement('a')
-  link.href = '/_pc-download/' + id
-  link.download = preferredName || 'decupa-viral.mp4'
-  link.dataset.pcStreaming = 'true'
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
+  // Chromium may bypass the worker for a[download]. A frame navigation lets
+  // the worker return Content-Disposition: attachment to the download manager.
+  // Keep the frame alive while the browser streams, including multi-GB files.
+  const transfer = document.createElement('iframe')
+  transfer.hidden = true
+  transfer.title = preferredName || 'Download do Decupa'
+  transfer.src = '/_pc-download/' + id
+  document.body.appendChild(transfer)
 }
 
 export function interceptPCDownloads(onError) {
