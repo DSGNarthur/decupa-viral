@@ -19,7 +19,7 @@ def desktop_quote(value):
     return '"' + str(value).replace('\\', '\\\\').replace('"', '\\"').replace('`', '\\`').replace('$', '\\$').replace('%', '%%') + '"'
 
 
-def install(source, destination=None, autostart=True, start=True, browser=True):
+def install(source, destination=None, autostart=True, start=True, browser=True, register=True):
     system = platform.system()
     home = Path.home()
     if destination:
@@ -36,7 +36,8 @@ def install(source, destination=None, autostart=True, start=True, browser=True):
         raise RuntimeError(f'Já existe uma instalação em {target}. Encerre e remova apenas o motor antes de instalar. Seus dados ficam em outra pasta.')
     if target == source or source in target.parents or target in source.parents:
         raise RuntimeError('Escolha uma pasta de instalação separada do pacote extraído.')
-    manifest = json.loads((source / 'manifest.json').read_text(encoding='utf-8'))
+    manifest_path = source.parent / (source.name + '.manifest.json') if system == 'Darwin' else source / 'manifest.json'
+    manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
     if manifest['platform'] != system or manifest['architecture'] != platform.machine().lower():
         raise RuntimeError('Este pacote não corresponde ao sistema ou à arquitetura deste computador.')
     import hashlib
@@ -54,7 +55,7 @@ def install(source, destination=None, autostart=True, start=True, browser=True):
     python = payload / ('python/pythonw.exe' if system == 'Windows' else 'python/bin/python3')
     entry = payload / 'app/desktop/runtime.py'
     command = [str(python), str(entry), '--background']
-    if system == 'Windows':
+    if system == 'Windows' and register:
         import winreg
         quoted = subprocess.list2cmdline(command)
         if autostart:
@@ -65,7 +66,7 @@ def install(source, destination=None, autostart=True, start=True, browser=True):
             winreg.SetValueEx(key, 'URL Protocol', 0, winreg.REG_SZ, '')
         with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r'Software\Classes\decupaviral\shell\open\command') as key:
             winreg.SetValueEx(key, '', 0, winreg.REG_SZ, quoted + ' --protocol "%1"')
-    elif system == 'Darwin':
+    elif system == 'Darwin' and register:
         agents = home / 'Library/LaunchAgents'
         if autostart:
             agents.mkdir(parents=True, exist_ok=True)
@@ -76,7 +77,7 @@ def install(source, destination=None, autostart=True, start=True, browser=True):
                                'ThrottleInterval': 20}, file)
         registrar = Path('/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister')
         subprocess.run([str(registrar), '-f', str(target)], check=True)
-    else:
+    elif system == 'Linux' and register:
         config = Path(os.environ.get('XDG_CONFIG_HOME', home / '.config'))
         applications = Path(os.environ.get('XDG_DATA_HOME', home / '.local/share')) / 'applications'
         applications.mkdir(parents=True, exist_ok=True)
@@ -110,5 +111,6 @@ if __name__ == '__main__':
     parser.add_argument('--no-autostart', action='store_true')
     parser.add_argument('--no-start', action='store_true')
     parser.add_argument('--no-browser', action='store_true')
+    parser.add_argument('--no-register', action='store_true', help='Isolated acceptance test only; no protocol or autostart registration')
     args = parser.parse_args()
-    install(args.source, args.destination, not args.no_autostart, not args.no_start, not args.no_browser)
+    install(args.source, args.destination, not args.no_autostart, not args.no_start, not args.no_browser, not args.no_register)

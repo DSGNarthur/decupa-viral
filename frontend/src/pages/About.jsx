@@ -12,9 +12,9 @@ export default function About() {
         são disponibilizados sob a licença GNU AGPL versão 3.
       </Typography>
       <Typography paragraph>
-        As alterações iniciadas em 16/10/2026 incluem a identidade Decupa Viral,
-        a tradução para português e a adaptação dos recursos de edição.
-        {import.meta.env.VITE_BROWSER_RUNTIME === 'true' ? 'Nesta versão, os vídeos e rascunhos são processados e salvos no navegador, sem instalação. Mantenha a página aberta durante as tarefas.' : 'Mantenha o aplicativo local aberto durante as tarefas.'}
+        Arthur (DSGNarthur) mantém a distribuição Decupa Viral, a interface em português
+        e a integração do editor. O motor nativo tem pacotes para Windows, macOS e Linux.
+        {import.meta.env.VITE_BROWSER_RUNTIME === 'true' ? 'Nesta versão experimental, os vídeos e rascunhos são processados e salvos no navegador. Mantenha a página aberta durante as tarefas.' : 'Mantenha o motor em segundo plano ativo durante as tarefas.'}
       </Typography>
       <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
         <Button component="a" href="/source-code.zip" download variant="contained">
@@ -30,6 +30,8 @@ export default function About() {
         acompanham o código correspondente. <Link href="https://github.com/FujiwaraChoki/supoclip" target="_blank" rel="noreferrer">Supoclip no GitHub</Link>.
       </Typography>
       <Typography sx={{ mt: 3 }}>
+        Código do Decupa: <Link href="https://github.com/DSGNarthur/decupa-viral" target="_blank" rel="noreferrer">DSGNarthur/decupa-viral</Link>.
+        {' '}
         Projeto original: <Link href="https://github.com/openclaw-easy/ViralMint" target="_blank" rel="noreferrer">ViralMint no GitHub</Link>.
         O arquivo de código-fonte contém as instruções de execução e as alterações,
         sem chaves de API, bancos de dados ou arquivos de mídia pessoais.

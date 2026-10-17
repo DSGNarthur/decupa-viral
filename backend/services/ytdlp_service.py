@@ -172,8 +172,8 @@ def _yt_dlp_js_opts() -> dict:
       PO Token Guide lists as NOT requiring a token (tv, web_embedded,
       android_vr) — when one client gets bot-blocked, the next takes over.
       `webpage_client` controls the identity for the initial page scrape,
-      distinct from the streaming-URL request. `formats: missing_pot` allows
-      degraded-quality formats over no download at all.
+      distinct from the streaming-URL request. Formats that require a missing
+      access token stay excluded, as in yt-dlp's default behaviour.
     - **youtubetab**: `skip=authcheck` — with cookies present, public channel
       extraction otherwise fails an unnecessary auth check.
     - **tiktok**: `app_info=[""]` triggers the genuine-device-id flow (most
@@ -193,7 +193,6 @@ def _yt_dlp_js_opts() -> dict:
                     "web_safari", "web",                    # last resort
                 ],
                 "webpage_client": ["web"],
-                "formats": ["missing_pot"],
             },
             "youtubetab": {"skip": ["authcheck"]},
             "tiktok": {

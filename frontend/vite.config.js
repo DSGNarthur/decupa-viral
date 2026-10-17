@@ -6,7 +6,7 @@ const runtimePublic = mode => ({
   name: 'decupa-companion-public',
   generateBundle() {
     const files = ['pc-worker.js', 'source-code.zip', 'LICENSE.txt',
-      'manifest.json', 'decupa-icon.svg', 'decupa-logo.png', 'favicon.ico', 'favicon-16x16.png',
+      'manifest.json', 'decupa-icon.svg', 'decupa-logo.png', 'decupa-logo.svg', 'icon.svg', 'favicon.ico', 'favicon-16x16.png',
       'favicon-32x32.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png']
     if (mode === 'browser') files.push('media-worker.js', ...readdirSync(new URL('./public/engine/', import.meta.url)).filter(name => /\.(wasm|js|ttf|txt)$/.test(name)).map(name => 'engine/' + name))
     for (const name of files) {
@@ -18,10 +18,10 @@ const runtimePublic = mode => ({
 })
 
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), ...(['companion', 'browser'].includes(mode) ? [runtimePublic(mode)] : [])],
+  plugins: [react(), runtimePublic(mode)],
   // The hosted UI uses the PC's native engines. Keep obsolete browser engines
   // and local audit samples out of its published static files.
-  publicDir: ['companion', 'browser'].includes(mode) ? false : 'public',
+  publicDir: false,
   define: {
     'import.meta.env.VITE_BROWSER_RUNTIME': JSON.stringify(mode === 'browser' ? 'true' : 'false'),
     'import.meta.env.VITE_COMPANION_RUNTIME': JSON.stringify(mode === 'companion' ? 'true' : 'false'),

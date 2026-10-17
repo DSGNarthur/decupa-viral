@@ -24,7 +24,7 @@ def test_base_opts_have_backoff_and_throttle_guard():
 def test_js_opts_lead_with_token_free_player_clients():
     yt = _yt_dlp_js_opts()["extractor_args"]["youtube"]
     assert yt["player_client"][:3] == ["tv", "web_embedded", "android_vr"]
-    assert yt["formats"] == ["missing_pot"]
+    assert 'missing_pot' not in yt.get('formats', [])
 
 
 def test_js_opts_cover_flaky_extractors():

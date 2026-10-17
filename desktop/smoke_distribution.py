@@ -19,15 +19,25 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--payload', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
+    parser.add_argument('--youtube', help='Optional live local-network YouTube test; not suitable for cloud CI IPs')
+    parser.add_argument('--large-import', action='store_true', help='Exercise a valid MP4 larger than 512 MiB')
     args = parser.parse_args()
     payload = args.payload.resolve()
     python = payload / ('python/python.exe' if os.name == 'nt' else 'python/bin/python3')
     app = payload / 'app'
     data = args.output.resolve().parent / 'acceptance-data'
     data.mkdir(parents=True, exist_ok=True)
-    with socket.socket() as probe:
-        probe.bind(('127.0.0.1', 0))
-        port = probe.getsockname()[1]
+    # Leave room for the supervisor's port+10000 single-instance sentinel.
+    for candidate in range(17050, 17150):
+        with socket.socket() as probe:
+            try:
+                probe.bind(('127.0.0.1', candidate))
+            except OSError:
+                continue
+            port = candidate
+            break
+    else:
+        raise RuntimeError('Não foi possível reservar uma porta de teste.')
     env = {**os.environ, 'DECUPA_PORT': str(port), 'VIRALMINT_DATA_DIR': str(data), 'PYTHONUTF8': '1',
            'PATH': os.pathsep.join([str(payload/'bin'), str(payload/'node/bin'), str(payload/'node'), os.environ.get('PATH','')])}
     log = (data / 'smoke.log').open('w', encoding='utf-8')
@@ -66,10 +76,22 @@ def main():
             subprocess.run([str(ffmpeg),'-v','error','-y','-f','lavfi','-i','testsrc2=size=640x360:rate=25',
                 '-f','lavfi','-i','sine=frequency=440:sample_rate=48000','-t','4','-c:v','libx264','-threads','2','-preset','ultrafast','-c:a','aac',str(source)], check=True)
             before = hashlib.sha256(source.read_bytes()).hexdigest()
+            if args.large_import:
+                # A valid MP4 free box adds actual transferred bytes without
+                # pretending a short generated clip is a long source video.
+                import struct
+                with source.open('ab') as file:
+                    padding = 600 * 1024 * 1024
+                    file.write(struct.pack('>I4s', padding, b'free'))
+                    file.truncate(file.tell() + padding - 8)
+                with source.open('rb') as file:
+                    before = hashlib.file_digest(file,'sha256').hexdigest()
             with source.open('rb') as file:
                 imported = client.post('/api/downloaded/import', headers=headers, files={'file': ('Teste.mp4',file,'video/mp4')}, data={'title':'Teste do instalador', 'analyze':'false'})
             imported.raise_for_status()
             imported_id = imported.json()['id']
+            if args.large_import:
+                check('import_above_512_mib', imported.json()['file_size_mb'] > 512, mib=imported.json()['file_size_mb'])
             # Insert only the generated-clip fixture; import was the public API.
             seed = '''import asyncio,json,sys
 from backend.database import AsyncSessionLocal
@@ -117,7 +139,19 @@ asyncio.run(seed())
             check('full_hd_dimensions', (video['width'],video['height']) == (1080,1920))
             subprocess.run([str(ffmpeg),'-v','error','-i',str(output),'-f','null','-'],check=True)
             check('fully_decoded', True, bytes=output.stat().st_size)
-            check('source_preserved', hashlib.sha256(source.read_bytes()).hexdigest() == before)
+            with source.open('rb') as file:
+                check('source_preserved', hashlib.file_digest(file,'sha256').hexdigest() == before)
+            if args.youtube:
+                requested = client.post('/api/downloaded/batch-download', headers=headers,
+                    json={'urls':[args.youtube], 'analyze':False, 'options':{'quality':'1080p','container':'mp4'}})
+                requested.raise_for_status()
+                job_id = requested.json()['job_id']
+                for _ in range(1200):
+                    job = client.get('/api/jobs/'+job_id, headers=headers).json()
+                    if job['status'] not in ('running','pending'):
+                        break
+                    time.sleep(1)
+                check('live_youtube_download', job['status']=='success', status=job['status'], error=job.get('error_message'))
             report['passed'] = True
     finally:
         process.terminate()

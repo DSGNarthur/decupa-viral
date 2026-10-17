@@ -70,7 +70,12 @@ def copy_source(destination):
         target = destination / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
-    shutil.copytree(ROOT / 'frontend/dist', destination / 'frontend/dist', dirs_exist_ok=True)
+    frontend_target = destination / 'frontend/dist'
+    if frontend_target.exists():
+        if not frontend_target.resolve().is_relative_to(destination.resolve()) or frontend_target.resolve().is_relative_to(ROOT):
+            raise RuntimeError('A limpeza deve atingir apenas o frontend gerado no payload externo.')
+        shutil.rmtree(frontend_target)
+    shutil.copytree(ROOT / 'frontend/dist', frontend_target)
     shutil.copy2(ROOT / 'frontend/public/source-code.zip', destination / 'frontend/dist/source-code.zip')
 
 
@@ -117,6 +122,12 @@ def prepare_media(payload, ffmpeg=None, ffprobe=None):
             raise RuntimeError(f'{name} ausente. Forneça um binário estático da arquitetura correta.')
         target = binaries / (name + ('.exe' if os.name == 'nt' else ''))
         shutil.copy2(source, target)
+        licenses = payload / 'licenses/ffmpeg'
+        licenses.mkdir(parents=True, exist_ok=True)
+        for pattern in ('LICENSE*', 'COPYING*', 'README*'):
+            for notice in source.parent.parent.glob(pattern):
+                if notice.is_file():
+                    shutil.copy2(notice, licenses / notice.name)
         target.chmod(target.stat().st_mode | 0o111)
         run(target, '-version', stdout=subprocess.DEVNULL)
     if platform.system() == 'Darwin':
@@ -190,7 +201,8 @@ def manifest(bundle, version):
             continue
         if path.is_file() and path.name != 'manifest.json':
             files[path.relative_to(bundle).as_posix()] = digest(path)
-    (bundle / 'manifest.json').write_text(json.dumps({'version': version,
+    manifest_path = bundle.parent / (bundle.name + '.manifest.json') if platform.system() == 'Darwin' else bundle / 'manifest.json'
+    manifest_path.write_text(json.dumps({'version': version,
         'platform': platform.system(), 'architecture': platform.machine().lower(),
         'files': files}, ensure_ascii=False, indent=2), encoding='utf-8')
 
@@ -204,6 +216,7 @@ def main():
     parser.add_argument('--ffmpeg', type=Path)
     parser.add_argument('--ffprobe', type=Path)
     parser.add_argument('--runtime-only', action='store_true')
+    parser.add_argument('--package-only', action='store_true', help='Reuse prepared runtimes; do not reinstall dependencies')
     args = parser.parse_args()
     output = args.output.resolve()
     if output == ROOT or output.is_relative_to(ROOT):
@@ -214,11 +227,14 @@ def main():
     cache.mkdir(parents=True, exist_ok=True)
     payload = output / 'payload'
     payload.mkdir(exist_ok=True)
-    prepare_python(payload, cache, args.uv, args.python_base)
-    (payload / 'bin').mkdir(exist_ok=True)
-    shutil.copy2(args.uv, payload / 'bin' / ('uv.exe' if os.name == 'nt' else 'uv'))
-    prepare_node(payload, cache)
-    prepare_media(payload, args.ffmpeg, args.ffprobe)
+    if not args.package_only:
+        prepare_python(payload, cache, args.uv, args.python_base)
+        (payload / 'bin').mkdir(exist_ok=True)
+        shutil.copy2(args.uv, payload / 'bin' / ('uv.exe' if os.name == 'nt' else 'uv'))
+        prepare_node(payload, cache)
+        prepare_media(payload, args.ffmpeg, args.ffprobe)
+    elif not (payload / 'node').is_dir() or not (payload / 'python').is_dir():
+        parser.error('Prepare os runtimes antes de empacotar.')
     if args.runtime_only:
         return
     copy_source(payload / 'app')
@@ -229,6 +245,8 @@ def main():
             raise RuntimeError('Use uma pasta de saída nova para o pacote macOS.')
         wrappers(bundle, payload)
         shutil.copytree(payload, bundle / 'Contents/Resources/engine', symlinks=True)
+        run('codesign', '--force', '--deep', '--sign', '-', bundle)
+        run('codesign', '--verify', '--deep', '--strict', bundle)
     else:
         wrappers(bundle, payload)
     manifest(bundle, args.version)
@@ -242,6 +260,7 @@ def main():
         kit = output / 'Decupa-macOS'
         kit.mkdir(exist_ok=True)
         shutil.copytree(bundle, kit / bundle.name, symlinks=True)
+        shutil.copy2(bundle.parent / (bundle.name + '.manifest.json'), kit)
         installer = kit / 'Instalar.command'
         installer.write_text('#!/bin/sh\nset -eu\nDIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nAPP="$DIR/Decupa Viral.app/Contents/Resources/engine"\nexec "$APP/python/bin/python3" "$APP/app/desktop/install.py" --source "$DIR/Decupa Viral.app" "$@"\n', encoding='utf-8')
         installer.chmod(0o755)
