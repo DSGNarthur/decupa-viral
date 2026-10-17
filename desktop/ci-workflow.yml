@@ -40,7 +40,15 @@ jobs:
       - name: Install Windows build tools
         if: runner.os == 'Windows'
         shell: pwsh
-        run: choco install ffmpeg innosetup -y --no-progress
+        run: |
+          choco install ffmpeg innosetup -y --no-progress
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $tools = Join-Path $env:ChocolateyInstall 'lib/ffmpeg/tools'
+          $ffmpeg = Get-ChildItem -LiteralPath $tools -Filter ffmpeg.exe -Recurse | Select-Object -First 1
+          $ffprobe = Get-ChildItem -LiteralPath $tools -Filter ffprobe.exe -Recurse | Select-Object -First 1
+          if (!$ffmpeg -or !$ffprobe) { throw 'Real FFmpeg executables were not found' }
+          "DECUPA_FFMPEG=$($ffmpeg.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "DECUPA_FFPROBE=$($ffprobe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Build and accept native package
         shell: bash
         env:

@@ -128,6 +128,8 @@ def prepare_media(payload, ffmpeg=None, ffprobe=None):
         source = Path(override) if override else Path(shutil.which(name) or '')
         if not source.is_file():
             raise RuntimeError(f'{name} ausente. Forneça um binário estático da arquitetura correta.')
+        if os.name == 'nt' and source.stat().st_size < 1024 * 1024:
+            raise RuntimeError(f'{name} parece ser um atalho do gerenciador de pacotes. Forneça o executável real com --{name}.')
         target = binaries / (name + ('.exe' if os.name == 'nt' else ''))
         shutil.copy2(source, target)
         licenses = payload / 'licenses/ffmpeg'
@@ -229,8 +231,8 @@ def main():
     parser.add_argument('--version', default='2026.10.17')
     parser.add_argument('--python-base', type=Path)
     parser.add_argument('--uv', default=shutil.which('uv'))
-    parser.add_argument('--ffmpeg', type=Path)
-    parser.add_argument('--ffprobe', type=Path)
+    parser.add_argument('--ffmpeg', type=Path, default=os.environ.get('DECUPA_FFMPEG'))
+    parser.add_argument('--ffprobe', type=Path, default=os.environ.get('DECUPA_FFPROBE'))
     parser.add_argument('--runtime-only', action='store_true')
     parser.add_argument('--package-only', action='store_true', help='Reuse prepared runtimes; do not reinstall dependencies')
     args = parser.parse_args()
