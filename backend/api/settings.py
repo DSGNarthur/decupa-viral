@@ -122,6 +122,10 @@ async def get_settings():
 @router.post("/settings", response_model=SettingsResponse)
 async def update_settings(update: SettingsUpdate):
     """Update user settings. Keys are encrypted before saving."""
+    if update.caption_style is not None:
+        from backend.services.caption_service import style_id_known, unknown_style_message
+        if not await style_id_known(update.caption_style):
+            raise HTTPException(status_code=400, detail=unknown_style_message(update.caption_style))
     from backend.core.ai_provider import AIProvider, normalize_base_url
 
     # Validate before touching the DB so a bad value saves nothing.

@@ -642,6 +642,33 @@ def _ass_colour(value: str | None, default: str) -> str:
     return default
 
 
+async def style_id_known(style_id: str | None, *, allow_off: bool = False) -> bool:
+    """True when `style_id` renders as ITSELF: a built-in preset or a saved
+    custom preset (a CaptionStyle row).
+
+    The ASS builder falls back to "viral" for anything else — a deliberate
+    never-crash default at render time, which makes it the WRITERS' job to
+    refuse an unknown id up front. Otherwise a typo, or a preset deleted since
+    the page loaded, is accepted and quietly renders as something the user
+    didn't pick. `allow_off` admits the "no captions" sentinels (CAPTIONS_OFF)
+    on the routes that honour them.
+    """
+    sid = (style_id or "").strip()
+    if not sid:
+        return False
+    if allow_off and captions_disabled(sid):
+        return True
+    if sid in CAPTION_STYLES:
+        return True
+    return await _load_custom_style(sid) is not None
+
+
+def unknown_style_message(style_id: str | None) -> str:
+    built_in = ", ".join(k for k in CAPTION_STYLES if k != "brainrot")
+    return (f"Unknown caption style {style_id!r}. Use a built-in style ({built_in}) "
+            "or the id of a saved custom style (GET /api/captions/styles).")
+
+
 async def _load_custom_style(style_id: str) -> dict | None:
     """Load a custom caption style from the database by ID."""
     try:

@@ -62,6 +62,11 @@ MEDIA_EXTS = VIDEO_EXTS | AUDIO_EXTS
 _CAPTION_STYLE_IDS = tuple(k for k in _CAPTION_STYLE_DEFS if k != "brainrot")
 CaptionStyleId = Literal[_CAPTION_STYLE_IDS]
 
+# Visualizer palettes — derived from the runner's own map, which used to fall
+# back to "sunset" for any name it didn't know while the request said success.
+from backend.core.tool_runners import _VIZ_PALETTES  # noqa: E402
+VizPalette = Literal[tuple(_VIZ_PALETTES)]
+
 
 async def read_upload_capped(file: UploadFile, max_bytes: int,
                              label: str = "File") -> bytes:
@@ -341,7 +346,7 @@ async def translate_tool(
     mode: Literal["captions_only", "full_dub"] = Form("captions_only"),
     voice_id: str = Form(""),
     caption_style: str = Form("viral"),
-    emoji_style: str = Form("moderate"),
+    emoji_style: Literal["none", "minimal", "moderate", "heavy"] = Form("moderate"),
 ):
     """Translate captions (and optionally dub audio) to another language.
 
@@ -354,6 +359,10 @@ async def translate_tool(
         raise HTTPException(400, f"Invalid mode: {mode}")
     if not (target_language or "").strip():
         raise HTTPException(400, "target_language is required")
+    # A str, not CaptionStyleId: saved custom presets are valid here too.
+    from backend.services.caption_service import style_id_known, unknown_style_message
+    if not await style_id_known(caption_style):
+        raise HTTPException(400, unknown_style_message(caption_style))
 
     from backend.agents.job_helper import create_job
     from backend.core.task_runner import dispatch
@@ -559,7 +568,7 @@ _AUDIO_MAX_BYTES = 100 * 1024 * 1024  # 100 MB
 @router.post("/music-visualizer")
 async def music_visualizer_tool(
     style: Literal["waves", "bars", "spectrum"] = Form("waves"),
-    palette: str = Form("sunset"),
+    palette: VizPalette = Form("sunset"),
     aspect: Literal["9:16", "1:1", "16:9"] = Form("9:16"),
     file: UploadFile = File(...),
 ):

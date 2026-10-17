@@ -96,6 +96,9 @@ async def _dispatch_generate(*, source_id, custom_script, **kwargs) -> dict:
 async def generate_stock(body: StockGenerateRequest):
     """Generate a video using Pexels stock footage."""
     await _validate_source(body.source_id)
+    from backend.services.caption_service import style_id_known, unknown_style_message
+    if body.caption_enabled and not await style_id_known(body.caption_style):
+        raise HTTPException(status_code=400, detail=unknown_style_message(body.caption_style))
 
     return await _dispatch_generate(
         source_id=body.source_id,

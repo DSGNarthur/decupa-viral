@@ -681,6 +681,10 @@ async def generate_script_only(video_id: str, body: dict = None):
 async def generate_from_downloaded(video_id: str, body: dict = None):
     """Trigger video generation from a downloaded + analyzed video with optional config."""
     body = body or {}
+    from backend.services.caption_service import style_id_known, unknown_style_message
+    if body.get("caption_style") is not None and body.get("caption_enabled") is not False \
+            and not await style_id_known(body["caption_style"]):
+        raise HTTPException(status_code=400, detail=unknown_style_message(body["caption_style"]))
     async with AsyncSessionLocal() as db:
         result = await db.execute(
             select(DownloadedVideo).where(DownloadedVideo.id == video_id)
@@ -739,6 +743,11 @@ async def batch_generate(body: dict = None):
         raise HTTPException(status_code=400, detail="No items provided")
     if len(items) > 10:
         raise HTTPException(status_code=400, detail="Maximum 10 videos per batch")
+    from backend.services.caption_service import style_id_known, unknown_style_message
+    for settings_ in [shared, *[i for i in items if isinstance(i, dict)]]:
+        cs = (settings_ or {}).get("caption_style")
+        if cs is not None and not await style_id_known(cs):
+            raise HTTPException(status_code=400, detail=unknown_style_message(cs))
 
     # Validate all video IDs exist and filter out missing
     video_ids = [item.get("downloaded_video_id") for item in items if item.get("downloaded_video_id")]
@@ -1029,6 +1038,9 @@ async def extract_clips(video_id: str, body: ExtractClipsRequest | None = None):
         )
 
     caption_style = req.caption_style or "viral"
+    from backend.services.caption_service import style_id_known, unknown_style_message
+    if not await style_id_known(caption_style, allow_off=True):
+        raise HTTPException(status_code=400, detail=unknown_style_message(caption_style))
     whisper_quality = req.whisper_quality or "balanced"
     force_retranscribe = bool(req.force_retranscribe)
     min_duration = req.min_duration
