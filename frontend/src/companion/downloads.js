@@ -1,10 +1,10 @@
-import { pcSession } from './session'
+import { pcSession, pcWorkerReady } from './session'
 
 export async function downloadFromPC(url, preferredName = '') {
   if (!pcSession()) throw new Error('Reconecte o motor antes de baixar.')
   // The worker streams directly to the browser download manager, without
   // retaining multi-GB exports in a Blob in this tab.
-  if (!navigator.serviceWorker.controller?.scriptURL.endsWith('/pc-worker.js')) throw new Error('Atualize a página para ativar os downloads.')
+  if (!pcWorkerReady()) throw new Error('Atualize a página para ativar os downloads.')
   const link = document.createElement('a')
   link.href = url.pathname + url.search
   link.download = preferredName || 'decupa-viral.mp4'

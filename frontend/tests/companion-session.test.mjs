@@ -6,9 +6,9 @@ const memory = () => { const map = new Map(); return { getItem: key => map.get(k
 async function setup() {
   globalThis.localStorage = memory()
   globalThis.sessionStorage = memory()
-  globalThis.location = { hash: '', pathname: '/', search: '' }
+  globalThis.location = { origin:'https://decupa-viral.vercel.app', hash: '', pathname: '/', search: '' }
   globalThis.history = { replaceState() {} }
-  const worker = { scriptURL: 'https://decupa-viral.vercel.app/pc-worker.js' }
+  const worker = { scriptURL: 'https://decupa-viral.vercel.app/pc-worker.js?runtime=native-v2' }
   Object.defineProperty(globalThis, 'navigator', { configurable: true, value: {
     permissions: { query: async () => ({ state:'granted' }) },
     serviceWorker: { controller: worker, ready: Promise.resolve(), register: async () => ({}), addEventListener() {} },
@@ -57,4 +57,12 @@ test('download bridge streams upstream body instead of buffering the whole file'
   const download = await readFile(new URL('../src/companion/downloads.js',import.meta.url),'utf8')
   assert.match(worker,/new Response\(upstream.body/)
   assert.doesNotMatch(download,/\.blob\(|arrayBuffer\(/)
+})
+
+test('an older browser-only worker cannot be mistaken for the native bridge', async () => {
+  const module = await setup()
+  navigator.serviceWorker.controller.scriptURL = 'https://decupa-viral.vercel.app/pc-worker.js'
+  assert.equal(module.pcWorkerReady(),false)
+  navigator.serviceWorker.controller.scriptURL += '?runtime=native-v2'
+  assert.equal(module.pcWorkerReady(),true)
 })

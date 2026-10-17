@@ -4,6 +4,13 @@ let listening = false
 let pending = null
 export const pcSession = () => session
 
+export function pcWorkerReady() {
+  const script = navigator.serviceWorker.controller?.scriptURL
+  if (!script) return false
+  const url = new URL(script)
+  return url.origin === location.origin && url.pathname === '/pc-worker.js' && url.searchParams.get('runtime') === 'native-v2'
+}
+
 export async function loopbackPermission() {
   try { return (await navigator.permissions.query({ name: 'loopback-network' })).state }
   catch { return 'unknown' } // Never query the legacy alias, which crashes older Chrome versions.
@@ -47,11 +54,11 @@ async function connect({ interactive = false } = {}) {
       })
       listening = true
     }
-    await navigator.serviceWorker.register('/pc-worker.js', { scope: '/' })
+    await navigator.serviceWorker.register('/pc-worker.js?runtime=native-v2', { scope: '/' })
     await navigator.serviceWorker.ready
-    if (!navigator.serviceWorker.controller?.scriptURL.endsWith('/pc-worker.js')) await new Promise((resolve, reject) => {
+    if (!pcWorkerReady()) await new Promise((resolve, reject) => {
       const changed = () => {
-        if (!navigator.serviceWorker.controller?.scriptURL.endsWith('/pc-worker.js')) return
+        if (!pcWorkerReady()) return
         clearTimeout(timer)
         navigator.serviceWorker.removeEventListener('controllerchange', changed)
         resolve()
