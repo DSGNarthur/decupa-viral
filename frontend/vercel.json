@@ -33,7 +33,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!api/|assets/|engine/|media-worker\\.js|pc-worker\\.js|source-code\\.zip|LICENSE\\.txt|decupa-logo\\.png|decupa-icon\\.svg|manifest\\.json).*)",
+      "source": "/((?!api/|_pc-download/|assets/|engine/|media-worker\\.js|pc-worker\\.js|source-code\\.zip|LICENSE\\.txt|decupa-logo\\.png|decupa-icon\\.svg|manifest\\.json).*)",
       "destination": "/index.html"
     }
   ]

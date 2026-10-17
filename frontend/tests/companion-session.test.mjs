@@ -8,7 +8,7 @@ async function setup() {
   globalThis.sessionStorage = memory()
   globalThis.location = { origin:'https://decupa-viral.vercel.app', hash: '', pathname: '/', search: '' }
   globalThis.history = { replaceState() {} }
-  const worker = { scriptURL: 'https://decupa-viral.vercel.app/pc-worker.js?runtime=native-v2' }
+  const worker = { scriptURL: 'https://decupa-viral.vercel.app/pc-worker.js?runtime=native-v3' }
   Object.defineProperty(globalThis, 'navigator', { configurable: true, value: {
     permissions: { query: async () => ({ state:'granted' }) },
     serviceWorker: { controller: worker, ready: Promise.resolve(), register: async () => ({}), addEventListener() {} },
@@ -52,6 +52,23 @@ test('a denied local-network permission makes no request and leaves no capabilit
   assert.equal(module.pcSession(),null)
 })
 
+test('connection loss notifies the editor without deleting its capability and recovery clears the warning', async () => {
+  const module = await setup()
+  localStorage.setItem('decupa-pc-enabled', 'true')
+  globalThis.fetch = async url => new Response(JSON.stringify(url.endsWith('/connect') ? {token:'a'.repeat(43)} : {runtime:'pc'}))
+  const states = []
+  const unsubscribe = module.subscribePCConnection(() => states.push(module.pcConnectionState()))
+  await module.prepareCompanion()
+  module.reportPCConnection(false)
+  module.reportPCConnection(false)
+  assert.equal(module.pcSession().token, 'a'.repeat(43))
+  await module.prepareCompanion({interactive:true})
+  assert.deepEqual(states, [true, false, true])
+  unsubscribe()
+  module.reportPCConnection(false)
+  assert.deepEqual(states, [true, false, true])
+})
+
 test('download bridge streams upstream body instead of buffering the whole file', async () => {
   const worker = await readFile(new URL('../public/pc-worker.js',import.meta.url),'utf8')
   const download = await readFile(new URL('../src/companion/downloads.js',import.meta.url),'utf8')
@@ -63,6 +80,6 @@ test('an older browser-only worker cannot be mistaken for the native bridge', as
   const module = await setup()
   navigator.serviceWorker.controller.scriptURL = 'https://decupa-viral.vercel.app/pc-worker.js'
   assert.equal(module.pcWorkerReady(),false)
-  navigator.serviceWorker.controller.scriptURL += '?runtime=native-v2'
+  navigator.serviceWorker.controller.scriptURL += '?runtime=native-v3'
   assert.equal(module.pcWorkerReady(),true)
 })

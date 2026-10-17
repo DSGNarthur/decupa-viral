@@ -1,5 +1,5 @@
 import axios from "axios"
-import { pcSession, prepareCompanion } from '../companion/session'
+import { pcSession, prepareCompanion, reportPCConnection } from '../companion/session'
 
 const http = axios.create({
   baseURL: window.location.origin,  // works for both dev (localhost:16888) and packaged Electron app
@@ -32,8 +32,12 @@ if (import.meta.env.VITE_BROWSER_RUNTIME === 'true') {
 }
 
 http.interceptors.response.use(
-  res => res,
+  res => {
+    if (import.meta.env.VITE_COMPANION_RUNTIME === 'true') reportPCConnection(true)
+    return res
+  },
   async err => {
+    if (import.meta.env.VITE_COMPANION_RUNTIME === 'true' && err.code === 'ERR_NETWORK') reportPCConnection(false)
     if (import.meta.env.VITE_COMPANION_RUNTIME === 'true' && err.response?.status === 401 && !err.config?._pcRetried) {
       if (await prepareCompanion()) return http({ ...err.config, _pcRetried: true })
     }

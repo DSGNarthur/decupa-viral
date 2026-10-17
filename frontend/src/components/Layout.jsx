@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react"
 import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom"
 import useWebSocket from "../hooks/useWebSocket"
 import useJobs from "../hooks/useJobs"
 import http from "../api/http"
 import { interceptPCDownloads } from '../companion/downloads'
+import { pcConnectionState, prepareCompanion, subscribePCConnection } from '../companion/session'
 import ActivityPanel from "./librarynext/ActivityPanel"
 import { activityFromJob } from "./librarynext/assetModel"
 import {
@@ -54,6 +55,14 @@ const bottomItems = [
 ]
 
 export default function Layout() {
+  const pcConnected = useSyncExternalStore(subscribePCConnection, pcConnectionState)
+  const [reconnecting, setReconnecting] = useState(false)
+  const reconnectPC = async () => {
+    setReconnecting(true)
+    try { await prepareCompanion({ interactive: true }) }
+    catch (error) { useAppStore.getState().showSnackbar(error.message, 'error') }
+    finally { setReconnecting(false) }
+  }
   const openVercel = async () => {
     try {
       const { data } = await http.post('/api/companion/link')
@@ -305,8 +314,8 @@ export default function Layout() {
           <Tooltip title={theme.palette.mode === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}><IconButton aria-label={theme.palette.mode === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'} onClick={() => { localStorage.setItem('decupa-theme', theme.palette.mode === 'dark' ? 'light' : 'dark'); window.dispatchEvent(new Event('decupa-theme-change')) }}>{theme.palette.mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}</IconButton></Tooltip>
         </Box>
         {import.meta.env.VITE_BROWSER_RUNTIME === 'true' && <Alert severity="info" sx={{ borderRadius: 0 }}>Seus arquivos ficam neste navegador. Importe um vídeo para começar. Mantenha a página aberta durante o processamento.</Alert>}
-        {import.meta.env.VITE_BROWSER_RUNTIME !== 'true' && <Alert severity="info" sx={{ borderRadius: 0 }} action={import.meta.env.VITE_COMPANION_RUNTIME !== 'true' ? <Button color="inherit" size="small" onClick={openVercel}>Abrir na Vercel</Button> : undefined}>
-          {import.meta.env.VITE_COMPANION_RUNTIME === 'true' ? 'Conectado ao processador deste PC. Os motores originais e os arquivos estão no computador. Mantenha o PC ligado.' : 'Processamento completo neste PC. Abra na Vercel para usar a mesma biblioteca e os mesmos motores neste computador.'}
+        {import.meta.env.VITE_BROWSER_RUNTIME !== 'true' && <Alert severity={import.meta.env.VITE_COMPANION_RUNTIME === 'true' && !pcConnected ? 'warning' : 'info'} sx={{ borderRadius: 0 }} action={import.meta.env.VITE_COMPANION_RUNTIME !== 'true' ? <Button color="inherit" size="small" onClick={openVercel}>Abrir na Vercel</Button> : !pcConnected ? <Button color="inherit" size="small" disabled={reconnecting} onClick={reconnectPC}>{reconnecting ? 'Conectando...' : 'Reconectar'}</Button> : undefined}>
+          {import.meta.env.VITE_COMPANION_RUNTIME === 'true' ? pcConnected ? 'Conectado ao processador deste PC. Os motores originais e os arquivos estão no computador. Mantenha o PC ligado.' : 'O motor local não respondeu. Mantenha esta página aberta para preservar as alterações pendentes, inicie o motor e reconecte antes de salvar.' : 'Processamento completo neste PC. Abra na Vercel para usar a mesma biblioteca e os mesmos motores neste computador.'}
         </Alert>}
         {/* Mobile top bar with hamburger */}
         {isNarrow && (

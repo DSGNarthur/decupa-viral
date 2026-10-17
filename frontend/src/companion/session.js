@@ -3,12 +3,24 @@ let session = null
 let listening = false
 let pending = null
 export const pcSession = () => session
+let connected = false
+const connectionListeners = new Set()
+export const pcConnectionState = () => connected
+export function subscribePCConnection(listener) {
+  connectionListeners.add(listener)
+  return () => connectionListeners.delete(listener)
+}
+export function reportPCConnection(value) {
+  if (connected === value) return
+  connected = value
+  connectionListeners.forEach(listener => listener())
+}
 
 export function pcWorkerReady() {
   const script = navigator.serviceWorker.controller?.scriptURL
   if (!script) return false
   const url = new URL(script)
-  return url.origin === location.origin && url.pathname === '/pc-worker.js' && url.searchParams.get('runtime') === 'native-v2'
+  return url.origin === location.origin && url.pathname === '/pc-worker.js' && url.searchParams.get('runtime') === 'native-v3'
 }
 
 export async function loopbackPermission() {
@@ -54,7 +66,7 @@ async function connect({ interactive = false } = {}) {
       })
       listening = true
     }
-    await navigator.serviceWorker.register('/pc-worker.js?runtime=native-v2', { scope: '/' })
+    await navigator.serviceWorker.register('/pc-worker.js?runtime=native-v3', { scope: '/' })
     await navigator.serviceWorker.ready
     if (!pcWorkerReady()) await new Promise((resolve, reject) => {
       const changed = () => {
@@ -73,9 +85,11 @@ async function connect({ interactive = false } = {}) {
     sessionStorage.setItem('decupa-pc-connected', 'true')
     sessionStorage.removeItem('decupa-pc-token')
     localStorage.setItem('decupa-pc-enabled', 'true')
+    reportPCConnection(true)
     return true
   } catch (error) {
     session = null
+    reportPCConnection(false)
     sessionStorage.removeItem('decupa-pc-connected')
     const message = error.name === 'TimeoutError'
       ? 'O motor não respondeu. Use Iniciar motor e tente conectar novamente.'
