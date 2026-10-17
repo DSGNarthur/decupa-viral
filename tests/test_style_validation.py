@@ -174,3 +174,19 @@ def test_visualizer_palettes_are_the_runners_own():
     from backend.api.tools import VizPalette
     from backend.core.tool_runners import _VIZ_PALETTES
     assert set(typing.get_args(VizPalette)) == set(_VIZ_PALETTES)
+
+
+def test_a_db_failure_never_reports_a_real_preset_as_unknown(monkeypatch):
+    """Refusing a valid preset with "unknown style" because the lookup itself
+    failed would send the user after the wrong cause."""
+    import backend.database as database
+
+    class _Broken:
+        async def __aenter__(self):
+            raise RuntimeError("database is locked")
+
+        async def __aexit__(self, *a):
+            return False
+
+    monkeypatch.setattr(database, "AsyncSessionLocal", lambda: _Broken())
+    assert asyncio.run(style_id_known("some-saved-preset-id"))

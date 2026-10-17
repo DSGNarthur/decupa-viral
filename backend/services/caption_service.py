@@ -660,7 +660,18 @@ async def style_id_known(style_id: str | None, *, allow_off: bool = False) -> bo
         return True
     if sid in CAPTION_STYLES:
         return True
-    return await _load_custom_style(sid) is not None
+    try:
+        from sqlalchemy import select
+        from backend.database import AsyncSessionLocal
+        from backend.models.caption_style import CaptionStyle
+        async with AsyncSessionLocal() as db:
+            row = await db.execute(select(CaptionStyle.id).where(CaptionStyle.id == sid))
+            return row.scalar_one_or_none() is not None
+    except Exception:  # noqa: BLE001
+        # A DB hiccup must not reject a real preset with "unknown style" — the
+        # renderer still falls back safely if it really is gone.
+        logger.warning("caption style lookup failed for %r", sid, exc_info=True)
+        return True
 
 
 def unknown_style_message(style_id: str | None) -> str:
