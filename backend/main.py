@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # Copyright (c) 2025-2026 ViralMint Contributors
 """FastAPI application factory."""
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 from urllib.parse import urlparse
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,10 +14,15 @@ from backend.core.logging_config import setup_logging
 from backend.core import plugins
 from backend.database import init_db
 
-from backend.api import captions, channels, chat, chat_sessions, config as config_router, downloaded, generate, jobs, library, media, messaging as messaging_router, news, scout, settings as settings_router, templates, tools, tts_preview, videos
+from backend.api import captions, channels, chat, chat_sessions, config as config_router, downloaded, generate, jobs, library, mcp_settings, media, messaging as messaging_router, news, scout, settings as settings_router, templates, tools, tts_preview, videos
 
 # Initialize logging before anything else
 setup_logging(debug=settings.DEBUG)
+
+# The MCP server's ASGI app, built in create_app() and read by the lifespan so
+# its session manager starts with ours. None when fastmcp is unavailable or the
+# build failed — the rest of the backend runs without it.
+_mcp_asgi_app = None
 
 
 async def _watch_handoff_jobs(poll_seconds: int = 60, watch_ids=None):
@@ -233,7 +238,20 @@ async def lifespan(app: FastAPI):
         import logging
         logging.getLogger(__name__).warning(f"Messaging startup failed: {e}")
 
-    yield
+    # Enter the MCP sub-app's lifespan: Starlette doesn't forward lifespan
+    # events to mounted apps, and without its session manager running every
+    # MCP request fails with "Session terminated".
+    async with AsyncExitStack() as stack:
+        if _mcp_asgi_app is not None:
+            await stack.enter_async_context(
+                _mcp_asgi_app.router.lifespan_context(app))
+        yield
+
+    try:
+        from backend.mcp.client import close_self_client
+        await close_self_client()
+    except Exception:
+        pass
 
     # Cleanup on shutdown
     try:
@@ -326,6 +344,7 @@ def create_app() -> FastAPI:
     app.include_router(library.router, prefix="/api")
     app.include_router(messaging_router.router, prefix="/api")
     app.include_router(tts_preview.router, prefix="/api")
+    app.include_router(mcp_settings.router, prefix="/api")
 
     # Load proprietary overlay (no-op if not installed) and register plugin routers.
     # See docs/OVERLAY.md for the contract.
@@ -335,6 +354,14 @@ def create_app() -> FastAPI:
         logging.getLogger(__name__).info(f"Loaded overlay package: {overlay}")
     for plugin_router in plugins.get_routers():
         app.include_router(plugin_router, prefix="/api")
+
+    # MCP server at /mcp — mounted BEFORE the SPA catch-all below, or /mcp
+    # would fall through to it and answer index.html. See backend/mcp/server.py.
+    global _mcp_asgi_app
+    from backend.mcp.server import build_mcp_asgi_app
+    _mcp_asgi_app = build_mcp_asgi_app()
+    if _mcp_asgi_app is not None:
+        app.mount("/mcp", _mcp_asgi_app)
 
     # Serve built frontend (production) — SPA with catch-all fallback.
     # In packaged builds the frontend lives inside the bundle (read-only) at

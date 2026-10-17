@@ -24,6 +24,7 @@ from PyInstaller.utils.hooks import (
     collect_all,
     collect_data_files,
     collect_submodules,
+    copy_metadata,
 )
 
 PROJECT_ROOT = os.path.abspath(os.path.join(SPECPATH, "..", ".."))
@@ -54,6 +55,18 @@ for pkg in ("neonize", "google.protobuf"):
         hiddenimports += h
     except Exception as exc:
         print(f"WARN: collect_all({pkg!r}) failed — {pkg} may not work in packaged build: {exc}")
+
+# fastmcp + mcp (the /mcp server) both call `importlib.metadata.version(...)`
+# at import time. PyInstaller doesn't bundle .dist-info METADATA by default, so
+# without copy_metadata the import dies inside the frozen app with
+# PackageNotFoundError and the MCP server silently fails to mount.
+# collect_submodules covers anything fastmcp imports lazily.
+for meta_pkg in ("fastmcp", "mcp"):
+    try:
+        datas += copy_metadata(meta_pkg)
+        hiddenimports += collect_submodules(meta_pkg)
+    except Exception as exc:
+        print(f"WARN: copy_metadata/collect_submodules({meta_pkg!r}) failed — the MCP server will not start in the packaged build: {exc}")
 
 # imageio_ffmpeg bundles a static ffmpeg per platform. It is a DIRECT
 # requirement (requirements.txt) — it used to arrive via moviepy, which was

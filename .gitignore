@@ -15,6 +15,9 @@ venv/
 viralmint.db
 viralmint.db-wal
 viralmint.db-shm
+# MCP Bearer token — written into the data dir, which is the repo root when
+# running from source. A credential: never commit it.
+mcp_token
 
 # Storage
 storage/
