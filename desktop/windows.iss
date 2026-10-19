@@ -32,14 +32,10 @@ RestartApplications=no
 [Languages]
 Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 
-[Tasks]
-Name: "autostart"; Description: "Iniciar o motor em segundo plano ao entrar no Windows"
-
 [Files]
 Source: "{#Payload}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Registry]
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "DecupaViral"; ValueData: """{app}\python\pythonw.exe"" ""{app}\app\desktop\runtime.py"" --background"; Tasks: autostart; Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Classes\decupaviral"; ValueType: string; ValueData: "URL:Decupa Viral"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\decupaviral"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
 Root: HKCU; Subkey: "Software\Classes\decupaviral\shell\open\command"; ValueType: string; ValueData: """{app}\python\pythonw.exe"" ""{app}\app\desktop\runtime.py"" --background --protocol ""%1"""

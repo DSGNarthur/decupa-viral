@@ -42,7 +42,7 @@ def desktop_quote(value):
     return '"' + str(value).replace('\\', '\\\\').replace('"', '\\"').replace('`', '\\`').replace('$', '\\$').replace('%', '%%') + '"'
 
 
-def install(source, destination=None, autostart=True, start=True, browser=True, register=True):
+def install(source, destination=None, autostart=False, start=True, browser=True, register=True):
     system = platform.system()
     home = Path.home()
     if destination:
@@ -146,9 +146,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Instalar o motor Decupa Viral neste usuário')
     parser.add_argument('--source', type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument('--destination', type=Path)
-    parser.add_argument('--no-autostart', action='store_true')
+    parser.add_argument('--autostart', action='store_true', help='Iniciar o motor ao entrar no sistema')
     parser.add_argument('--no-start', action='store_true')
     parser.add_argument('--no-browser', action='store_true')
     parser.add_argument('--no-register', action='store_true', help='Isolated acceptance test only; no protocol or autostart registration')
     args = parser.parse_args()
-    install(args.source, args.destination, not args.no_autostart, not args.no_start, not args.no_browser, not args.no_register)
+    install(args.source, args.destination, args.autostart, not args.no_start, not args.no_browser, not args.no_register)

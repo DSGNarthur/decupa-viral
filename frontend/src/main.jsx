@@ -5,6 +5,7 @@ import App from "./App"
 import ThemeWrapper from "./ThemeWrapper"
 import CompanionConnect from './pages/CompanionConnect'
 import { prepareCompanion } from './companion/session'
+import { connectWhileEngineStarts, requestLocalEngineStart } from './companion/start'
 import { installTranslationGuard } from "./utils/translationGuard"
 import './browser/fonts.css'
 
@@ -24,11 +25,17 @@ installTranslationGuard()
 
 const root = ReactDOM.createRoot(document.getElementById('root'))
 
-async function start({ interactive = false } = {}) {
+async function start({ interactive = false, launchEngine = false } = {}) {
+  // Must run synchronously within the trusted click that opens the local app.
+  if (launchEngine) requestLocalEngineStart()
   let connected = true, companionError = ''
   if (import.meta.env.VITE_COMPANION_RUNTIME === 'true') {
     root.render(<ThemeWrapper><CssBaseline /><p role="status" style={{ padding: 32 }}>Conectando ao processador deste PC. Permita o acesso à rede local se o navegador solicitar.</p></ThemeWrapper>)
-    try { connected = await prepareCompanion({ interactive }) }
+    try {
+      connected = launchEngine
+        ? await connectWhileEngineStarts(() => prepareCompanion({ interactive }))
+        : await prepareCompanion({ interactive })
+    }
     catch (error) { connected = false; companionError = error.message }
   }
   if (import.meta.env.VITE_BROWSER_RUNTIME === 'true') {
@@ -44,7 +51,7 @@ async function start({ interactive = false } = {}) {
   <React.StrictMode>
     <ThemeWrapper>
       <CssBaseline />
-      {connected ? <App /> : <CompanionConnect error={companionError} onConnect={() => start({ interactive: true })} />}
+      {connected ? <App /> : <CompanionConnect error={companionError} onStart={() => start({ interactive: true, launchEngine: true })} />}
     </ThemeWrapper>
   </React.StrictMode>
 )

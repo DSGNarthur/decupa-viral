@@ -1,6 +1,6 @@
 # Instalação do Decupa Viral
 
-O site é [decupa-viral.vercel.app](https://decupa-viral.vercel.app). O motor roda no computador de cada pessoa. Não utiliza AWS. Depois da primeira instalação e da permissão de acesso local do navegador, o motor pode iniciar com sua sessão do sistema e o site pode se reconectar automaticamente.
+O site é [decupa-viral.vercel.app](https://decupa-viral.vercel.app). O motor roda no computador de cada pessoa. Não utiliza AWS. Ele não inicia com o Windows, macOS ou Linux. Depois da instalação, use "Iniciar e conectar" no site para abrir o motor local e conectar. O navegador pode pedir confirmação para abrir o aplicativo e permitir acesso local.
 
 Os pacotes ficam em [Releases](https://github.com/DSGNarthur/decupa-viral/releases). Consulte as evidências e as pendências da versão antes de instalar. Um script de compilação não comprova que o pacote foi testado no seu sistema.
 
@@ -9,8 +9,8 @@ A versão `2026.10.17.2` inclui instalador Windows e pacotes para Mac Apple Sili
 ## Windows 10 e 11, 64 bits
 
 1. Baixe `Decupa-Windows-Setup.exe` da versão `2026.10.17.2` e execute no seu usuário. Ele inclui Python, Node.js, FFmpeg, FFprobe e as dependências do motor.
-2. Mantenha a opção de iniciar com o Windows se quiser usar apenas o site nas próximas visitas.
-3. Abra o site, clique em Conectar e permita o acesso aos aplicativos deste computador ou à rede local quando o navegador solicitar.
+2. O instalador não configura início automático.
+3. Abra o site e clique em "Iniciar e conectar". Confirme a abertura do Decupa e permita o acesso aos aplicativos deste computador ou à rede local quando o navegador solicitar.
 
 A alternativa portátil é `Decupa-Windows-x64.zip`. Extraia todo o ZIP e execute `payload/Instalar.cmd`. Ele verifica os arquivos e copia o motor para `%LOCALAPPDATA%/Programs/Decupa Viral`. Não é necessário instalar Python ou Node globalmente.
 
@@ -24,9 +24,9 @@ Há pacotes separados para Apple Silicon (`arm64`, M1 e posteriores) e Intel (`x
 
 1. Baixe o ZIP da arquitetura do seu Mac e extraia todo o conteúdo.
 2. Execute `Instalar.command`, ao lado de `Decupa Viral.app`. Ele usa o Python incluído no pacote, verifica os arquivos e instala o app em `~/Applications`.
-3. Abra o site, conecte e permita o acesso local quando solicitado. A instalação adiciona um LaunchAgent no seu usuário para iniciar o motor nas próximas sessões.
+3. Abra o site e clique em "Iniciar e conectar". Confirme a abertura do Decupa e permita o acesso local quando solicitado. O motor não inicia com a sessão do macOS.
 
-O aplicativo registra `decupaviral://start` para o botão Iniciar motor. Não há assinatura Developer ID nem notarização sem um certificado Apple configurado. O Gatekeeper pode impedir a abertura. Verifique a origem e use apenas as opções de autorização oferecidas pelo próprio macOS. Não remova a quarentena ou desative o Gatekeeper como etapa automática de instalação.
+O aplicativo registra `decupaviral://start` para o botão "Iniciar e conectar". Não há assinatura Developer ID nem notarização sem um certificado Apple configurado. O Gatekeeper pode impedir a abertura. Verifique a origem e use apenas as opções de autorização oferecidas pelo próprio macOS. Não remova a quarentena ou desative o Gatekeeper como etapa automática de instalação.
 
 ## Linux
 
@@ -34,13 +34,13 @@ O pacote inicial é para Linux x86_64, com base de compilação Ubuntu 22.04. Re
 
 1. Baixe `Decupa-Linux-x64.tar.gz` e extraia.
 2. No terminal, dentro da pasta extraída, execute `sh instalar.sh`.
-3. Abra o site, conecte e autorize o acesso local se solicitado.
+3. Abra o site e clique em "Iniciar e conectar". Confirme a abertura do Decupa e autorize o acesso local se solicitado.
 
-A instalação não usa `sudo`. O motor fica em `~/.local/share/decupa-viral/engine`, respeitando `XDG_DATA_HOME` quando definido. O início automático usa `~/.config/autostart/decupa-viral.desktop`, respeitando `XDG_CONFIG_HOME`. O protocolo é registrado via `xdg-mime`, quando disponível. Sessões sem ambiente gráfico não iniciam pelo XDG Autostart; nesse caso, execute o runtime explicitamente ou configure seu próprio serviço de usuário.
+A instalação não usa `sudo`. O motor fica em `~/.local/share/decupa-viral/engine`, respeitando `XDG_DATA_HOME` quando definido. O protocolo é registrado via `xdg-mime`, quando disponível. O motor não inicia com a sessão do Linux.
 
 ## Primeiro uso
 
-O motor deve estar ligado no mesmo computador do navegador. O botão Iniciar motor pode abrir uma confirmação do navegador; páginas da internet não podem executar programas silenciosamente. O site não processa no celular usando o PC desligado.
+O motor deve estar instalado no mesmo computador do navegador. O botão "Iniciar e conectar" abre o aplicativo pelo protocolo registrado na instalação. O navegador pode exigir confirmação para abrir o programa; páginas da internet não podem executá-lo silenciosamente. O site não processa no celular usando o PC desligado.
 
 O supervisor em segundo plano registra quedas do backend e tenta reiniciá-lo até três vezes em dez minutos. Se esse limite for ultrapassado, consulte os logs antes de iniciar novamente. O supervisor não assume nem encerra um serviço externo que ocupe a porta do motor.
 
@@ -66,7 +66,7 @@ Para atualizar, termine os trabalhos, encerre o motor, guarde uma cópia da past
 
 No Windows, o menu Iniciar tem Encerrar motor quando o instalador `.exe` foi usado. A distribuição portátil permite executar `python/python.exe app/desktop/stop.py` dentro da instalação. Esse comando identifica apenas os processos desta instalação e recusa interromper tarefas ativas. No Mac/Linux, use `python/bin/python3 app/desktop/stop.py` dentro da pasta do motor. A opção `--force` interrompe tarefas, portanto use-a apenas se aceitar perder o trabalho em andamento.
 
-Para remover o início automático, desmarque-o numa próxima instalação ou remova apenas a entrada DecupaViral do seu usuário no Windows, o arquivo `~/Library/LaunchAgents/app.decupa.viral.engine.plist` no Mac ou `~/.config/autostart/decupa-viral.desktop` no Linux. Desinstalar o motor não remove a pasta de dados. Apague-a separadamente apenas se quiser excluir seus arquivos e configurações.
+As instalações novas não configuram início automático. Para desativá-lo numa instalação antiga do Windows, remova apenas a entrada `DecupaViral` em `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`. No Mac, remova o arquivo `~/Library/LaunchAgents/app.decupa.viral.engine.plist`; no Linux, remova `~/.config/autostart/decupa-viral.desktop`. Desinstalar o motor não remove a pasta de dados. Apague-a separadamente apenas se quiser excluir seus arquivos e configurações.
 
 ## Código, créditos e diagnóstico
 

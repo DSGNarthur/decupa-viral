@@ -19,7 +19,7 @@ function Test-EnginePort {
 }
 if (Test-EnginePort) { throw 'The engine port is already occupied; no existing process will be stopped.' }
 $arguments = @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-',
-    ('/DIR="' + $target + '"'), '/TASKS="!autostart"',
+    ('/DIR="' + $target + '"'),
     ('/LOG="' + $env:RUNNER_TEMP + '\decupa-setup.log"'))
 $setup = Start-Process -FilePath (Resolve-Path -LiteralPath $Installer).Path -ArgumentList $arguments -PassThru -WindowStyle Hidden
 # Start-Process -Wait waits for descendants too, including the background engine.
@@ -43,6 +43,8 @@ for ($attempt = 0; $attempt -lt 60; $attempt++) {
 if (!$ready) { throw 'The engine installed by Setup did not become ready.' }
 $protocol = (Get-Item -LiteralPath 'HKCU:\Software\Classes\decupaviral\shell\open\command').GetValue('')
 if (!$protocol.Contains($target + '\app\desktop\runtime.py')) { throw 'Setup did not register this installation.' }
+$autostart = (Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -ErrorAction SilentlyContinue).DecupaViral
+if ($autostart) { throw 'Setup unexpectedly registered the engine to start with Windows.' }
 $uninstaller = Join-Path $target 'unins000.exe'
 if (!(Test-Path -LiteralPath $uninstaller)) { throw 'The generated uninstaller is missing.' }
 $uninstall = Start-Process -FilePath $uninstaller -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',

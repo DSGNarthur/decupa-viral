@@ -4,7 +4,7 @@ O Decupa incorpora o documento de edição e a análise de rostos do Supoclip, a
 
 ## Acesso
 
-Instale o motor nativo seguindo [o guia de instalação](INSTALACAO.md). O motor pode iniciar em segundo plano com a sessão do sistema. Abra [o site](https://decupa-viral.vercel.app), clique em Conectar e permita o acesso local do navegador na primeira conexão. A interface local fica em `http://localhost:16889`. O PC deve continuar ligado durante processamento. Acesso independente por celular não está incluído.
+Instale o motor nativo seguindo [o guia de instalação](INSTALACAO.md). Ele não inicia com a sessão do sistema. Abra [o site](https://decupa-viral.vercel.app), clique em "Iniciar e conectar" e permita a abertura do aplicativo e o acesso local do navegador. A interface local fica em `http://localhost:16889`. O PC deve continuar ligado durante processamento. Acesso independente por celular não está incluído.
 
 O checkout ativo desta integração está em `C:/Users/arthu/Documents/ChatGPT/Editor/Decupa-ViralMint`. O disco E: não estava disponível durante a retomada. A base foi restaurada a partir do pacote correspondente da publicação anterior, com SHA-256 conferido. O Decupa antigo não foi alterado.
 
