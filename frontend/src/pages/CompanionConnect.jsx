@@ -22,7 +22,7 @@ export default function CompanionConnect({ error, onStart }) {
           </Stack>
           <Typography>Abra o motor por este botão. O navegador pode pedir confirmação para iniciar o aplicativo e permitir o acesso local na primeira conexão.</Typography>
           <Button onClick={onStart} variant="contained" startIcon={<PowerSettingsNew />}>Iniciar e conectar</Button>
-          {permission === 'granted' && <Alert severity="success">O navegador permite o acesso ao motor local.</Alert>}
+          {permission === 'granted' && <Alert severity="info">A permissão do navegador está liberada. O motor local ainda não está conectado.</Alert>}
           {permission === 'denied' && <Alert severity="warning">Permita o acesso à rede local nas configurações deste site e conecte novamente.</Alert>}
         </Stack>
       </Paper>
